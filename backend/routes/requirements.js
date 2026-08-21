@@ -1,0 +1,58 @@
+const express = require('express');
+const router = express.Router();
+const Requirement = require('../models/Requirement');
+const { protect } = require('../middleware/auth');
+
+// @GET /api/requirements
+router.get('/', async (req, res) => {
+  try {
+    const { district, type, status = 'open', page = 1, limit = 10 } = req.query;
+    const query = { status };
+    if (district) query.district = district;
+    if (type) query.requirementType = type;
+
+    const skip = (page - 1) * limit;
+    const [requirements, total] = await Promise.all([
+      Requirement.find(query)
+        .populate('postedBy', 'name district village rating')
+        .sort({ isUrgent: -1, createdAt: -1 })
+        .skip(skip).limit(Number(limit)),
+      Requirement.countDocuments(query)
+    ]);
+    res.json({ success: true, total, pages: Math.ceil(total / limit), data: requirements });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// @POST /api/requirements
+router.post('/', protect, async (req, res) => {
+  try {
+    req.body.postedBy = req.user.id;
+    req.body.district = req.body.district || req.user.district;
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 14);
+    req.body.expiresAt = expiresAt;
+    const requirement = await Requirement.create(req.body);
+    res.status(201).json({ success: true, data: requirement });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// @POST /api/requirements/:id/respond
+router.post('/:id/respond', protect, async (req, res) => {
+  try {
+    const { message, offeredPrice } = req.body;
+    const requirement = await Requirement.findByIdAndUpdate(
+      req.params.id,
+      { $push: { responses: { respondent: req.user.id, message, offeredPrice } } },
+      { new: true }
+    ).populate('postedBy', 'name phone');
+    res.json({ success: true, data: requirement });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+module.exports = router;
