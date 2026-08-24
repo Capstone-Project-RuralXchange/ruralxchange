@@ -76,6 +76,11 @@ export default function BookingPage() {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         specialRequirements: notes,
+        purpose: notes || 'General agricultural work',
+        location: {
+          district: user?.district || 'Bengaluru Urban',
+          village: user?.village || ''
+        },
         ...(equipment && { equipmentId: equipment._id }),
         ...(isSpecialistOnly ? { specialistId: specialist._id } : {}),
         ...(isBundle && selectedSpecialist ? { specialistId: selectedSpecialist } : {}),
