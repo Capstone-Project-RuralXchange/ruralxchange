@@ -21,7 +21,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const result = await login(form.phone, form.password);
+    const result = await login(form.phone.trim(), form.password);
     setLoading(false);
     if (result.success) {
       navigate(from, { replace: true });

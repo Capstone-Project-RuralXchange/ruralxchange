@@ -30,6 +30,8 @@ export default function ListEquipmentPage() {
     try {
       const payload = {
         ...form,
+        title: form.title.trim(),
+        description: form.description.trim(),
         features: form.features ? form.features.split(',').map(s => s.trim()).filter(Boolean) : [],
         yearOfManufacture: form.yearOfManufacture ? Number(form.yearOfManufacture) : undefined,
         pricePerDay: Number(form.pricePerDay),

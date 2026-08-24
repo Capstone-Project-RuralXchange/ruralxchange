@@ -58,8 +58,8 @@ export default function BookingPage() {
 
   const equipmentCost = equipment && days > 0 ? equipment.pricePerDay * days : 0;
   const specialistCost = (isBundle && selectedSpecialist && availableSpecialists.find(s => s._id === selectedSpecialist))
-    ? (availableSpecialists.find(s => s._id === selectedSpecialist)?.dailyRate || 800) * days
-    : isSpecialistOnly && specialist && days > 0 ? (specialist.dailyRate || 800) * days : 0;
+    ? (availableSpecialists.find(s => s._id === selectedSpecialist)?.pricePerDay || 800) * days
+    : isSpecialistOnly && specialist && days > 0 ? (specialist.pricePerDay || 800) * days : 0;
   const totalBeforeFee = equipmentCost + specialistCost;
   const platformFee = Math.round(totalBeforeFee * 0.05);
   const totalCost = totalBeforeFee + platformFee;
@@ -75,10 +75,10 @@ export default function BookingPage() {
         bookingType: isBundle ? 'bundle' : isSpecialistOnly ? 'specialist_only' : 'equipment_only',
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        notes,
-        ...(equipment && { equipment: equipment._id }),
-        ...(isSpecialistOnly ? { specialist: specialist._id } : {}),
-        ...(isBundle && selectedSpecialist ? { specialist: selectedSpecialist } : {}),
+        specialRequirements: notes,
+        ...(equipment && { equipmentId: equipment._id }),
+        ...(isSpecialistOnly ? { specialistId: specialist._id } : {}),
+        ...(isBundle && selectedSpecialist ? { specialistId: selectedSpecialist } : {}),
       };
       await bookingAPI.create(payload);
       toast.success(t('Booking confirmed! 🎉'));
@@ -134,7 +134,7 @@ export default function BookingPage() {
                   </div>
                   <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
                     <p style={{ fontWeight: 800, color: 'var(--terracotta)', fontSize: '1.1rem' }}>
-                      {formatCurrency(isSpecialistOnly ? specialist.dailyRate || 800 : equipment.pricePerDay)}/{t("day")}
+                      {formatCurrency(isSpecialistOnly ? specialist.pricePerDay || 800 : equipment.pricePerDay)}/{t("day")}
                     </p>
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export default function BookingPage() {
                           <p style={{ fontWeight: 700, color: 'var(--soil)', fontSize: '0.9rem' }}>{sp.user?.name}</p>
                           <p style={{ fontSize: '0.78rem', color: 'var(--clay)' }}>{t(sp.specialization)} · ⭐ {sp.rating?.average?.toFixed(1) || t('New')}</p>
                         </div>
-                        <p style={{ fontWeight: 700, color: 'var(--terracotta)', fontSize: '0.9rem' }}>{formatCurrency(sp.dailyRate || 800)}/{t("day")}</p>
+                        <p style={{ fontWeight: 700, color: 'var(--terracotta)', fontSize: '0.9rem' }}>{formatCurrency(sp.pricePerDay || 800)}/{t("day")}</p>
                         {selectedSpecialist === sp._id && <FiCheckCircle color="var(--leaf)" size={20} />}
                       </div>
                     ))}

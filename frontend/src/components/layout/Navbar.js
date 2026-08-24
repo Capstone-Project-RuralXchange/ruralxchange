@@ -155,10 +155,10 @@ const Navbar = () => {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'white', fontWeight: 700, fontSize: '0.85rem'
                 }}>
-                  {user.name.charAt(0).toUpperCase()}
+                  {(user?.name || 'U').charAt(0).toUpperCase()}
                 </div>
                 <span style={{ fontWeight: 600, color: 'var(--soil)', fontSize: '0.875rem' }}>
-                  {user.name.split(' ')[0]}
+                  {(user?.name || 'User').split(' ')[0]}
                 </span>
               </button>
 
@@ -171,8 +171,8 @@ const Navbar = () => {
                   animation: 'scaleIn 0.15s ease'
                 }}>
                   <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ fontWeight: 700, color: 'var(--soil)', fontSize: '0.9rem' }}>{user.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>{user.district} · {user.role}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--soil)', fontSize: '0.9rem' }}>{user?.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>{user?.district} · {user?.role}</div>
                   </div>
                   {[
                     { to: '/dashboard', icon: <FiGrid />, label: 'Dashboard' },

@@ -137,10 +137,10 @@ export default function DashboardPage() {
       <div className="container" style={{ paddingTop: '2rem' }}>
         {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <StatCard icon={FiCalendar} label={t("Total Bookings")} value={stats?.totalBookings || 0} sub={t("All time")} color="var(--terracotta)" />
-          <StatCard icon={FiCheckCircle} label={t("Completed")} value={stats?.completedBookings || 0} sub={t("Successfully done")} color="var(--leaf)" />
-          <StatCard icon={FiDollarSign} label={t("Total Earnings")} value={formatCurrency(stats?.totalEarnings || 0)} sub={t("Net amount")} color="#7c3aed" />
-          <StatCard icon={FiStar} label={t("Avg Rating")} value={stats?.rating ? Number(stats.rating).toFixed(1) : 'No ratings'} sub={t("From users")} color="#E8A020" />
+          <StatCard icon={FiCalendar} label={t("Total Bookings")} value={stats?.stats?.totalBookingsMade || 0} sub={t("All time")} color="var(--terracotta)" />
+          <StatCard icon={FiCheckCircle} label={t("Completed")} value={stats?.stats?.completedBookings || 0} sub={t("Successfully done")} color="var(--leaf)" />
+          <StatCard icon={FiDollarSign} label={t("Total Earnings")} value={formatCurrency(stats?.stats?.totalEarnings || 0)} sub={t("Net amount")} color="#7c3aed" />
+          <StatCard icon={FiStar} label={t("Avg Rating")} value={stats?.user?.rating?.average != null ? Number(stats.user.rating.average).toFixed(1) : 'No ratings'} sub={t("From users")} color="#E8A020" />
         </div>
 
         {/* Tabs */}
@@ -182,7 +182,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <span style={{ background: cfg.bg, color: cfg.color, padding: '2px 8px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>{t(cfg.label)}</span>
-                        <p style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--soil)', textAlign: 'right', marginTop: 2 }}>{formatCurrency(booking.totalCost)}</p>
+                        <p style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--soil)', textAlign: 'right', marginTop: 2 }}>{formatCurrency(booking.pricing?.totalAmount || 0)}</p>
                       </div>
                     </div>
                   );
@@ -254,7 +254,7 @@ export default function DashboardPage() {
                           </p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '1.1rem' }}>{formatCurrency(booking.totalCost)}</p>
+                          <p style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '1.1rem' }}>{formatCurrency(booking.pricing?.totalAmount || 0)}</p>
                           <span style={{ background: cfg.bg, color: cfg.color, padding: '2px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{t(cfg.label)}</span>
                         </div>
                         {isProvider && booking.status === 'pending' && (

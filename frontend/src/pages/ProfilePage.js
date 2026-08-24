@@ -67,7 +67,7 @@ export default function ProfilePage() {
         {/* Stats Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
           {[
-            { label: t('Rating'), value: user?.rating?.average ? user.rating.average.toFixed(1) : '—', icon: FiStar, color: 'var(--harvest)' },
+            { label: t('Rating'), value: user?.rating?.average != null ? user.rating.average.toFixed(1) : '—', icon: FiStar, color: 'var(--harvest)' },
             { label: t('Reviews'), value: user?.rating?.count || 0, icon: FiAward, color: 'var(--terracotta)' },
             { label: t('Member Since'), value: user?.createdAt ? new Date(user.createdAt).getFullYear() : '2025', icon: FiAward, color: roleColor },
           ].map(stat => (

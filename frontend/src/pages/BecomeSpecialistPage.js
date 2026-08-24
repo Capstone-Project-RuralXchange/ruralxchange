@@ -43,6 +43,7 @@ export default function BecomeSpecialistPage() {
     try {
       const payload = {
         ...form,
+        bio: form.bio ? form.bio.trim() : undefined,
         experience: Number(form.experience),
         dailyRate: Number(form.dailyRate),
         hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
