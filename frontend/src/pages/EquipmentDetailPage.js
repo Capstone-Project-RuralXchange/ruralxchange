@@ -17,12 +17,15 @@ const EquipmentDetailPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [eqRes, ratRes] = await Promise.all([
-          equipmentAPI.getById(id),
-          ratingAPI.getEquipmentRatings(id),
-        ]);
+        const eqRes = await equipmentAPI.getById(id);
         setEquipment(eqRes.data.data);
-        setRatings(ratRes.data.data || []);
+        try {
+          const ratRes = await ratingAPI.getEquipmentRatings(id);
+          setRatings(ratRes.data.data || []);
+        } catch (err) {
+          console.error("Failed to fetch ratings", err);
+          setRatings([]);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -113,32 +116,32 @@ const EquipmentDetailPage = () => {
               )}
 
               {/* Specs */}
-              {equipment.specifications && Object.keys(equipment.specifications).some(k => equipment.specifications[k]) && (
+              {(equipment.brand || equipment.horsePower || equipment.fuelType || equipment.year) && (
                 <div>
                   <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: '0.75rem' }}>{t("Specifications")}</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
-                    {equipment.specifications.brand && (
+                    {equipment.brand && (
                       <div style={{ background: 'var(--bg)', padding: '0.75rem', borderRadius: 'var(--radius)' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.2rem' }}>{t("BRAND")}</div>
-                        <div style={{ fontWeight: 700, color: 'var(--soil)' }}>{equipment.specifications.brand}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--soil)' }}>{equipment.brand}</div>
                       </div>
                     )}
-                    {equipment.specifications.horsePower && (
+                    {equipment.horsePower && (
                       <div style={{ background: 'var(--bg)', padding: '0.75rem', borderRadius: 'var(--radius)' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.2rem' }}>{t("HORSEPOWER")}</div>
-                        <div style={{ fontWeight: 700, color: 'var(--soil)' }}>{equipment.specifications.horsePower} {t("HP")}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--soil)' }}>{equipment.horsePower} {t("HP")}</div>
                       </div>
                     )}
-                    {equipment.specifications.fuelType && (
+                    {equipment.fuelType && (
                       <div style={{ background: 'var(--bg)', padding: '0.75rem', borderRadius: 'var(--radius)' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.2rem' }}>{t("FUEL TYPE")}</div>
-                        <div style={{ fontWeight: 700, color: 'var(--soil)', textTransform: 'capitalize' }}>{equipment.specifications.fuelType}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--soil)', textTransform: 'capitalize' }}>{equipment.fuelType}</div>
                       </div>
                     )}
-                    {equipment.specifications.year && (
+                    {equipment.year && (
                       <div style={{ background: 'var(--bg)', padding: '0.75rem', borderRadius: 'var(--radius)' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.2rem' }}>{t("YEAR")}</div>
-                        <div style={{ fontWeight: 700, color: 'var(--soil)' }}>{equipment.specifications.year}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--soil)' }}>{equipment.year}</div>
                       </div>
                     )}
                   </div>
@@ -180,7 +183,7 @@ const EquipmentDetailPage = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'white', fontWeight: 700, fontSize: '1.2rem', flexShrink: 0
                   }}>
-                    {equipment.owner.name?.charAt(0).toUpperCase()}
+                    {(equipment.owner?.name || '?').charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

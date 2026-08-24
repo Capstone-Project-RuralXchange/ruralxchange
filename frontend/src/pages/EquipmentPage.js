@@ -94,13 +94,16 @@ const EquipmentPage = () => {
     try {
       if (page === 1) setLoading(true);
       const res = await equipmentAPI.getAll({ ...filters, page, limit: 12 });
+      const items = res.data.data || [];
+      const totalItems = res.data.total || 0;
+      const totalPages = res.data.pages || 1;
       if (page === 1) {
-        setEquipment(res.data.equipment);
+        setEquipment(items);
       } else {
-        setEquipment(prev => [...prev, ...res.data.equipment]);
+        setEquipment(prev => [...prev, ...items]);
       }
-      setHasMore(res.data.pagination.page < res.data.pagination.pages);
-      setTotal(res.data.pagination.total);
+      setHasMore(page < totalPages);
+      setTotal(totalItems);
     } catch (err) {
       console.error(err);
     } finally {

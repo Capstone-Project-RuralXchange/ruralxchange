@@ -63,7 +63,7 @@ const SpecialistDetailPage = () => {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem' }}>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--soil)' }}>{specialist.user?.name}</h1>
-                    {specialist.isVerified && <FiCheckCircle style={{ color: 'var(--leaf)' }} size={22} />}
+                    {specialist.user?.isVerified && <FiCheckCircle style={{ color: 'var(--leaf)' }} size={22} />}
                   </div>
                   <span style={{ display: 'inline-block', background: tier.bg, color: tier.color, fontSize: '0.8rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '20px', marginBottom: '0.5rem' }}>
                     {t(tier.label)} · {t(sp.label)}
@@ -189,7 +189,7 @@ const SpecialistDetailPage = () => {
 
               <div style={{ marginTop: '1.25rem', fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg)', borderRadius: 'var(--radius)', padding: '1rem', lineHeight: 1.8 }}>
                 <div>✓ {specialist.completedJobs || 0} {t("jobs completed")}</div>
-                {specialist.isVerified && <div>✓ {t("Identity verified")}</div>}
+                {specialist.user?.isVerified && <div>✓ {t("Identity verified")}</div>}
                 <div>✓ {t("Dual rating system")}</div>
                 <div>✓ {t("Cash / UPI accepted")}</div>
               </div>

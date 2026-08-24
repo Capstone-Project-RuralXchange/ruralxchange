@@ -124,7 +124,8 @@ export default function RequirementsPage() {
     if (!form.title || !form.description) return toast.error('Please fill title and description');
     setSubmitting(true);
     try {
-      await requirementAPI.create(form);
+      const payload = { ...form, title: form.title.trim(), description: form.description.trim() };
+      await requirementAPI.create(payload);
       toast.success('Requirement posted!');
       setShowForm(false);
       setForm({ title: '', description: '', requirementType: 'Equipment', category: '', district: 'Bengaluru Urban' });

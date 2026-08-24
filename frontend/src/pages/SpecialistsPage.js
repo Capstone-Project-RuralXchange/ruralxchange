@@ -32,7 +32,7 @@ const SpecialistCard = ({ item }) => {
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--soil)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.user?.name || 'Specialist'}
                 </h3>
-                {item.isVerified && <FiCheckCircle style={{ color: 'var(--leaf)', flexShrink: 0 }} size={16} title="Verified" />}
+                {item.user?.isVerified && <FiCheckCircle style={{ color: 'var(--leaf)', flexShrink: 0 }} size={16} title="Verified" />}
               </div>
               <span style={{ display: 'inline-block', background: tier.bg, color: tier.color, fontSize: '0.72rem', fontWeight: 700, padding: '0.15rem 0.6rem', borderRadius: '20px', marginTop: '0.2rem' }}>
                 {tier.label} · {sp.label}

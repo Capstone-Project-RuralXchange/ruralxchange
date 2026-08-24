@@ -22,7 +22,22 @@ export default function SeasonalPage() {
 
   useEffect(() => {
     seasonalAPI.getCalendar()
-      .then(res => setData(res.data.data || []))
+      .then(res => {
+        const raw = res.data.data || {};
+        // Backend returns {1: {...}, 2: {...}, ...12: {...}} — convert to array[0..11]
+        const arr = Array.from({ length: 12 }, (_, i) => {
+          const m = raw[i + 1] || {};
+          return {
+            month: MONTHS[i],
+            season: m.season || '',
+            topEquipment: m.top || m.topEquipment || [],
+            topServices: m.services || m.topServices || [],
+            message: m.message || '',
+            icon: m.icon || '',
+          };
+        });
+        setData(arr);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

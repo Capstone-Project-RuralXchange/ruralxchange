@@ -74,7 +74,7 @@ const SpecialistCard = ({ item }) => {
               {sp.label}
             </div>
           </div>
-          {item.isVerified && (
+          {item.user?.isVerified && (
             <FiCheckCircle style={{ color: 'var(--leaf)', flexShrink: 0 }} title="Verified" />
           )}
         </div>

@@ -45,6 +45,8 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     const { confirmPassword, ...submitData } = form;
+    submitData.phone = submitData.phone.trim();
+    submitData.name = submitData.name.trim();
     const result = await register(submitData);
     setLoading(false);
     if (result.success) navigate('/dashboard');

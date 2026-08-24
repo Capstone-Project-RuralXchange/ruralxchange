@@ -11,11 +11,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
+    if (token) {
+      if (savedUser) setUser(JSON.parse(savedUser));
       authAPI.getMe()
         .then(res => {
-          const u = res.data?.data || res.data;
+          const u = res.data?.user || res.data?.data || res.data;
           setUser(u);
           localStorage.setItem('user', JSON.stringify(u));
         })
@@ -33,11 +33,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (phone, password) => {
     try {
       const res = await authAPI.login({ phone, password });
-      const { token, data } = res.data;
+      const { token, user: userData } = res.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(data));
-      setUser(data);
-      toast.success(`Welcome back, ${data.name.split(' ')[0]}! 🌾`);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      toast.success(`Welcome back, ${userData?.name?.split(' ')[0] || 'User'}! 🌾`);
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || 'Login failed' };
@@ -47,11 +47,11 @@ export const AuthProvider = ({ children }) => {
   const register = async (formData) => {
     try {
       const res = await authAPI.register(formData);
-      const { token, data } = res.data;
+      const { token, user: userData } = res.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(data));
-      setUser(data);
-      toast.success(`Welcome to RuralXchange, ${data.name.split(' ')[0]}! 🎉`);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      toast.success(`Welcome to RuralXchange, ${userData?.name?.split(' ')[0] || 'User'}! 🎉`);
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || 'Registration failed' };
