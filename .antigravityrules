@@ -1,0 +1,16 @@
+# AGENT VERIFICATION & WORKFLOW RULES
+
+## 1. Automatic Task Verification
+- NEVER mark a feature or task complete without verification.
+- For backend changes: Run local test scripts and verify build status.
+- For frontend changes: Launch the Browser Agent to inspect UI, verify interactions, and capture screenshot proof.
+- Update `project_state.md` with build logs/test outcomes before finishing.
+
+## 2. Multi-Agent & Parallel Execution Rules
+- Before starting a multi-feature task, check for concurrent work.
+- Always perform work in isolated branches or Git worktrees to avoid file conflicts across subagents.
+- Ensure all merge requests run verification steps prior to merging back to `main`.
+
+## 3. Project Memory Compliance
+- Always read `ARCHITECTURE.md` before generating code to ensure consistency with project patterns.
+- Always maintain `project_state.md` to track current progress and pending capstone tasks.

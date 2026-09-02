@@ -90,3 +90,16 @@ export const seasonalAPI = {
 export const dashboardAPI = {
   getStats: () => API.get('/users/dashboard'),
 };
+
+// Admin RBAC & Management
+export const adminAPI = {
+  getStats: () => API.get('/admin/stats'),
+  getUsers: (params) => API.get('/admin/users', { params }),
+  getUserById: (id) => API.get(`/admin/users/${id}`),
+  createUser: (data) => API.post('/admin/users', data),
+  updateUser: (id, data) => API.put(`/admin/users/${id}`, data),
+  updateStatus: (id, data) => API.patch(`/admin/users/${id}/status`, data),
+  updateRole: (id, role) => API.patch(`/admin/users/${id}/role`, { role }),
+  deleteUser: (id) => API.delete(`/admin/users/${id}`),
+};
+

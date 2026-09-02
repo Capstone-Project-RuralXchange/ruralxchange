@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiMenu, FiX, FiUser, FiLogOut, FiGrid, FiPlusCircle, FiGlobe } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiGrid, FiPlusCircle, FiGlobe, FiShield } from 'react-icons/fi';
 import { GiWheat } from 'react-icons/gi';
 import { useTranslation } from 'react-i18next';
 
@@ -88,6 +88,16 @@ const Navbar = () => {
           <Link to="/specialists" style={linkStyle('/specialists')}>{t('Specialists')}</Link>
           <Link to="/requirements" style={linkStyle('/requirements')}>{t('Notice Board')}</Link>
           <Link to="/seasonal" style={linkStyle('/seasonal')}>🗓️ {t('Season')}</Link>
+          {user?.role === 'admin' && (
+            <Link to="/admin/users" style={{
+              ...linkStyle('/admin/users'),
+              background: isActive('/admin') ? 'rgba(190,24,93,0.12)' : 'rgba(190,24,93,0.06)',
+              color: '#BE185D',
+              border: '1px solid #FBCFE8'
+            }}>
+              <FiShield /> Admin RBAC
+            </Link>
+          )}
         </div>
 
         {/* Auth section */}
@@ -175,6 +185,7 @@ const Navbar = () => {
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>{user?.district} · {user?.role}</div>
                   </div>
                   {[
+                    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <FiShield />, label: 'Admin RBAC Console' }] : []),
                     { to: '/dashboard', icon: <FiGrid />, label: 'Dashboard' },
                     { to: '/profile', icon: <FiUser />, label: 'My Profile' },
                     { to: '/list-equipment', icon: <FiPlusCircle />, label: 'List Equipment' },
@@ -188,7 +199,7 @@ const Navbar = () => {
                     onMouseEnter={e => e.currentTarget.style.background = '#FFF5EC'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <span style={{ color: 'var(--terracotta)' }}>{item.icon}</span>
+                      <span style={{ color: item.to.includes('admin') ? '#BE185D' : 'var(--terracotta)' }}>{item.icon}</span>
                       {item.label}
                     </Link>
                   ))}
@@ -238,6 +249,7 @@ const Navbar = () => {
             { to: '/requirements', label: `📋 ${t('Notice Board')}` },
             { to: '/seasonal', label: `🗓️ ${t('Season')}` },
             { to: '/dashboard', label: `📊 ${t('Dashboard')}`, auth: true },
+            ...(user?.role === 'admin' ? [{ to: '/admin/users', label: '👑 Admin RBAC Console', auth: true }] : []),
           ].map(item => (!item.auth || user) && (
             <Link key={item.to} to={item.to} style={{
               display: 'block', padding: '0.75rem 0.5rem',

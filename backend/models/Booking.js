@@ -23,6 +23,10 @@ const bookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Specialist'
   },
+  specialistOwner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   startDate: {
     type: Date,
     required: true

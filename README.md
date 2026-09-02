@@ -53,7 +53,9 @@ One transaction confirms both equipment AND a specialist operator together — e
 - ✅ Equipment listings with 15 categories
 - ✅ Specialist profiles with tier system (Professional / Skilled / Labour)
 - ✅ **Bundle Booking** — equipment + operator in one booking
-- ✅ Public Requirement Board (notice board)
+- ✅ **Geospatial "Near Me" Sorting** — Automatic OpenStreetMap geocoding and browser location distance sorting
+- ✅ **2-Way Booking Dashboard** — Providers and Specialists can accept/decline incoming requests
+- ✅ Public Requirement Board (notice board) with distance badges
 - ✅ Dual rating system for equipment and specialists
 - ✅ Seasonal demand calendar (12-month Karnataka agri calendar)
 - ✅ Provider earnings dashboard
@@ -174,14 +176,20 @@ node seed.js
 
 This creates:
 
-| Role | Phone | Password |
+| Role | Username (Phone) | Password |
 |------|-------|----------|
-| Seeker | 9000000001 | pass123 |
-| Provider | 9000000002 | pass123 |
-| Specialist | 9000000003 | pass123 |
-| Admin | 9000000000 | pass123 |
+| Super Admin | 9000000000 | admin123 |
+| Regional Admin | 9000000001 | admin123 |
+| Seeker Mysuru | 9100000001 | pass123 |
+| Seeker Mandya | 9100000002 | pass123 |
+| Seeker Hassan | 9100000003 | pass123 |
+| Provider Mysuru | 9200000001 | pass123 |
+| Provider Mandya | 9200000002 | pass123 |
+| Provider Hubballi | 9200000003 | pass123 |
+| Specialist Electrician | 9300000001 | pass123 |
+| Specialist Tractor Driver | 9300000002 | pass123 |
 
-Also seeds 8 equipment listings and 5 specialist profiles across Karnataka districts.
+This creates a simplified testing environment with 10 users, 4 equipment listings, 2 specialist profiles, and 2 requirements across Karnataka districts.
 
 ---
 

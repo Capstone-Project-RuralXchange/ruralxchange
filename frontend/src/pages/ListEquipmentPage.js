@@ -15,7 +15,7 @@ export default function ListEquipmentPage() {
   const [form, setForm] = useState({
     title: '', category: 'Tractor', description: '', brand: '', model: '', yearOfManufacture: '',
     pricePerDay: '', pricePerHour: '', minimumRentalDays: 1, maximumRentalDays: 30,
-    district: 'Bengaluru Urban', village: '', state: 'Karnataka',
+    district: 'Bengaluru Urban', village: '', state: 'Karnataka', address: '',
     fuelType: 'Diesel', condition: 'Good', operatorIncluded: false,
     requiresSpecialist: false, features: '',
   });
@@ -32,6 +32,7 @@ export default function ListEquipmentPage() {
         ...form,
         title: form.title.trim(),
         description: form.description.trim(),
+        address: form.address ? form.address.trim() : undefined,
         features: form.features ? form.features.split(',').map(s => s.trim()).filter(Boolean) : [],
         yearOfManufacture: form.yearOfManufacture ? Number(form.yearOfManufacture) : undefined,
         pricePerDay: Number(form.pricePerDay),
@@ -175,7 +176,15 @@ export default function ListEquipmentPage() {
           {step === 3 && (
             <>
               <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: '1.25rem' }}>{t("Location Details")}</h3>
+              <div style={{ background: 'rgba(45,106,45,0.08)', border: '1px solid rgba(45,106,45,0.2)', borderRadius: 10, padding: '0.875rem 1rem', marginBottom: '1.25rem', display: 'flex', gap: 8, alignItems: 'center', fontSize: '0.85rem', color: 'var(--leaf)' }}>
+                📍 {t("Enter your full address so seekers near you can find your equipment easily. We'll calculate the precise coordinates automatically.")}
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Full Address *")}</label>
+                  <input className="form-input" placeholder={t("e.g. Near Bus Stand, Kirugavalu, Mandya, Karnataka")} value={form.address} onChange={e => set('address', e.target.value)} />
+                  <p style={{ fontSize: '0.75rem', color: 'var(--clay)', marginTop: 4 }}>{t("Include landmark, village, taluk for best accuracy")}</p>
+                </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Village / Town")}</label>
                   <input className="form-input" placeholder="e.g. Kanakapura" value={form.village} onChange={e => set('village', e.target.value)} />
@@ -187,6 +196,12 @@ export default function ListEquipmentPage() {
                   </select>
                 </div>
               </div>
+              {form.address && (
+                <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', borderRadius: 8, background: 'rgba(45,106,45,0.1)', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem' }}>
+                  <span style={{ fontSize: '1.2rem' }}>📍</span>
+                  <span style={{ color: 'var(--leaf)', fontWeight: 600 }}>{t("Location will be auto-detected from your address")}</span>
+                </div>
+              )}
             </>
           )}
 

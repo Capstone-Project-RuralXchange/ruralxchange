@@ -2,11 +2,65 @@ const express = require('express');
 const router = express.Router();
 const Specialist = require('../models/Specialist');
 const { protect, authorize } = require('../middleware/auth');
+const { geocodeWithFallback } = require('../utils/geocode');
 
-// @GET /api/specialists
+// @GET /api/specialists - Get all with filters + distance sorting
 router.get('/', async (req, res) => {
   try {
-    const { district, specialization, status, page = 1, limit = 12 } = req.query;
+    const { district, specialization, status, lat, lng, page = 1, limit = 12 } = req.query;
+
+    // If seeker provides coordinates, use $geoNear for distance-sorted results
+    if (lat && lng) {
+      const seekerLat = parseFloat(lat);
+      const seekerLng = parseFloat(lng);
+
+      if (!isNaN(seekerLat) && !isNaN(seekerLng)) {
+        const matchStage = { isActive: true };
+        if (district) matchStage.district = district;
+        if (specialization) matchStage.specialization = specialization;
+        if (status) matchStage.availabilityStatus = status;
+
+        const skip = (page - 1) * limit;
+        const pipeline = [
+          {
+            $geoNear: {
+              near: { type: 'Point', coordinates: [seekerLng, seekerLat] },
+              distanceField: 'distanceMeters',
+              spherical: true,
+              maxDistance: 500000,
+              query: matchStage
+            }
+          },
+          { $addFields: { distanceKm: { $round: [{ $divide: ['$distanceMeters', 1000] }, 1] } } },
+          { $sort: { distanceMeters: 1 } },
+          {
+            $facet: {
+              data: [{ $skip: skip }, { $limit: Number(limit) }],
+              total: [{ $count: 'count' }]
+            }
+          }
+        ];
+
+        const [result] = await Specialist.aggregate(pipeline);
+        const data = result.data || [];
+        const total = result.total[0]?.count || 0;
+
+        const populated = await Specialist.populate(data, {
+          path: 'user',
+          select: 'name phone district rating isVerified avatar'
+        });
+
+        return res.json({
+          success: true,
+          count: populated.length,
+          total,
+          pages: Math.ceil(total / limit),
+          data: populated
+        });
+      }
+    }
+
+    // Standard query (no geo-sorting)
     const query = { isActive: true };
     if (district) query.district = district;
     if (specialization) query.specialization = specialization;
@@ -39,7 +93,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @POST /api/specialists - Create specialist profile
+// @POST /api/specialists - Create specialist profile (auto-geocode)
 router.post('/', protect, async (req, res) => {
   try {
     const existingProfile = await Specialist.findOne({ user: req.user.id });
@@ -48,6 +102,16 @@ router.post('/', protect, async (req, res) => {
     }
     req.body.user = req.user.id;
     req.body.district = req.body.district || req.user.district;
+
+    // Auto-geocode
+    const coords = await geocodeWithFallback(req.body.address, req.body.district);
+    if (coords) {
+      req.body.location = {
+        type: 'Point',
+        coordinates: [coords.lng, coords.lat]
+      };
+    }
+
     const specialist = await Specialist.create(req.body);
     // Update user role
     await require('../models/User').findByIdAndUpdate(req.user.id, { role: 'specialist' });
@@ -65,6 +129,18 @@ router.put('/:id', protect, async (req, res) => {
     if (specialist.user.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+
+    // Re-geocode if address changed
+    if (req.body.address && req.body.address !== specialist.address) {
+      const coords = await geocodeWithFallback(req.body.address, req.body.district || specialist.district);
+      if (coords) {
+        req.body.location = {
+          type: 'Point',
+          coordinates: [coords.lng, coords.lat]
+        };
+      }
+    }
+
     specialist = await Specialist.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json({ success: true, data: specialist });
   } catch (err) {

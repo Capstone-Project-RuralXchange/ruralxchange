@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { specialistAPI } from '../utils/api';
 import { SPECIALIST_TYPES, KARNATAKA_DISTRICTS, formatCurrency } from '../utils/constants';
 import { useTranslation } from 'react-i18next';
-import { FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiCheckCircle, FiRefreshCw, FiNavigation } from 'react-icons/fi';
 
 const SpecialistCard = ({ item }) => {
   const sp = SPECIALIST_TYPES.find(s => s.value === item.specialization) || { label: item.specialization, icon: '👤', tier: 'skilled' };
@@ -23,7 +23,7 @@ const SpecialistCard = ({ item }) => {
             <div style={{
               width: 60, height: 60, borderRadius: '16px', fontSize: '1.8rem',
               background: tier.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, border: `2px solid ${tier.color}30`,
+              flexShrink: 0, border: `2px solid ${tier.color}30`, position: 'relative',
             }}>
               {sp.icon}
             </div>
@@ -49,6 +49,18 @@ const SpecialistCard = ({ item }) => {
             )}
           </div>
 
+          {/* Distance Badge */}
+          {item.distanceKm != null && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              background: 'rgba(45,27,14,0.08)', color: 'var(--soil)',
+              fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '20px',
+              marginBottom: '0.75rem'
+            }}>
+              📍 {item.distanceKm < 1 ? '<1' : item.distanceKm} km away
+            </div>
+          )}
+
           {/* Skills */}
           {item.skills?.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.75rem' }}>
@@ -70,6 +82,8 @@ export default function SpecialistsPage() {
   const [specialists, setSpecialists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('idle');
   const [filters, setFilters] = useState({
     specialization: searchParams.get('type') || '',
     district: '',
@@ -77,11 +91,34 @@ export default function SpecialistsPage() {
     tier: ''
   });
 
+  // Request browser geolocation on mount
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      setLocationStatus('loading');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setLocationStatus('granted');
+        },
+        (err) => {
+          console.warn('Geolocation denied:', err.message);
+          setLocationStatus('denied');
+        },
+        { timeout: 8000, enableHighAccuracy: false }
+      );
+    }
+  }, []);
+
   const fetchSpecialists = useCallback(async () => {
     setLoading(true);
     try {
       const params = { limit: 20, ...filters };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
+      // Pass coordinates for distance sorting
+      if (userLocation) {
+        params.lat = userLocation.lat;
+        params.lng = userLocation.lng;
+      }
       const res = await specialistAPI.getAll(params);
       setSpecialists(res.data.data || []);
       setTotal(res.data.total || 0);
@@ -90,7 +127,7 @@ export default function SpecialistsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, userLocation]);
 
   useEffect(() => { fetchSpecialists(); }, [fetchSpecialists]);
 
@@ -105,6 +142,25 @@ export default function SpecialistsPage() {
           <p style={{ color: '#A8D5A2', marginTop: '0.4rem' }}>
             {total > 0 ? `${total} ${t("specialists available")}` : t('Skilled workers and professionals near you')}
           </p>
+          {/* Location Status */}
+          <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {locationStatus === 'loading' && (
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--harvest)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                {t("Detecting your location...")}
+              </span>
+            )}
+            {locationStatus === 'granted' && (
+              <span style={{ fontSize: '0.8rem', color: '#A8D5A2', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+                <FiNavigation size={14} /> {t("Sorted by distance — nearest first")}
+              </span>
+            )}
+            {locationStatus === 'denied' && (
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                📍 {t("Location access denied — showing default order")}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -172,8 +228,13 @@ export default function SpecialistsPage() {
           </div>
         ) : specialists.length > 0 ? (
           <>
-            <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-              {t("Showing")} {specialists.length} {t("of")} {total} {t("results")}
+            <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>{t("Showing")} {specialists.length} {t("of")} {total} {t("results")}</span>
+              {userLocation && (
+                <span style={{ fontSize: '0.8rem', color: 'var(--leaf)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <FiNavigation size={12} /> {t("Nearest first")}
+                </span>
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
               {specialists.map(item => <SpecialistCard key={item._id} item={item} />)}

@@ -2,11 +2,71 @@ const express = require('express');
 const router = express.Router();
 const Equipment = require('../models/Equipment');
 const { protect, authorize } = require('../middleware/auth');
+const { geocodeWithFallback } = require('../utils/geocode');
 
-// @GET /api/equipment - Get all equipment with filters
+// @GET /api/equipment - Get all equipment with filters + distance sorting
 router.get('/', async (req, res) => {
   try {
-    const { district, category, status, minPrice, maxPrice, page = 1, limit = 12 } = req.query;
+    const { district, category, status, minPrice, maxPrice, lat, lng, page = 1, limit = 12 } = req.query;
+
+    // If seeker provides coordinates, use $geoNear for distance-sorted results
+    if (lat && lng) {
+      const seekerLat = parseFloat(lat);
+      const seekerLng = parseFloat(lng);
+
+      if (!isNaN(seekerLat) && !isNaN(seekerLng)) {
+        const matchStage = { isActive: true };
+        if (district) matchStage.district = district;
+        if (category) matchStage.category = category;
+        if (status) matchStage.availabilityStatus = status;
+        if (minPrice || maxPrice) {
+          matchStage.pricePerDay = {};
+          if (minPrice) matchStage.pricePerDay.$gte = Number(minPrice);
+          if (maxPrice) matchStage.pricePerDay.$lte = Number(maxPrice);
+        }
+
+        const skip = (page - 1) * limit;
+        const pipeline = [
+          {
+            $geoNear: {
+              near: { type: 'Point', coordinates: [seekerLng, seekerLat] },
+              distanceField: 'distanceMeters',
+              spherical: true,
+              maxDistance: 500000, // 500km max
+              query: matchStage
+            }
+          },
+          { $addFields: { distanceKm: { $round: [{ $divide: ['$distanceMeters', 1000] }, 1] } } },
+          { $sort: { distanceMeters: 1 } },
+          {
+            $facet: {
+              data: [{ $skip: skip }, { $limit: Number(limit) }],
+              total: [{ $count: 'count' }]
+            }
+          }
+        ];
+
+        const [result] = await Equipment.aggregate(pipeline);
+        const data = result.data || [];
+        const total = result.total[0]?.count || 0;
+
+        // Populate owner info after aggregation
+        const populated = await Equipment.populate(data, {
+          path: 'owner',
+          select: 'name phone district rating isVerified'
+        });
+
+        return res.json({
+          success: true,
+          count: populated.length,
+          total,
+          pages: Math.ceil(total / limit),
+          data: populated
+        });
+      }
+    }
+
+    // Standard query (no geo-sorting)
     const query = { isActive: true };
     if (district) query.district = district;
     if (category) query.category = category;
@@ -44,12 +104,22 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @POST /api/equipment - Create equipment listing
+// @POST /api/equipment - Create equipment listing (auto-geocode address)
 router.post('/', protect, authorize('provider', 'admin'), async (req, res) => {
   try {
     req.body.owner = req.user.id;
     req.body.district = req.body.district || req.user.district;
     req.body.state = req.body.state || req.user.state;
+
+    // Auto-geocode: address → coordinates
+    const coords = await geocodeWithFallback(req.body.address, req.body.district);
+    if (coords) {
+      req.body.location = {
+        type: 'Point',
+        coordinates: [coords.lng, coords.lat]
+      };
+    }
+
     const equipment = await Equipment.create(req.body);
     res.status(201).json({ success: true, data: equipment });
   } catch (err) {
@@ -65,6 +135,18 @@ router.put('/:id', protect, async (req, res) => {
     if (equipment.owner.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+
+    // Re-geocode if address changed
+    if (req.body.address && req.body.address !== equipment.address) {
+      const coords = await geocodeWithFallback(req.body.address, req.body.district || equipment.district);
+      if (coords) {
+        req.body.location = {
+          type: 'Point',
+          coordinates: [coords.lng, coords.lat]
+        };
+      }
+    }
+
     equipment = await Equipment.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     res.json({ success: true, data: equipment });
   } catch (err) {

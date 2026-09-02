@@ -9,6 +9,7 @@ import { FiCalendar, FiMapPin, FiUser, FiStar, FiArrowLeft, FiCheckCircle, FiPac
 const EquipmentDetailPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [equipment, setEquipment] = useState(null);
   const [ratings, setRatings] = useState([]);

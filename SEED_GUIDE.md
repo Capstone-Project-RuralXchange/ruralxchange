@@ -1,269 +1,117 @@
-# 🌾 RuralXchange — Seed Data Guide
+# 🌾 RuralXchange — Comprehensive Seed Data & Admin Guide
 
-This guide explains all the dummy data included in `backend/seed.js`, how to run it, and what you can test with each account.
+This guide explains all sample data included in `backend/seed.js`, all test accounts across roles, and how to use the **Admin RBAC User Management Console**.
 
 ---
 
-## How to Run
+## How to Seed the Database
 
 ```bash
-# Make sure MongoDB is running first
-# Then from the backend/ folder:
-
-cd backend
-node seed.js
+# From the project root or backend folder:
+npm run seed
+# or
+node backend/seed.js
 ```
 
-Expected output:
+### Expected Output:
+```text
+🌱 Connecting to MongoDB Atlas...
+✅ Connected to MongoDB Atlas
+🗑️  Cleared all existing collections
+👥 Creating 38 users...
+✅ Created 38 users (10 Seekers · 10 Providers · 16 Specialists · 2 Admins)
+🚜 Created 22 equipment listings across all 15 categories
+👷 Created 16 specialist profiles across all 16 skills
+📋 Created 12 notice board requirements
+📅 Created 7 bookings
+⭐ Created 3 ratings & reviews
+═════════════════════════════════════════════════════════════════
+  🌾  RuralXchange Database Seeded Successfully with Full Coverage
+═════════════════════════════════════════════════════════════════
 ```
-✅  Connected to MongoDB
-🗑️   Cleared all existing data
-👥  Created 13 users  (4 seekers · 4 providers · 4 specialists · 1 admin)
-🚜  Created 20 equipment listings
-👷  Created 10 specialist profiles
-📋  Created 12 requirements
-📅  Created 15 bookings
-⭐  Created 7 ratings
-══════════════════════════════════════
-  🌾  RuralXchange Database Seeded Successfully
-```
-
-> ⚠️ **Warning:** Running seed.js clears ALL existing data before inserting. Do not run on a production database.
 
 ---
 
-## Test Accounts
+## 🔐 Test Accounts by Role
 
-### Seekers (People who need equipment/services)
-
-| Name | Phone | Password | District | Village |
-|------|-------|----------|----------|---------|
-| Krishnamurthy B. | 9100000001 | pass123 | Mandya | Maddur |
-| Savitha Naik | 9100000002 | pass123 | Tumkur | Sira |
-| Prakash Gowda | 9100000003 | pass123 | Hassan | Alur |
-| Anitha Reddy | 9100000004 | pass123 | Kolar | Bangarpet |
-
-### Providers (Equipment owners)
-
-| Name | Phone | Password | District | Village |
-|------|-------|----------|----------|---------|
-| Ramu Gowda | 9200000001 | pass123 | Mandya | Kirugavalu |
-| Manjula Devi | 9200000002 | pass123 | Hassan | Sakleshpur |
-| Suresh Nagaraj | 9200000003 | pass123 | Mysuru | Nanjangud |
-| Venkatesh Rao | 9200000004 | pass123 | Davangere | Honnali |
-
-### Specialists (Skilled workers)
-
-| Name | Phone | Password | District | Specialization |
-|------|-------|----------|----------|----------------|
-| Shiva Kumar | 9300000001 | pass123 | Mysuru | Tractor Driver |
-| Vijay Engineer | 9300000002 | pass123 | Bengaluru Rural | Electrician / Engineer |
-| Basavanna Patil | 9300000003 | pass123 | Dharwad | Mason / Welder |
-| Nirmala Bai | 9300000004 | pass123 | Raichur | Agronomist / Animal Health |
-
-### Admin
-
-| Name | Phone | Password |
-|------|-------|----------|
-| Admin RuralXchange | 9000000000 | admin123 |
+All accounts use the following standard passwords:
+- **Seeker / Provider / Specialist Accounts**: `pass123`
+- **Admin Accounts**: `admin123`
 
 ---
 
-## Equipment Listings (20 items)
+### 1. 👑 Admin Accounts (RBAC User Management)
 
-### Tractors (4)
+| Name | Phone | Password | Role | District / Note |
+|------|-------|----------|------|-----------------|
+| **Super Admin** | `9000000000` | `admin123` | `admin` | Bengaluru Urban (Full Console) |
+| **Karnataka Regional Admin** | `9000000001` | `admin123` | `admin` | Mysuru (Southern Zone Operations) |
 
-| Title | Owner | District | Price/Day | Requires Specialist |
-|-------|-------|----------|-----------|---------------------|
-| Mahindra 575 DI – 45HP | Ramu Gowda | Mandya | ₹2,200 | Yes (Tractor Driver) |
-| John Deere 5050D – 50HP | Ramu Gowda | Mandya | ₹2,800 | Yes (Tractor Driver) |
-| Sonalika DI 750 III – 75HP | Venkatesh Rao | Davangere | ₹3,500 | Yes (Tractor Driver) |
-
-### Harvesters (1)
-
-| Title | Owner | District | Price/Day | Notes |
-|-------|-------|----------|-----------|-------|
-| Kubota DC-70 Combine Harvester | Manjula Devi | Hassan | ₹5,500 | Operator required |
-
-### Water Pumps (2)
-
-| Title | Owner | District | Price/Day |
-|-------|-------|----------|-----------|
-| Kirloskar Star-1 – 5HP | Suresh Nagaraj | Mysuru | ₹500 |
-| Texmo TJ7.5 Submersible – 7.5HP | Venkatesh Rao | Davangere | ₹750 |
-
-### Generators (2)
-
-| Title | Owner | District | Price/Day |
-|-------|-------|----------|-----------|
-| Honda EP5000CX – 5KVA | Suresh Nagaraj | Mysuru | ₹1,200 |
-| Koel Green – 15KVA | Ramu Gowda | Mandya | ₹2,800 |
-
-### Sprayers (3)
-
-| Title | Owner | District | Price/Day |
-|-------|-------|----------|-----------|
-| Neptune 16L Battery Sprayer | Venkatesh Rao | Davangere | ₹300 |
-| Boom Sprayer (12m Tractor Mounted) | Suresh Nagaraj | Mysuru | ₹1,200 |
-| Agricultural Drone – 10L (UAV) | Suresh Nagaraj | Mysuru | ₹4,000 |
-
-### Other Equipment
-
-| Title | Category | Owner | District | Price/Day |
-|-------|----------|-------|----------|-----------|
-| Fieldking Super Seeder Rotavator 7ft | Rotavator | Manjula Devi | Hassan | ₹1,800 |
-| Vikram Multi-Crop Thresher – 7.5HP | Thresher | Ramu Gowda | Mandya | ₹1,400 |
-| Jaypee 1-Bag Concrete Mixer | Concrete Mixer | Venkatesh Rao | Davangere | ₹800 |
-| JBL Line Array Sound System – 2000W | Sound System | Suresh Nagaraj | Mysuru | ₹3,500 |
-| LED Stage Lighting Set | Lighting | Manjula Devi | Hassan | ₹2,200 |
-| Lincoln Electric Welding Machine | Welding Machine | Venkatesh Rao | Davangere | ₹600 |
-| Honda FJ500 Power Tiller – 5HP | Tiller | Ramu Gowda | Mandya | ₹700 |
-| Bosch SDS-Max Rotary Hammer Drill | Drill | Suresh Nagaraj | Mysuru | ₹500 |
-| Aluminum Tent Structure – 40×60 ft | Tent Structure | Manjula Devi | Hassan | ₹4,500 |
+> 💡 **Admin Console Access**: Log in with either admin account to see the **"👑 Admin RBAC"** link in the navigation bar or access [`http://localhost:3000/admin/users`](http://localhost:3000/admin/users).
 
 ---
 
-## Specialist Profiles (10)
+### 2. 🔍 Seekers (Farmers & Hirers — 10 Users)
 
-| Display Title | Specialization | District | Rate/Day | Experience | Verified | Jobs Done |
-|---------------|----------------|----------|----------|------------|----------|-----------|
-| Senior Tractor & Harvester Operator | tractor_driver | Mysuru | ₹700 | 12 yrs | ✅ | 87 |
-| Licensed Electrical Contractor | electrician | Bengaluru Rural | ₹900 | 9 yrs | ✅ | 64 |
-| Pump Mechanic & Irrigation Technician | pump_mechanic | Bengaluru Rural | ₹750 | 7 yrs | ✅ | 52 |
-| Master Mason & Construction Supervisor | mason | Dharwad | ₹650 | 18 yrs | ❌ | 143 |
-| Certified Arc & MIG Welder | welder | Dharwad | ₹700 | 11 yrs | ✅ | 78 |
-| Agricultural Scientist & Crop Advisor | agronomist | Raichur | ₹1,500 | 6 yrs | ✅ | 29 |
-| Kubota Combine Harvester Operator | harvester_operator | Mysuru | ₹850 | 8 yrs | ✅ | 61 |
-| Civil Engineer – Farm Structures | civil_engineer | Bengaluru Rural | ₹1,800 | 4 yrs | ✅ | 22 |
-| Skilled Carpenter – Farm & Household | carpenter | Dharwad | ₹600 | 14 yrs | ❌ | 110 |
-| Livestock Health Worker & Vaccinator | animal_health_worker | Raichur | ₹1,000 | 9 yrs | ✅ | 93 |
-
----
-
-## Requirements / Notice Board (12 posts)
-
-| Title | Type | Posted By | District | Budget | Urgency |
-|-------|------|-----------|----------|--------|---------|
-| Tractor for 3-day paddy ploughing | Bundle | Krishnamurthy B. | Mandya | ₹5k–8k | 🔴 Urgent |
-| Water pump for summer irrigation | Equipment | Savitha Naik | Tumkur | ₹8k–12k | Normal |
-| Electrician – bore well motor installation | Specialist | Prakash Gowda | Hassan | ₹1.5k–2.5k | 🔴 Urgent |
-| Wedding sound system + operator | Bundle | Anitha Reddy | Kolar | ₹5k–8k | Normal |
-| Agronomist for soil testing & crop plan | Specialist | Krishnamurthy B. | Mandya | ₹3k–6k | Normal |
-| Combine harvester for paddy harvest | Bundle | Savitha Naik | Tumkur | ₹18k–25k | 🔴 Urgent |
-| Mason for cattle shed repair | Specialist | Prakash Gowda | Hassan | ₹3k–4k | 🔴 Urgent |
-| Generator for 2-day village fair | Equipment | Anitha Reddy | Kolar | ₹4k–6k | Normal |
-| Animal health worker – cattle vaccination | Specialist | Krishnamurthy B. | Mandya | ₹2k–4k | Normal |
-| Drip irrigation layout – tomato farm | Specialist | Savitha Naik | Tumkur | ₹5k–9k | Normal |
-| Tent structure for wedding | Equipment | Prakash Gowda | Hassan | ₹8k–14k | Normal |
-| Power sprayer – pest attack on paddy | Equipment | Anitha Reddy | Kolar | ₹600–1.2k | 🔴 Urgent |
+| Name | Phone | Password | District | Village | Speciality / Bio |
+|------|-------|----------|----------|---------|------------------|
+| Krishnamurthy B. | `9100000001` | `pass123` | Mandya | Maddur | Sugarcane & Paddy (12 acres) |
+| Savitha Naik | `9100000002` | `pass123` | Tumakuru | Sira | Groundnut & Ragi farmer |
+| Prakash Gowda | `9100000003` | `pass123` | Hassan | Alur | Coffee & Cardamom planter |
+| Anitha Reddy | `9100000004` | `pass123` | Kolar | Bangarpet | Greenhouse Tomato & Capsicum |
+| Basavaraj Patil | `9100000005` | `pass123` | Belagavi | Gokak | Sugarcane grower |
+| Mallikarjun Hiremath | `9100000006` | `pass123` | Kalaburagi | Sedam | Red Gram (Tur Dal) cultivator |
+| Suma Prabhakar | `9100000007` | `pass123` | Mysuru | Hunsur | Tobacco & Ginger farmer |
+| Devendrappa Nayak | `9100000008` | `pass123` | Davangere | Harihar | Maize & Cotton grower |
+| Gangadhar Biradar | `9100000009` | `pass123` | Bagalkot | Mudhol | Pomegranate & Jowar farmer |
+| Manjunath Shettigar | `9100000010` | `pass123` | Shivamogga | Sagar | Arecanut & Vanilla plantation |
 
 ---
 
-## Bookings (15 records)
+### 3. 🚜 Providers (Equipment Fleet Owners — 10 Users)
 
-### Completed (5)
-These have associated ratings already seeded.
-
-| Equipment / Service | Seeker | Days | Total | Payment |
-|---------------------|--------|------|-------|---------|
-| Mahindra 575 DI + Tractor Driver (Bundle) | Krishnamurthy B. | 3 days | ₹9,135 | Cash ✅ |
-| Kirloskar Water Pump (Equipment Only) | Savitha Naik | 10 days | ₹5,250 | UPI ✅ |
-| Electrician – Motor Installation (Specialist Only) | Prakash Gowda | 1 day | ₹1,890 | Cash ✅ |
-| Kubota Harvester + Operator (Bundle) | Krishnamurthy B. | 3 days | ₹20,003 | Bank Transfer ✅ |
-| JBL Sound System (Equipment Only) | Anitha Reddy | 1 day | ₹3,675 | Cash ✅ |
-
-### Confirmed / Upcoming (3)
-| Equipment / Service | Seeker | Status |
-|---------------------|--------|--------|
-| John Deere 5050D + Tractor Driver (Bundle) | Savitha Naik | Confirmed |
-| Agronomist – Soil Testing (Specialist Only) | Prakash Gowda | Confirmed |
-| Fieldking Rotavator (Equipment Only) | Krishnamurthy B. | Confirmed |
-
-### Pending (3)
-| Equipment / Service | Seeker | Status |
-|---------------------|--------|--------|
-| JBL Sound + Specialist (Bundle) | Anitha Reddy | Pending |
-| Mason – Farm Shed Repair (Specialist Only) | Savitha Naik | Pending |
-| Jaypee Concrete Mixer (Equipment Only) | Prakash Gowda | Pending |
-
-### In Progress (2)
-| Equipment / Service | Seeker |
-|---------------------|--------|
-| Livestock Health Worker – Cattle Vaccination | Krishnamurthy B. |
-| Neptune Sprayer + Operator (Bundle) | Anitha Reddy |
-
-### Cancelled (2)
-| Equipment / Service | Reason |
-|---------------------|--------|
-| Honda Generator | Owner prior commitment |
-| Welder – Gate Fabrication | Seeker found local welder |
+| Name | Phone | Password | District | Village | Primary Equipment Owned |
+|------|-------|----------|----------|---------|-------------------------|
+| Ramu Gowda | `9200000001` | `pass123` | Mandya | Kirugavalu | Mahindra 575 DI, John Deere, Shaktiman Rotavators |
+| Manjula Devi | `9200000002` | `pass123` | Hassan | Sakleshpur | Kubota Combine Harvesters, Kirloskar Power Tillers |
+| Suresh Nagaraj | `9200000003` | `pass123` | Mysuru | Nanjangud | Kirloskar 15 kVA Silent DG Set, CRI Submersible Pumps |
+| Venkatesh Rao | `9200000004` | `pass123` | Davangere | Honnali | Diesel Concrete Mixers, Bosch Demolition Drills |
+| Chandrasekhar Kulkarni | `9200000005` | `pass123` | Dharwad | Navalgund | Aspee Battery Sprayers, National Threshers, VST Tillers |
+| Hemanth Kumar | `9200000006` | `pass123` | Chitradurga | Hiriyur | Diesel Pump Sets, Agrimate 52cc Earth Augers |
+| Santosh Badiger | `9200000007` | `pass123` | Vijayapura | Indi | ESAB 300A Inverter Welders, Honda Portable DG sets |
+| Ramesh Reddy | `9200000008` | `pass123` | Ballari | Siruguppa | Preet 987 Multi-Crop Combine Harvester |
+| Gopalakrishna Bhat | `9200000009` | `pass123` | Dakshina Kannada | Puttur | Ahuja 2000W Sound System, Shamiana Tents, LED Masts |
+| Mahantesh Kadadi | `9200000010` | `pass123` | Koppal | Gangavathi | Fieldking 7-ft Rotavators, Mitra 600L Boom Sprayers |
 
 ---
 
-## Ratings (7 reviews)
+### 4. 👷 Specialists (Covering All 16 Specializations — 16 Users)
 
-All ratings are for completed bookings. They include both equipment and specialist reviews.
-
-| What Was Rated | Rated By | Score | Highlights |
-|----------------|----------|-------|------------|
-| Mahindra 575 DI Tractor | Krishnamurthy B. | ⭐ 5/5 | Excellent condition, well maintained |
-| Tractor Driver (Shiva Kumar) | Krishnamurthy B. | ⭐ 5/5 | Professional, adjusted depth perfectly |
-| Kirloskar Water Pump | Savitha Naik | ⭐ 4/5 | Reliable, minor fuel leak day 8 |
-| Electrician (Vijay Engineer) | Prakash Gowda | ⭐ 5/5 | Clean wiring, BESCOM compliant |
-| Kubota DC-70 Harvester | Krishnamurthy B. | ⭐ 4/5 | Efficient, small morning delay |
-| Harvester Operator | Krishnamurthy B. | ⭐ 5/5 | Handled wet paddy expertly |
-| JBL Sound System | Anitha Reddy | ⭐ 5/5 | Crystal clear, full hall coverage |
-
----
-
-## What Each Role Sees After Login
-
-### Seeker (e.g. 9100000001 — Krishnamurthy B.)
-- **Dashboard:** 5 total bookings (2 completed, 1 confirmed, 1 in-progress, 1 upcoming)
-- **Requirements:** 3 of his requirements visible on notice board
-- Can browse 20 equipment listings and 10 specialist profiles
-- Can create new bookings
-
-### Provider (e.g. 9200000001 — Ramu Gowda)
-- **Dashboard:** 5 equipment listings (2 tractors + generator + thresher + tiller)
-- Can see incoming bookings for his equipment (Mahindra, John Deere, Koel Generator, etc.)
-- Can accept/decline pending bookings (3 pending show up)
-- Earnings visible for completed bookings
-
-### Specialist (e.g. 9300000001 — Shiva Kumar)
-- **Dashboard:** Profile has 87 completed jobs, 4.8 rating from seed data
-- Specialist profile created under this user: "Senior Tractor & Harvester Operator"
-- Can see bookings that include his specialist profile
-- Can view his rating and reviews
-
-### Admin (9000000000)
-- Full access to all data
+| Name | Phone | Password | District | Specialization | Daily Rate |
+|------|-------|----------|----------|----------------|------------|
+| Shiva Kumar | `9300000001` | `pass123` | Mysuru | Tractor Driver / Laser Leveller | ₹850/day |
+| Raju Harvester | `9300000002` | `pass123` | Mandya | Combine Harvester Operator | ₹1,200/day |
+| Vijay Electrician | `9300000003` | `pass123` | Bengaluru Rural | Licensed Farm Electrician | ₹900/day |
+| Basavanna Mason | `9300000004` | `pass123` | Dharwad | Rural Construction Mason | ₹950/day |
+| Naveen Plumber | `9300000005` | `pass123` | Tumakuru | Drip Irrigation Plumber | ₹800/day |
+| Chandru Pump Mech | `9300000006` | `pass123` | Hassan | Borewell Pump Technician | ₹900/day |
+| Santosh Welder | `9300000007` | `pass123` | Belagavi | Mobile Implement Welder | ₹850/day |
+| Ganesh Carpenter | `9300000008` | `pass123` | Shivamogga | Timber Craftsman | ₹900/day |
+| Manjunath Painter | `9300000009` | `pass123` | Kolar | Farmhouse Painter | ₹750/day |
+| Hanumantha Labourer | `9300000010` | `pass123` | Raichur | Agricultural Labour Team Lead | ₹650/day |
+| Dr. Srinivas Agronomist | `9300000011` | `pass123` | Bengaluru Urban | Crop Health & IPM Agronomist | ₹2,000/day |
+| Er. Rajesh Civil | `9300000012` | `pass123` | Udupi | Farm Pond & Civil Engineer | ₹2,500/day |
+| Er. Preethi Electrical | `9300000013` | `pass123` | Mysuru | Solar Agri Microgrid Engineer | ₹2,200/day |
+| Dr. Anand Vet | `9300000014` | `pass123` | Ballari | Livestock Healthcare Assistant | ₹900/day |
+| Karthik Fridge Tech | `9300000015` | `pass123` | Chikkamagaluru | Milk Cooler & RAC Tech | ₹1,100/day |
+| Subhash Drone Tech | `9300000016` | `pass123` | Bagalkot | DGCA Agri Drone Pilot | ₹2,500/day |
 
 ---
 
-## Troubleshooting
+## 🛠️ Admin RBAC Features
 
-**"ValidationError: district: Path `district` is required"**
-Make sure your `.env` has a working `MONGODB_URI`. The seed file maps districts from provider/specialist users to their equipment.
-
-**"Authentication error" after seeding**
-Clear browser localStorage and log in again with the new credentials.
-
-**Seeding fails on re-run**
-This is normal if MongoDB isn't running. Start MongoDB with `mongod` or use your Atlas connection string.
-
-**Want to reset to fresh seed data?**
-Simply run `node seed.js` again — it clears everything before inserting.
-
----
-
-## Adding Your Own Data
-
-You can extend the seed file by:
-
-1. **Adding more users** — add entries to the `usersData` array
-2. **Adding equipment** — add to `equipmentData` with correct `ownerIdx` (0–3 for providers)
-3. **Adding specialists** — add to `specialistData` with correct `userIdx` (0–3 for specialist users)
-4. **Adding requirements** — add to `requirementsData` with correct `seekerIdx` (0–3 for seekers)
-
-After editing, re-run: `node seed.js`
+1. **KPI Dashboard**: View real-time user breakdown by role (`Seekers`, `Providers`, `Specialists`, `Admins`), verification rate, active/suspended count, and regional distribution across Karnataka.
+2. **Instant Role Promotion & Demotion**: Switch any user's role on the fly with automatic RBAC permission adjustment.
+3. **Account Suspension & Verification**: 1-click toggle to suspend/reactivate accounts or verify identity badges.
+4. **Detailed User Inspection**: View all equipment listed, specialist profiles, active/historical bookings, and requirements posted by any user.
+5. **Add User Modal**: Create new verified users directly with custom roles and credentials.

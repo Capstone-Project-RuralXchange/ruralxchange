@@ -22,6 +22,8 @@ import ListEquipmentPage from './pages/ListEquipmentPage';
 import BecomeSpecialistPage from './pages/BecomeSpecialistPage';
 import SeasonalPage from './pages/SeasonalPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminUserManagementPage from './pages/AdminUserManagementPage';
+import AdminRoute from './components/AdminRoute';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -55,6 +57,8 @@ const AppContent = () => {
             <Route path="/list-equipment" element={<PrivateRoute><ListEquipmentPage /></PrivateRoute>} />
             <Route path="/become-specialist" element={<PrivateRoute><BecomeSpecialistPage /></PrivateRoute>} />
             <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminUserManagementPage /></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUserManagementPage /></AdminRoute>} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

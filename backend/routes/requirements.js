@@ -6,7 +6,57 @@ const { protect } = require('../middleware/auth');
 // @GET /api/requirements
 router.get('/', async (req, res) => {
   try {
-    const { district, type, status = 'open', page = 1, limit = 10 } = req.query;
+    const { district, type, status = 'open', lat, lng, page = 1, limit = 10 } = req.query;
+
+    if (lat && lng) {
+      const seekerLat = parseFloat(lat);
+      const seekerLng = parseFloat(lng);
+
+      if (!isNaN(seekerLat) && !isNaN(seekerLng)) {
+        const matchStage = { status };
+        if (district) matchStage.district = district;
+        if (type) matchStage.requirementType = type;
+
+        const skip = (page - 1) * limit;
+        const pipeline = [
+          {
+            $geoNear: {
+              near: { type: 'Point', coordinates: [seekerLng, seekerLat] },
+              distanceField: 'distanceMeters',
+              spherical: true,
+              maxDistance: 500000,
+              query: matchStage
+            }
+          },
+          { $addFields: { distanceKm: { $round: [{ $divide: ['$distanceMeters', 1000] }, 1] } } },
+          { $sort: { distanceMeters: 1 } },
+          {
+            $facet: {
+              data: [{ $skip: skip }, { $limit: Number(limit) }],
+              total: [{ $count: 'count' }]
+            }
+          }
+        ];
+
+        const [result] = await Requirement.aggregate(pipeline);
+        const data = result.data || [];
+        const total = result.total[0]?.count || 0;
+
+        const populated = await Requirement.populate(data, {
+          path: 'postedBy',
+          select: 'name district village rating'
+        });
+
+        return res.json({
+          success: true,
+          total,
+          pages: Math.ceil(total / limit),
+          data: populated
+        });
+      }
+    }
+
+    // Standard query
     const query = { status };
     if (district) query.district = district;
     if (type) query.requirementType = type;

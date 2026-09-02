@@ -26,7 +26,7 @@ export default function BecomeSpecialistPage() {
   const [form, setForm] = useState({
     specialization: 'Tractor Operator', tier: 'skilled',
     experience: '', dailyRate: '', hourlyRate: '',
-    district: 'Bengaluru Urban', village: '',
+    district: 'Bengaluru Urban', village: '', address: '',
     bio: '', languages: ['en'],
     qualifications: '', skills: '',
     availableForBundle: true,
@@ -49,6 +49,7 @@ export default function BecomeSpecialistPage() {
         hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
         qualifications: form.qualifications ? form.qualifications.split(',').map(s => s.trim()).filter(Boolean) : [],
         skills: form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
+        address: form.address ? form.address.trim() : undefined,
       };
       await specialistAPI.create(payload);
       toast.success(t('Specialist profile created! 🎉'));
@@ -165,7 +166,15 @@ export default function BecomeSpecialistPage() {
           {step === 3 && (
             <>
               <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: '1.25rem' }}>{t("Location & Bio")}</h3>
+              <div style={{ background: 'rgba(45,106,45,0.08)', border: '1px solid rgba(45,106,45,0.2)', borderRadius: 10, padding: '0.875rem 1rem', marginBottom: '1.25rem', display: 'flex', gap: 8, alignItems: 'center', fontSize: '0.85rem', color: 'var(--leaf)' }}>
+                📍 {t("Enter your full address so seekers near you can find you easily.")}
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Full Address *")}</label>
+                  <input className="form-input" placeholder={t("e.g. Near Temple Road, Nanjangud, Mysuru, Karnataka")} value={form.address} onChange={e => set('address', e.target.value)} />
+                  <p style={{ fontSize: '0.75rem', color: 'var(--clay)', marginTop: 4 }}>{t("Include landmark, village, taluk for best accuracy")}</p>
+                </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Village / Town")}</label>
                   <input className="form-input" placeholder={t("e.g. Mysuru")} value={form.village} onChange={e => set('village', e.target.value)} />
@@ -173,7 +182,7 @@ export default function BecomeSpecialistPage() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("District *")}</label>
                   <select className="form-input" value={form.district} onChange={e => set('district', e.target.value)}>
-                    {KARNATAKA_DISTRICTS.map(d => <option key={d}>{t(d)}</option>)}
+                    {KARNATAKA_DISTRICTS.map(d => <option key={d}>{d}</option>)}
                   </select>
                 </div>
               </div>

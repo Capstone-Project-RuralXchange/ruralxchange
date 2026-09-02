@@ -39,6 +39,11 @@ const specialistSchema = new mongoose.Schema({
   },
   state: { type: String, default: 'Karnataka' },
   village: String,
+  address: { type: String, maxlength: 500 },
+  location: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number], default: [0, 0] }  // [lng, lat]
+  },
   skills: [String],
   languages: {
     type: [String],
@@ -65,5 +70,6 @@ const specialistSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 specialistSchema.index({ district: 1, specialization: 1, availabilityStatus: 1 });
+specialistSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Specialist', specialistSchema);

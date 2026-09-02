@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiMapPin, FiClock, FiMessageCircle, FiX, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiMapPin, FiClock, FiMessageCircle, FiX, FiSearch, FiNavigation } from 'react-icons/fi';
 import { GiWheat } from 'react-icons/gi';
 import Select from 'react-select';
 import { useAuth } from '../context/AuthContext';
@@ -46,6 +46,11 @@ function RequirementCard({ req, onRespond, currentUser }) {
             <span style={{ background: daysLeft <= 3 ? '#fef2f2' : '#f0faf0', color: daysLeft <= 3 ? '#dc2626' : 'var(--leaf)', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>
               {daysLeft === 0 ? 'Expires today' : `${daysLeft} days left`}
             </span>
+            {req.distanceKm != null && (
+              <span style={{ background: 'rgba(45,27,14,0.08)', color: 'var(--soil)', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+                📍 {req.distanceKm < 1 ? '<1' : req.distanceKm} km away
+              </span>
+            )}
           </div>
           <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: 4, fontSize: '1rem' }}>{req.title}</h3>
           <p style={{ color: 'var(--clay)', fontSize: '0.88rem', lineHeight: 1.6 }}>{req.description}</p>
@@ -104,11 +109,35 @@ export default function RequirementsPage() {
   const [filterDistrict, setFilterDistrict] = useState('');
   const [form, setForm] = useState({ title: '', description: '', requirementType: 'Equipment', category: '', district: 'Bengaluru Urban' });
   const [submitting, setSubmitting] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('idle');
+
+  // Request browser geolocation on mount
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      setLocationStatus('loading');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setLocationStatus('granted');
+        },
+        (err) => {
+          console.warn('Geolocation denied:', err.message);
+          setLocationStatus('denied');
+        },
+        { timeout: 8000, enableHighAccuracy: false }
+      );
+    }
+  }, []);
 
   const load = async () => {
     try {
       const params = {};
       if (filterDistrict) params.district = filterDistrict;
+      if (userLocation) {
+        params.lat = userLocation.lat;
+        params.lng = userLocation.lng;
+      }
       const res = await requirementAPI.getAll(params);
       setRequirements(res.data.data || []);
     } catch (err) {
@@ -118,7 +147,7 @@ export default function RequirementsPage() {
     }
   };
 
-  useEffect(() => { load(); }, [filterDistrict]);
+  useEffect(() => { load(); }, [filterDistrict, userLocation]);
 
   const handlePost = async () => {
     if (!form.title || !form.description) return toast.error('Please fill title and description');
@@ -157,6 +186,25 @@ export default function RequirementsPage() {
               <p style={{ color: 'rgba(255,255,255,0.65)', maxWidth: 480 }}>
                 {t("Post what you need")}
               </p>
+              {/* Location Status */}
+              <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                {locationStatus === 'loading' && (
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--harvest)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    {t("Detecting your location...")}
+                  </span>
+                )}
+                {locationStatus === 'granted' && (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--harvest)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+                    <FiNavigation size={14} /> {t("Sorted by distance — nearest first")}
+                  </span>
+                )}
+                {locationStatus === 'denied' && (
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    📍 {t("Location access denied — showing default order")}
+                  </span>
+                )}
+              </div>
             </div>
             {user && (
               <button onClick={() => setShowForm(!showForm)} className="btn"

@@ -35,6 +35,14 @@ const requirementSchema = new mongoose.Schema({
   district: { type: String, required: true },
   village: String,
   state: { type: String, default: 'Karnataka' },
+  location: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number], default: [0, 0] }  // [lng, lat]
+  },
+  isUrgent: {
+    type: Boolean,
+    default: false
+  },
   budget: {
     min: Number,
     max: Number,
@@ -57,5 +65,7 @@ const requirementSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 requirementSchema.index({ district: 1, status: 1, createdAt: -1 });
+requirementSchema.index({ requirementType: 1, district: 1, status: 1 });
+requirementSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Requirement', requirementSchema);

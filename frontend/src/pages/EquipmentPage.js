@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { equipmentAPI } from '../utils/api';
 import { EQUIPMENT_CATEGORIES, KARNATAKA_DISTRICTS, formatCurrency, getEquipmentCategory } from '../utils/constants';
-import { FiFilter, FiSearch, FiRefreshCw } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiRefreshCw, FiNavigation } from 'react-icons/fi';
 
 const EquipmentCard = ({ item }) => {
   const { t } = useTranslation();
@@ -24,6 +24,17 @@ const EquipmentCard = ({ item }) => {
               fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '20px'
             }}>
               + {t("Operator Available")}
+            </span>
+          )}
+          {/* Distance Badge */}
+          {item.distanceKm != null && (
+            <span style={{
+              position: 'absolute', top: '0.6rem', left: '0.6rem',
+              background: 'rgba(45,27,14,0.85)', color: '#E8D5B0',
+              fontSize: '0.7rem', fontWeight: 700, padding: '0.25rem 0.6rem', borderRadius: '20px',
+              display: 'flex', alignItems: 'center', gap: 4, backdropFilter: 'blur(4px)'
+            }}>
+              📍 {item.distanceKm < 1 ? '<1' : item.distanceKm} km
             </span>
           )}
         </div>
@@ -81,6 +92,8 @@ const EquipmentPage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('idle'); // idle | loading | granted | denied
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     district: searchParams.get('district') || '',
@@ -88,12 +101,35 @@ const EquipmentPage = () => {
     minPrice: '',
     maxPrice: '',
   });
-// Duplicate state declarations removed; retained above definitions
+
+  // Request browser geolocation on mount
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      setLocationStatus('loading');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setLocationStatus('granted');
+        },
+        (err) => {
+          console.warn('Geolocation denied:', err.message);
+          setLocationStatus('denied');
+        },
+        { timeout: 8000, enableHighAccuracy: false }
+      );
+    }
+  }, []);
 
   const fetchEquipment = useCallback(async () => {
     try {
       if (page === 1) setLoading(true);
-      const res = await equipmentAPI.getAll({ ...filters, page, limit: 12 });
+      const params = { ...filters, page, limit: 12 };
+      // Pass coordinates for distance sorting
+      if (userLocation) {
+        params.lat = userLocation.lat;
+        params.lng = userLocation.lng;
+      }
+      const res = await equipmentAPI.getAll(params);
       const items = res.data.data || [];
       const totalItems = res.data.total || 0;
       const totalPages = res.data.pages || 1;
@@ -109,7 +145,7 @@ const EquipmentPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, page]);
+  }, [filters, page, userLocation]);
 
   useEffect(() => { fetchEquipment(); }, [fetchEquipment]);
 
@@ -134,6 +170,25 @@ const EquipmentPage = () => {
           <p style={{ color: '#C4A070', marginTop: '0.4rem' }}>
             {total > 0 ? `${total} ${t("listings available")}` : t('Find equipment near you')}
           </p>
+          {/* Location Status */}
+          <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {locationStatus === 'loading' && (
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--harvest)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                {t("Detecting your location...")}
+              </span>
+            )}
+            {locationStatus === 'granted' && (
+              <span style={{ fontSize: '0.8rem', color: 'var(--harvest)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+                <FiNavigation size={14} /> {t("Sorted by distance — nearest first")}
+              </span>
+            )}
+            {locationStatus === 'denied' && (
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                📍 {t("Location access denied — showing default order")}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -205,8 +260,13 @@ const EquipmentPage = () => {
           </div>
         ) : equipment.length > 0 ? (
           <>
-            <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-              {t("Showing")} {equipment.length} {t("of")} {total} {t("results")}
+            <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>{t("Showing")} {equipment.length} {t("of")} {total} {t("results")}</span>
+              {userLocation && (
+                <span style={{ fontSize: '0.8rem', color: 'var(--leaf)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <FiNavigation size={12} /> {t("Nearest first")}
+                </span>
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '1.5rem' }}>
               {equipment.map(item => <EquipmentCard key={item._id} item={item} />)}

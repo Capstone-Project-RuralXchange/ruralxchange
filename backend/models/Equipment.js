@@ -37,6 +37,11 @@ const equipmentSchema = new mongoose.Schema({
   },
   state: { type: String, default: 'Karnataka' },
   village: String,
+  address: { type: String, maxlength: 500 },
+  location: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number], default: [0, 0] }  // [lng, lat]
+  },
   condition: {
     type: String,
     enum: ['excellent', 'good', 'fair'],
@@ -72,5 +77,6 @@ const equipmentSchema = new mongoose.Schema({
 
 equipmentSchema.index({ district: 1, category: 1, availabilityStatus: 1 });
 equipmentSchema.index({ owner: 1 });
+equipmentSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Equipment', equipmentSchema);
