@@ -22,7 +22,8 @@ const sendTokenResponse = (user, statusCode, res) => {
       avatar: user.avatar,
       rating: user.rating,
       earnings: user.earnings,
-      isVerified: user.isVerified
+      isVerified: user.isVerified,
+      createdAt: user.createdAt
     }
   });
 };
@@ -47,9 +48,15 @@ router.post('/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
     if (!phone || !password) {
-      return res.status(400).json({ success: false, message: 'Phone and password required' });
+      return res.status(400).json({ success: false, message: 'Phone/Email and password required' });
     }
-    const user = await User.findOne({ phone }).select('+password');
+    const cleanIdentifier = phone.trim();
+    const user = await User.findOne({
+      $or: [
+        { phone: cleanIdentifier },
+        { email: cleanIdentifier.toLowerCase() }
+      ]
+    }).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -76,13 +83,13 @@ router.get('/me', protect, async (req, res) => {
 // @route PUT /api/auth/updateprofile
 router.put('/updateprofile', protect, async (req, res) => {
   try {
-    const allowedFields = ['name', 'email', 'village', 'preferredLanguage', 'bio'];
+    const allowedFields = ['name', 'email', 'district', 'state', 'village', 'preferredLanguage', 'bio', 'avatar'];
     const updates = {};
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
     const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
-    res.json({ success: true, user });
+    res.json({ success: true, data: user, user });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }

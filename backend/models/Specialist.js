@@ -9,6 +9,15 @@ const specialistSchema = new mongoose.Schema({
   specialization: {
     type: String,
     required: true,
+    trim: true,
+    lowercase: true,
+    set: (v) => {
+      if (typeof v !== 'string') return v;
+      let s = v.trim().toLowerCase().replace(/[\s-]+/g, '_');
+      if (s === 'tractor_operator') s = 'tractor_driver';
+      if (s === 'general_labour' || s === 'general_labor') s = 'general_laborer';
+      return s;
+    },
     enum: [
       'tractor_driver', 'harvester_operator', 'electrician', 'mason',
       'plumber', 'agronomist', 'civil_engineer', 'electrical_engineer',
@@ -51,6 +60,9 @@ const specialistSchema = new mongoose.Schema({
   },
   availabilityStatus: {
     type: String,
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
     enum: ['available', 'booked', 'unavailable'],
     default: 'available'
   },
@@ -71,5 +83,19 @@ const specialistSchema = new mongoose.Schema({
 
 specialistSchema.index({ district: 1, specialization: 1, availabilityStatus: 1 });
 specialistSchema.index({ location: '2dsphere' });
+
+// Pre-validate hook
+specialistSchema.pre('validate', function(next) {
+  if (this.specialization && typeof this.specialization === 'string') {
+    let s = this.specialization.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (s === 'tractor_operator') s = 'tractor_driver';
+    if (s === 'general_labour' || s === 'general_labor') s = 'general_laborer';
+    this.specialization = s;
+  }
+  if (this.availabilityStatus && typeof this.availabilityStatus === 'string') {
+    this.availabilityStatus = this.availabilityStatus.trim().toLowerCase();
+  }
+  next();
+});
 
 module.exports = mongoose.model('Specialist', specialistSchema);

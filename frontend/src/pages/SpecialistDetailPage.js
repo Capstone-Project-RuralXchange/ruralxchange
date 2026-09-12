@@ -155,7 +155,7 @@ const SpecialistDetailPage = () => {
                       <strong style={{ color: 'var(--soil)', fontSize: '0.9rem' }}>{r.ratedBy?.name || t('Anonymous')}</strong>
                       <span style={{ color: 'var(--harvest)', fontWeight: 700 }}>{'★'.repeat(r.score)}{'☆'.repeat(5 - r.score)}</span>
                     </div>
-                    {r.review && <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.review}</p>}
+                    {(r.review || r.comment) && <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.review || r.comment}</p>}
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{formatDate(r.createdAt)}</div>
                   </div>
                 ))}

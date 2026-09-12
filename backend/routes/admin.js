@@ -46,7 +46,7 @@ router.get('/stats', async (req, res) => {
 
     // Calculate total platform booking revenue/volume
     const completedBookingsList = await Booking.find({ status: 'completed' }).select('pricing');
-    const totalVolume = completedBookingsList.reduce((sum, b) => sum + (b.pricing?.totalPrice || 0), 0);
+    const totalVolume = completedBookingsList.reduce((sum, b) => sum + (b.pricing?.totalAmount || b.pricing?.totalPrice || 0), 0);
 
     // District breakdown of users
     const districtStats = await User.aggregate([

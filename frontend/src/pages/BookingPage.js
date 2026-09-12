@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiCalendar, FiInfo, FiCheckCircle, FiUser, FiPackage } from 'react-icons/fi';
+import { FiCalendar, FiInfo, FiCheckCircle, FiUser, FiPackage, FiClock } from 'react-icons/fi';
 import { GiToolbox } from 'react-icons/gi';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -24,6 +24,9 @@ export default function BookingPage() {
   const [selectedSpecialist, setSelectedSpecialist] = useState(searchParams.get('specialistId') || '');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [windowValue, setWindowValue] = useState(6);
+  const [windowUnit, setWindowUnit] = useState('hours');
+  const [autoCancelOnExpiry, setAutoCancelOnExpiry] = useState(true);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -64,10 +67,19 @@ export default function BookingPage() {
   const platformFee = Math.round(totalBeforeFee * 0.05);
   const totalCost = totalBeforeFee + platformFee;
 
+  const calculateAcceptanceHours = (val, unit) => {
+    const num = Math.max(1, parseInt(val, 10) || 1);
+    if (unit === 'weeks') return num * 168;
+    if (unit === 'days') return num * 24;
+    return num;
+  };
+
   const handleSubmit = async () => {
     if (!startDate || !endDate) return toast.error(t('Please select booking dates'));
     if (days < 1) return toast.error(t('End date must be after start date'));
     if (isBundle && !selectedSpecialist) return toast.error(t('Please select a specialist for bundle booking'));
+
+    const winHours = calculateAcceptanceHours(windowValue, windowUnit);
 
     setSubmitting(true);
     try {
@@ -77,6 +89,8 @@ export default function BookingPage() {
         endDate: endDate.toISOString(),
         specialRequirements: notes,
         purpose: notes || 'General agricultural work',
+        acceptanceWindowHours: winHours,
+        autoCancelOnExpiry: Boolean(autoCancelOnExpiry),
         location: {
           district: user?.district || 'Bengaluru Urban',
           village: user?.village || ''
@@ -146,22 +160,38 @@ export default function BookingPage() {
               </div>
 
               {/* Date Selection */}
-              <div className="card" style={{ padding: '1.5rem' }}>
+              <div className="card" style={{ padding: '1.5rem', overflow: 'visible', position: 'relative', zIndex: 20 }}>
                 <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <FiCalendar color="var(--terracotta)" /> {t("Select Dates")}
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Start Date")}</label>
-                    <DatePicker selected={startDate} onChange={setStartDate} minDate={new Date()}
-                      placeholderText={t("Pick start date")} dateFormat="dd MMM yyyy"
-                      className="form-input" style={{ width: '100%' }} />
+                    <DatePicker
+                      selected={startDate}
+                      onChange={setStartDate}
+                      minDate={new Date()}
+                      placeholderText={t("Pick start date")}
+                      dateFormat="dd MMM yyyy"
+                      className="form-input"
+                      style={{ width: '100%' }}
+                      popperPlacement="bottom-start"
+                      portalId="root"
+                    />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("End Date")}</label>
-                    <DatePicker selected={endDate} onChange={setEndDate} minDate={startDate || new Date()}
-                      placeholderText={t("Pick end date")} dateFormat="dd MMM yyyy"
-                      className="form-input" />
+                    <DatePicker
+                      selected={endDate}
+                      onChange={setEndDate}
+                      minDate={startDate || new Date()}
+                      placeholderText={t("Pick end date")}
+                      dateFormat="dd MMM yyyy"
+                      className="form-input"
+                      style={{ width: '100%' }}
+                      popperPlacement="bottom-start"
+                      portalId="root"
+                    />
                   </div>
                 </div>
                 {days > 0 && (
@@ -169,6 +199,57 @@ export default function BookingPage() {
                     ✓ {days} {t("day")}{days > 1 ? t('s') : ''} {t("selected")}
                   </div>
                 )}
+              </div>
+
+              {/* Acceptance Window Selection */}
+              <div className="card" style={{ padding: '1.5rem' }}>
+                <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem' }}>
+                  <FiClock color="var(--terracotta)" /> {t("Provider Response Window")}
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--clay)', marginBottom: '1rem' }}>
+                  {t("Select how long the provider has to accept before you are notified or auto-cancelled:")}
+                </p>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                  <input
+                    type="number"
+                    min="1"
+                    max={windowUnit === 'weeks' ? 4 : windowUnit === 'days' ? 30 : 168}
+                    value={windowValue}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setWindowValue(v === '' ? '' : Math.max(1, parseInt(v, 10) || 1));
+                    }}
+                    className="form-input"
+                    style={{ width: 90, height: 42, fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
+                    placeholder="6"
+                  />
+                  <select
+                    value={windowUnit}
+                    onChange={e => setWindowUnit(e.target.value)}
+                    className="form-input"
+                    style={{ width: 130, height: 42, fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', background: 'white' }}>
+                    <option value="hours">{t("Hours")}</option>
+                    <option value="days">{t("Days")}</option>
+                    <option value="weeks">{t("Weeks")}</option>
+                  </select>
+
+                  {windowUnit !== 'hours' && (
+                    <span style={{ fontSize: '0.85rem', color: 'var(--clay)', fontWeight: 600 }}>
+                      (= {calculateAcceptanceHours(windowValue, windowUnit)} {t("Hours")})
+                    </span>
+                  )}
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.88rem', color: 'var(--soil)', fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={autoCancelOnExpiry}
+                    onChange={e => setAutoCancelOnExpiry(e.target.checked)}
+                    style={{ width: 16, height: 16, accentColor: 'var(--terracotta)' }}
+                  />
+                  <span>{t("Auto-cancel and notify me if provider does not accept before deadline")}</span>
+                </label>
               </div>
 
               {/* Bundle: Select Specialist */}

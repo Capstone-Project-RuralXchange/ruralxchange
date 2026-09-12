@@ -14,10 +14,15 @@ const equipmentSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase().replace(/[\s-]+/g, '_') : v),
     enum: [
-      'tractor', 'harvester', 'generator', 'water_pump', 'concrete_mixer',
-      'rotavator', 'sprayer', 'thresher', 'tiller', 'sound_system',
-      'tent_structure', 'lighting', 'welding_machine', 'drill', 'other'
+      'tractor', 'harvester', 'rotavator', 'cultivator', 'seed_drill', 'baler',
+      'chaff_cutter', 'power_weeder', 'sprayer', 'drone', 'water_pump', 'thresher',
+      'tiller', 'laser_leveler', 'earth_auger', 'tractor_trolley', 'generator',
+      'concrete_mixer', 'tent_structure', 'sound_system', 'lighting',
+      'welding_machine', 'drill', 'other'
     ]
   },
   description: { type: String, maxlength: 1000 },
@@ -44,18 +49,30 @@ const equipmentSchema = new mongoose.Schema({
   },
   condition: {
     type: String,
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
     enum: ['excellent', 'good', 'fair'],
     default: 'good'
   },
   specifications: {
-    brand: String,
-    model: String,
+    brand: { type: String, trim: true },
+    model: { type: String, trim: true },
     year: Number,
     horsePower: Number,
-    fuelType: { type: String, enum: ['diesel', 'petrol', 'electric', 'manual'] }
+    fuelType: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
+      enum: ['diesel', 'petrol', 'electric', 'manual']
+    }
   },
   availabilityStatus: {
     type: String,
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
     enum: ['available', 'booked', 'maintenance'],
     default: 'available'
   },
@@ -78,5 +95,22 @@ const equipmentSchema = new mongoose.Schema({
 equipmentSchema.index({ district: 1, category: 1, availabilityStatus: 1 });
 equipmentSchema.index({ owner: 1 });
 equipmentSchema.index({ location: '2dsphere' });
+
+// Pre-validate hook to automatically normalize case and formatting for enums
+equipmentSchema.pre('validate', function(next) {
+  if (this.category && typeof this.category === 'string') {
+    this.category = this.category.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  }
+  if (this.condition && typeof this.condition === 'string') {
+    this.condition = this.condition.trim().toLowerCase();
+  }
+  if (this.availabilityStatus && typeof this.availabilityStatus === 'string') {
+    this.availabilityStatus = this.availabilityStatus.trim().toLowerCase();
+  }
+  if (this.specifications?.fuelType && typeof this.specifications.fuelType === 'string') {
+    this.specifications.fuelType = this.specifications.fuelType.trim().toLowerCase();
+  }
+  next();
+});
 
 module.exports = mongoose.model('Equipment', equipmentSchema);

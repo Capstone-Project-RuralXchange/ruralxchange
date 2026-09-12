@@ -3,11 +3,17 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { equipmentAPI } from '../utils/api';
 import { EQUIPMENT_CATEGORIES, KARNATAKA_DISTRICTS, formatCurrency, getEquipmentCategory } from '../utils/constants';
-import { FiFilter, FiSearch, FiRefreshCw, FiNavigation } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiRefreshCw, FiNavigation, FiMapPin, FiCrosshair, FiCheckCircle } from 'react-icons/fi';
 
 const EquipmentCard = ({ item }) => {
   const { t } = useTranslation();
   const cat = getEquipmentCategory(item.category);
+
+  // Check if accurate road distance or straight-line distance is available
+  const hasRoadDistance = item.roadDistanceKm != null;
+  const hasStraightDistance = item.distanceKm != null;
+  const displayDistance = hasRoadDistance ? item.roadDistanceKm : item.distanceKm;
+
   return (
     <Link to={`/equipment/${item._id}`} style={{ textDecoration: 'none' }}>
       <div className="card" style={{ cursor: 'pointer' }}>
@@ -27,14 +33,16 @@ const EquipmentCard = ({ item }) => {
             </span>
           )}
           {/* Distance Badge */}
-          {item.distanceKm != null && (
+          {(hasRoadDistance || hasStraightDistance) && (
             <span style={{
               position: 'absolute', top: '0.6rem', left: '0.6rem',
-              background: 'rgba(45,27,14,0.85)', color: '#E8D5B0',
-              fontSize: '0.7rem', fontWeight: 700, padding: '0.25rem 0.6rem', borderRadius: '20px',
-              display: 'flex', alignItems: 'center', gap: 4, backdropFilter: 'blur(4px)'
+              background: 'rgba(27,58,75,0.9)',
+              color: '#F3E5D8',
+              fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '20px',
+              display: 'flex', alignItems: 'center', gap: 4, backdropFilter: 'blur(6px)',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
             }}>
-              📍 {item.distanceKm < 1 ? '<1' : item.distanceKm} km
+              📍 {displayDistance < 1 ? '<1' : displayDistance} km
             </span>
           )}
         </div>
@@ -48,8 +56,8 @@ const EquipmentCard = ({ item }) => {
             </span>
           </div>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--soil)', marginBottom: '0.25rem', lineHeight: 1.3 }}>{item.title}</h3>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-            📍 {item.district} {item.village && `· ${item.village}`}
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>📍</span> {item.district} {item.village && `· ${item.village}`}
           </div>
           {item.condition && (
             <div style={{ fontSize: '0.75rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
@@ -75,7 +83,7 @@ const EquipmentCard = ({ item }) => {
           </div>
           <div style={{ marginTop: '0.75rem' }}>
             <div className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.875rem', padding: '0.6rem' }}>
-              Book Now
+              {t("Book Now")}
             </div>
           </div>
         </div>
@@ -92,8 +100,17 @@ const EquipmentPage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [userLocation, setUserLocation] = useState(null);
-  const [locationStatus, setLocationStatus] = useState('idle'); // idle | loading | granted | denied
+  const [userLocation, setUserLocation] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user_gps_coords');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [locationStatus, setLocationStatus] = useState(() => {
+    return localStorage.getItem('user_gps_coords') ? 'granted' : 'idle';
+  }); // idle | loading | granted | denied
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     district: searchParams.get('district') || '',
@@ -102,20 +119,62 @@ const EquipmentPage = () => {
     maxPrice: '',
   });
 
-  // Request browser geolocation on mount
+  // Handle GPS location capture
+  const handleGetLocation = (highAccuracy = true) => {
+    if (!('geolocation' in navigator)) {
+      alert(t("Geolocation is not supported by your browser"));
+      return;
+    }
+    setLocationStatus('loading');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: Math.round(pos.coords.accuracy)
+        };
+        setUserLocation(coords);
+        setLocationStatus('granted');
+        try {
+          localStorage.setItem('user_gps_coords', JSON.stringify(coords));
+        } catch (e) {}
+      },
+      (err) => {
+        console.warn('Geolocation error:', err.message);
+        setLocationStatus('denied');
+      },
+      { timeout: 10000, enableHighAccuracy: highAccuracy, maximumAge: 60000 }
+    );
+  };
+
+  const handleClearLocation = () => {
+    setUserLocation(null);
+    setLocationStatus('idle');
+    try {
+      localStorage.removeItem('user_gps_coords');
+    } catch (e) {}
+  };
+
+  // Auto-detect location on first mount if not already saved
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      setLocationStatus('loading');
+    if (!userLocation && locationStatus === 'idle' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          const coords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: Math.round(pos.coords.accuracy)
+          };
+          setUserLocation(coords);
           setLocationStatus('granted');
+          try {
+            localStorage.setItem('user_gps_coords', JSON.stringify(coords));
+          } catch (e) {}
         },
-        (err) => {
-          console.warn('Geolocation denied:', err.message);
+        () => {
           setLocationStatus('denied');
         },
-        { timeout: 8000, enableHighAccuracy: false }
+        { timeout: 6000, enableHighAccuracy: false }
       );
     }
   }, []);
@@ -124,7 +183,7 @@ const EquipmentPage = () => {
     try {
       if (page === 1) setLoading(true);
       const params = { ...filters, page, limit: 12 };
-      // Pass coordinates for distance sorting
+      // Pass coordinates for real road distance calculation & sorting
       if (userLocation) {
         params.lat = userLocation.lat;
         params.lng = userLocation.lng;
@@ -166,26 +225,53 @@ const EquipmentPage = () => {
       {/* Header */}
       <div style={{ background: 'var(--soil)', padding: '2.5rem 0 1.5rem', color: 'white' }}>
         <div className="container">
-          <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: 800 }}>🚜 {t("Browse Equipment")}</h1>
-          <p style={{ color: '#C4A070', marginTop: '0.4rem' }}>
-            {total > 0 ? `${total} ${t("listings available")}` : t('Find equipment near you')}
-          </p>
-          {/* Location Status */}
-          <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: 800 }}>🚜 {t("Browse Equipment")}</h1>
+              <p style={{ color: '#C4A070', marginTop: '0.4rem' }}>
+                {total > 0 ? `${total} ${t("listings available")}` : t('Find equipment near you')}
+              </p>
+            </div>
+
+            {/* GPS Button in Header */}
+            <div>
+              {locationStatus !== 'granted' && (
+                <button
+                  onClick={() => handleGetLocation(true)}
+                  disabled={locationStatus === 'loading'}
+                  className="btn"
+                  style={{
+                    background: 'var(--terracotta)', color: 'white',
+                    border: 'none', borderRadius: '30px', padding: '0.5rem 1.1rem',
+                    fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)', cursor: 'pointer'
+                  }}>
+                  {locationStatus === 'loading' ? (
+                    <>
+                      <div style={{ width: 14, height: 14, border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                      {t("Getting GPS...")}
+                    </>
+                  ) : (
+                    <>
+                      <FiCrosshair size={16} /> {t("📍 Use Current Location")}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Simple Status Text */}
+          <div style={{ marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: 8 }}>
             {locationStatus === 'loading' && (
-              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--harvest)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                 {t("Detecting your location...")}
               </span>
             )}
             {locationStatus === 'granted' && (
               <span style={{ fontSize: '0.8rem', color: 'var(--harvest)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
-                <FiNavigation size={14} /> {t("Sorted by distance — nearest first")}
-              </span>
-            )}
-            {locationStatus === 'denied' && (
-              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                📍 {t("Location access denied — showing default order")}
+                <FiNavigation size={13} /> {t("Sorted by nearest distance")}
               </span>
             )}
           </div>
@@ -203,13 +289,13 @@ const EquipmentPage = () => {
           <select className="form-select" style={{ flex: '1 1 160px', minWidth: 140 }}
             value={filters.category} onChange={e => handleFilterChange('category', e.target.value)}>
             <option value="">{t("All Categories")}</option>
-            {EQUIPMENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.icon} {c.label}</option>)}
+            {EQUIPMENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.icon} {t(c.label)}</option>)}
           </select>
 
           <select className="form-select" style={{ flex: '1 1 160px', minWidth: 140 }}
             value={filters.district} onChange={e => handleFilterChange('district', e.target.value)}>
             <option value="">{t("All Districts")}</option>
-            {KARNATAKA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+            {KARNATAKA_DISTRICTS.map(d => <option key={d} value={d}>{t(d)}</option>)}
           </select>
 
           <select className="form-select" style={{ flex: '1 1 140px' }}
@@ -260,13 +346,8 @@ const EquipmentPage = () => {
           </div>
         ) : equipment.length > 0 ? (
           <>
-            <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
               <span>{t("Showing")} {equipment.length} {t("of")} {total} {t("results")}</span>
-              {userLocation && (
-                <span style={{ fontSize: '0.8rem', color: 'var(--leaf)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FiNavigation size={12} /> {t("Nearest first")}
-                </span>
-              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '1.5rem' }}>
               {equipment.map(item => <EquipmentCard key={item._id} item={item} />)}

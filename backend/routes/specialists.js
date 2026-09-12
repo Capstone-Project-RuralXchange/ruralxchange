@@ -93,6 +93,26 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Helper to sanitize specialist payload
+function sanitizeSpecialistPayload(body) {
+  if (body.specialization && typeof body.specialization === 'string') {
+    let spec = body.specialization.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (spec === 'tractor_operator') spec = 'tractor_driver';
+    if (spec === 'general_labour' || spec === 'general_labor') spec = 'general_laborer';
+    body.specialization = spec;
+  }
+  if (body.availabilityStatus && typeof body.availabilityStatus === 'string') {
+    body.availabilityStatus = body.availabilityStatus.trim().toLowerCase();
+  }
+  if (body.dailyRate != null && body.pricePerDay == null) {
+    body.pricePerDay = Number(body.dailyRate);
+  }
+  if (body.hourlyRate != null && body.pricePerHour == null) {
+    body.pricePerHour = Number(body.hourlyRate);
+  }
+  return body;
+}
+
 // @POST /api/specialists - Create specialist profile (auto-geocode)
 router.post('/', protect, async (req, res) => {
   try {
@@ -102,6 +122,7 @@ router.post('/', protect, async (req, res) => {
     }
     req.body.user = req.user.id;
     req.body.district = req.body.district || req.user.district;
+    sanitizeSpecialistPayload(req.body);
 
     // Auto-geocode
     const coords = await geocodeWithFallback(req.body.address, req.body.district);
@@ -129,6 +150,7 @@ router.put('/:id', protect, async (req, res) => {
     if (specialist.user.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+    sanitizeSpecialistPayload(req.body);
 
     // Re-geocode if address changed
     if (req.body.address && req.body.address !== specialist.address) {
@@ -141,7 +163,7 @@ router.put('/:id', protect, async (req, res) => {
       }
     }
 
-    specialist = await Specialist.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    specialist = await Specialist.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     res.json({ success: true, data: specialist });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
