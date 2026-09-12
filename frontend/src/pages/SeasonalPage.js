@@ -115,11 +115,6 @@ export default function SeasonalPage() {
                     <span style={{ background: colors?.badge, color: colors?.text, padding: '4px 14px', borderRadius: 20, fontWeight: 700, fontSize: '0.85rem' }}>
                       {t(active.season)}
                     </span>
-                    {active.isLiveDynamic && (
-                      <span style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#dc2626', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '3px 10px', borderRadius: 20, fontWeight: 700, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        🔥 {t("Live Platform Demand Active")}
-                      </span>
-                    )}
                     <h2 style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '1.5rem', width: '100%', marginTop: 2 }}>
                       {t(active.monthFull)} {active.icon}
                     </h2>

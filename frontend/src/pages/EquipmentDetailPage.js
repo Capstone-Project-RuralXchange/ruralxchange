@@ -5,6 +5,7 @@ import { getEquipmentCategory, formatCurrency, formatDate, SPECIALIST_TYPES } fr
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { FiCalendar, FiMapPin, FiUser, FiStar, FiArrowLeft, FiCheckCircle, FiPackage, FiNavigation, FiCrosshair, FiExternalLink } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const EquipmentDetailPage = () => {
   const { id } = useParams();
@@ -128,6 +129,44 @@ const EquipmentDetailPage = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem' }}>
           {/* Left - Details */}
           <div>
+            {/* Owner Controls */}
+            {user && (user._id === equipment.owner?._id || user._id === equipment.owner) && (
+              <div style={{
+                background: '#fff1f2',
+                border: '1px solid #fecdd3',
+                borderRadius: '12px',
+                padding: '1rem',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <strong style={{ color: '#9f1239' }}>⚙️ Owner Controls</strong>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#881337' }}>
+                    You own this equipment listing.
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (window.confirm("Are you sure you want to delist this equipment?")) {
+                      try {
+                        await equipmentAPI.delete(equipment._id);
+                        toast.success("Equipment delisted!");
+                        navigate('/dashboard');
+                      } catch (e) {
+                        toast.error("Failed to delist");
+                      }
+                    }
+                  }}
+                  className="btn btn-sm"
+                  style={{ background: '#dc2626', color: 'white', border: 'none' }}
+                >
+                  🗑️ Delist Listing
+                </button>
+              </div>
+            )}
+
             {/* Hero image / icon */}
             <div style={{
               height: 280, background: `linear-gradient(135deg, ${cat.color}20, ${cat.color}40)`,

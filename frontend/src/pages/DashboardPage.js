@@ -54,6 +54,11 @@ export default function DashboardPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewedMap, setReviewedMap] = useState({});
 
+  // Edit Equipment Modal State
+  const [editModalEquipment, setEditModalEquipment] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+
   const isProviderOrSpecialist = user?.role === 'provider' || user?.role === 'specialist';
 
   useEffect(() => {
@@ -159,6 +164,57 @@ export default function DashboardPage() {
       toast.error(err.response?.data?.message || t('Failed to submit rating'));
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  const handleDelistEquipment = async (equipmentId, title) => {
+    const confirmed = window.confirm(`Are you sure you want to delist "${title}"? It will no longer be visible to seekers.`);
+    if (!confirmed) return;
+
+    try {
+      await equipmentAPI.delete(equipmentId);
+      toast.success("Equipment delisted successfully! 🚜");
+      // Refresh your listings in state
+      setMyEquipment(prev => prev.filter(item => item._id !== equipmentId));
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delist equipment");
+    }
+  };
+
+  const handleEquipmentStatusChange = async (equipmentId, newStatus) => {
+    try {
+      await equipmentAPI.update(equipmentId, { availabilityStatus: newStatus });
+      toast.success(t('Equipment status updated successfully'));
+      setMyEquipment(prev => prev.map(item => item._id === equipmentId ? { ...item, availabilityStatus: newStatus } : item));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('Failed to update status'));
+    }
+  };
+
+  const openEditModal = (equipment) => {
+    setEditModalEquipment(equipment);
+    setEditFormData({
+      title: equipment.title || '',
+      pricePerDay: equipment.pricePerDay || '',
+      pricePerHour: equipment.pricePerHour || '',
+      district: equipment.district || '',
+      description: equipment.description || ''
+    });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editModalEquipment) return;
+    try {
+      setSubmittingEdit(true);
+      const res = await equipmentAPI.update(editModalEquipment._id, editFormData);
+      toast.success(t('Equipment updated successfully!'));
+      setMyEquipment(prev => prev.map(item => item._id === editModalEquipment._id ? res.data.data : item));
+      setEditModalEquipment(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('Failed to update equipment'));
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -786,12 +842,46 @@ export default function DashboardPage() {
                   <div key={eq._id} className="card" style={{ padding: '1.25rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                       <h4 style={{ fontWeight: 700, color: 'var(--soil)', fontSize: '0.95rem' }}>{eq.title}</h4>
-                      <span style={{ background: eq.availabilityStatus === 'available' ? '#f0faf0' : '#fef2f2', color: eq.availabilityStatus === 'available' ? 'var(--leaf)' : '#dc2626', padding: '2px 8px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>
-                        {t(eq.availabilityStatus)}
-                      </span>
+                      <select
+                        value={eq.availabilityStatus}
+                        onChange={(e) => handleEquipmentStatusChange(eq._id, e.target.value)}
+                        style={{ 
+                          background: eq.availabilityStatus === 'available' ? '#f0faf0' : '#fef2f2', 
+                          color: eq.availabilityStatus === 'available' ? 'var(--leaf)' : '#dc2626', 
+                          padding: '2px 8px', 
+                          borderRadius: 20, 
+                          fontSize: '0.75rem', 
+                          fontWeight: 600,
+                          border: `1px solid ${eq.availabilityStatus === 'available' ? '#bbf7d0' : '#fecaca'}`,
+                          outline: 'none',
+                          cursor: 'pointer',
+                          appearance: 'none',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <option value="available">✅ {t("Available")}</option>
+                        <option value="maintenance">🚫 {t("Unavailable")}</option>
+                      </select>
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--clay)', marginBottom: '0.5rem' }}>{t(eq.category)} · {eq.district}</p>
-                    <p style={{ fontWeight: 700, color: 'var(--terracotta)' }}>{formatCurrency(eq.pricePerDay)}/{t("day")}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p style={{ fontWeight: 700, color: 'var(--terracotta)', margin: 0 }}>{formatCurrency(eq.pricePerDay)}/{t("day")}</p>
+                      <button
+                        onClick={() => openEditModal(eq)}
+                        className="btn btn-outline btn-sm"
+                        style={{
+                          color: 'var(--soil)',
+                          borderColor: 'var(--sand)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          fontSize: '0.8rem',
+                          padding: '0.4rem 0.8rem'
+                        }}
+                      >
+                        ✏️ {t("Edit")}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -934,6 +1024,99 @@ export default function DashboardPage() {
                 >
                   {submittingReview ? t("Submitting...") : t("Submit Rating")}
                 </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Edit Equipment Modal */}
+      {editModalEquipment && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+        }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              background: 'white', borderRadius: '12px', padding: '2rem',
+              width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0 }}>✏️ {t("Edit Equipment")}</h3>
+              <button onClick={() => setEditModalEquipment(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+            </div>
+            
+            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>{t("Title")}</label>
+                <input
+                  type="text"
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                  required
+                  className="form-control"
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>{t("Price/Day (₹)")}</label>
+                  <input
+                    type="number"
+                    value={editFormData.pricePerDay}
+                    onChange={(e) => setEditFormData({...editFormData, pricePerDay: e.target.value})}
+                    required
+                    className="form-control"
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>{t("Price/Hour (₹) (Optional)")}</label>
+                  <input
+                    type="number"
+                    value={editFormData.pricePerHour}
+                    onChange={(e) => setEditFormData({...editFormData, pricePerHour: e.target.value})}
+                    className="form-control"
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>{t("Description")}</label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                  rows={3}
+                  className="form-control"
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    handleDelistEquipment(editModalEquipment._id, editModalEquipment.title);
+                    setEditModalEquipment(null);
+                  }}
+                  style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}
+                >
+                  🗑️ {t("Delist")}
+                </button>
+                
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button type="button" onClick={() => setEditModalEquipment(null)} className="btn btn-outline" style={{ padding: '0.5rem 1rem' }}>
+                    {t("Cancel")}
+                  </button>
+                  <button type="submit" disabled={submittingEdit} className="btn btn-primary" style={{ padding: '0.5rem 1.5rem' }}>
+                    {submittingEdit ? t("Saving...") : t("Save Changes")}
+                  </button>
+                </div>
               </div>
             </form>
           </motion.div>
