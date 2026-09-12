@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiEdit2, FiSave, FiX, FiMapPin, FiPhone, FiStar, FiAward } from 'react-icons/fi';
 import { GiFarmer } from 'react-icons/gi';
@@ -20,13 +20,31 @@ export default function ProfilePage() {
   });
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    authAPI.getMe()
+      .then(res => {
+        const u = res.data?.user || res.data?.data || res.data;
+        if (u) {
+          updateUser(u);
+          setForm({
+            name: u.name || '',
+            village: u.village || '',
+            district: u.district || 'Bengaluru Urban',
+            preferredLanguage: u.preferredLanguage || 'en',
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSave = async () => {
     setSaving(true);
     try {
       const res = await authAPI.updateProfile(form);
-      updateUser(res.data.data);
+      const updated = res.data?.data || res.data?.user || res.data;
+      updateUser(updated);
       toast.success(t('Profile updated!'));
       setEditing(false);
     } catch (err) {
@@ -38,6 +56,8 @@ export default function ProfilePage() {
 
   const roleColors = { seeker: 'var(--leaf)', provider: 'var(--terracotta)', specialist: '#7c3aed', admin: 'var(--soil)' };
   const roleColor = roleColors[user?.role] || 'var(--clay)';
+
+  const memberSinceYear = user?.createdAt ? new Date(user.createdAt).getFullYear() : new Date().getFullYear();
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)', paddingBottom: '4rem' }}>
@@ -69,7 +89,7 @@ export default function ProfilePage() {
           {[
             { label: t('Rating'), value: user?.rating?.average != null ? user.rating.average.toFixed(1) : '—', icon: FiStar, color: 'var(--harvest)' },
             { label: t('Reviews'), value: user?.rating?.count || 0, icon: FiAward, color: 'var(--terracotta)' },
-            { label: t('Member Since'), value: user?.createdAt ? new Date(user.createdAt).getFullYear() : '2025', icon: FiAward, color: roleColor },
+            { label: t('Member Since'), value: memberSinceYear, icon: FiAward, color: roleColor },
           ].map(stat => (
             <div key={stat.label} className="card" style={{ padding: '1.25rem', textAlign: 'center', borderTop: `3px solid ${stat.color}` }}>
               <stat.icon size={22} color={stat.color} style={{ marginBottom: 6 }} />
@@ -104,7 +124,7 @@ export default function ProfilePage() {
               {[
                 { label: t('Full Name'), value: user?.name, icon: GiFarmer },
                 { label: t('Phone Number'), value: user?.phone, icon: FiPhone },
-                { label: t('District'), value: user?.district, icon: FiMapPin },
+                { label: t('District'), value: t(user?.district), icon: FiMapPin },
                 { label: t('Village / Town'), value: user?.village || '—', icon: FiMapPin },
                 { label: t('Language'), value: LANGUAGES.find(l => l.value === user?.preferredLanguage)?.label || 'English', icon: FiAward },
                 { label: t('Role'), value: t(user?.role), icon: FiAward },
@@ -129,13 +149,13 @@ export default function ProfilePage() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("District")}</label>
                   <select className="form-input" value={form.district} onChange={e => set('district', e.target.value)}>
-                    {KARNATAKA_DISTRICTS.map(d => <option key={d}>{d}</option>)}
+                    {KARNATAKA_DISTRICTS.map(d => <option key={d} value={d}>{t(d)}</option>)}
                   </select>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Preferred Language")}</label>
                   <select className="form-input" value={form.preferredLanguage} onChange={e => set('preferredLanguage', e.target.value)}>
-                    {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                    {LANGUAGES.map(l => <option key={l.value} value={l.value}>{t(l.label)}</option>)}
                   </select>
                 </div>
               </div>

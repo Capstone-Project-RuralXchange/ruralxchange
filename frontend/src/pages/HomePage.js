@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { equipmentAPI, specialistAPI, seasonalAPI, requirementAPI } from '../utils/api';
-import { EQUIPMENT_CATEGORIES, SPECIALIST_TYPES, getEquipmentCategory, formatCurrency } from '../utils/constants';
-import { FiArrowRight, FiSearch, FiStar, FiCheckCircle, FiTrendingUp, FiUsers, FiPackage } from 'react-icons/fi';
+import { EQUIPMENT_CATEGORIES, SPECIALIST_TYPES, KARNATAKA_DISTRICTS, getEquipmentCategory, formatCurrency } from '../utils/constants';
+import { FiArrowRight, FiSearch, FiStar, FiCheckCircle, FiTrendingUp, FiUsers, FiPackage, FiMapPin } from 'react-icons/fi';
 import { GiWheat, GiFarmer } from 'react-icons/gi';
 
 const StarRating = ({ rating, count }) => (
@@ -15,6 +15,7 @@ const StarRating = ({ rating, count }) => (
 );
 
 const EquipmentCard = ({ item }) => {
+  const { t } = useTranslation();
   const cat = getEquipmentCategory(item.category);
   return (
     <Link to={`/equipment/${item._id}`} style={{ textDecoration: 'none' }}>
@@ -30,11 +31,11 @@ const EquipmentCard = ({ item }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--soil)', lineHeight: 1.3 }}>{item.title}</h3>
             <span className={`badge badge-${item.availabilityStatus}`} style={{ fontSize: '0.7rem', flexShrink: 0, marginLeft: '0.5rem' }}>
-              {item.availabilityStatus}
+              {t(item.availabilityStatus)}
             </span>
           </div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-            📍 {item.district}
+            📍 {t(item.district)}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
@@ -52,7 +53,8 @@ const EquipmentCard = ({ item }) => {
 };
 
 const SpecialistCard = ({ item }) => {
-  const sp = SPECIALIST_TYPES.find(s => s.value === item.specialization) || { label: item.specialization, icon: '👤' };
+  const { t } = useTranslation();
+  const sp = SPECIALIST_TYPES.find(s => s.value === item.specialization) || { label: item.specialization, icon: '👤', value: item.specialization };
   const tierColors = { professional: 'var(--leaf)', skilled: 'var(--clay)', labour: 'var(--text-muted)' };
   return (
     <Link to={`/specialists/${item._id}`} style={{ textDecoration: 'none' }}>
@@ -71,7 +73,7 @@ const SpecialistCard = ({ item }) => {
               {item.user?.name || 'Specialist'}
             </h3>
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: tierColors[sp.tier] || 'var(--text-muted)' }}>
-              {sp.label}
+              {t(sp.value || sp.label)}
             </div>
           </div>
           {item.user?.isVerified && (
@@ -79,7 +81,7 @@ const SpecialistCard = ({ item }) => {
           )}
         </div>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-          📍 {item.district} · {item.experience} yrs exp
+          📍 {t(item.district)} · {item.experience} {t('yrs exp')}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -87,7 +89,7 @@ const SpecialistCard = ({ item }) => {
             <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>/day</span>
           </div>
           <span className={`badge badge-${item.availabilityStatus}`} style={{ fontSize: '0.7rem' }}>
-            {item.availabilityStatus}
+            {t(item.availabilityStatus)}
           </span>
         </div>
       </div>
@@ -134,7 +136,7 @@ const HomePage = () => {
     { icon: <FiPackage />, value: '500+', label: t('Equipment Listed'), color: 'var(--terracotta)' },
     { icon: <GiFarmer />, value: '300+', label: t('Skilled Workers'), color: 'var(--leaf)' },
     { icon: <FiUsers />, value: '1000+', label: t('Happy Seekers'), color: 'var(--harvest)' },
-    { icon: <FiPackage />, value: '50+', label: t('Districts Covered'), color: 'var(--clay)' },
+    { icon: <FiMapPin />, value: '31', label: t('Districts Covered'), color: 'var(--clay)' },
   ];
 
   return (
@@ -224,9 +226,9 @@ const HomePage = () => {
                   fontSize: '0.9rem', outline: 'none', minWidth: 160,
                 }}
               >
-                <option value="">{t("All Districts")}</option>
-                {['Mandya', 'Mysuru', 'Tumakuru', 'Hassan', 'Davangere', 'Dharwad', 'Kolar', 'Ramanagara', 'Chikkamagaluru'].map(d => (
-                  <option key={d} value={d}>{d}</option>
+                <option value="" style={{ color: 'var(--soil)' }}>{t("All Districts")}</option>
+                {KARNATAKA_DISTRICTS.map(d => (
+                  <option key={d} value={d} style={{ color: 'var(--soil)' }}>{t(d)}</option>
                 ))}
               </select>
               <button type="submit" className="btn btn-primary btn-lg" style={{ gap: '0.5rem' }}>
@@ -271,7 +273,7 @@ const HomePage = () => {
             <p style={{ color: 'var(--text-muted)' }}>{t("Browse by Category Desc")}</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
-            {EQUIPMENT_CATEGORIES.slice(0, 12).map(cat => (
+            {EQUIPMENT_CATEGORIES.map(cat => (
               <Link
                 key={cat.value}
                 to={`/equipment?category=${cat.value}`}
@@ -297,7 +299,7 @@ const HomePage = () => {
                   e.currentTarget.style.boxShadow = 'none';
                 }}>
                   <span style={{ fontSize: '2rem' }}>{cat.icon}</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{cat.label}</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{t(cat.value)}</span>
                 </div>
               </Link>
             ))}
@@ -380,10 +382,10 @@ const HomePage = () => {
               <div style={{ flex: 1, minWidth: 250 }}>
                 <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>{seasonal.icon}</div>
                 <h2 style={{ fontSize: '1.6rem', color: 'var(--soil)', marginBottom: '0.5rem' }}>
-                  {seasonal.season}
+                  {t(seasonal.season)}
                 </h2>
                 <p style={{ color: 'var(--clay)', marginBottom: '1rem', fontWeight: 500 }}>
-                  {seasonal.message}
+                  {t(seasonal.message)}
                 </p>
                 <Link to="/seasonal" className="btn btn-primary">
                   {t("View Full Calendar")} <FiArrowRight />
@@ -401,7 +403,7 @@ const HomePage = () => {
                         fontSize: '0.85rem', fontWeight: 600, color: 'var(--clay)',
                         display: 'flex', alignItems: 'center', gap: '0.3rem',
                       }}>
-                        {(cat.icon || '📦')} {cat.label}
+                        {(cat.icon || '📦')} {t(cat.value)}
                       </span>
                     ) : null;
                   })}

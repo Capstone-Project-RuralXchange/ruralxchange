@@ -27,7 +27,10 @@ router.get('/dashboard', protect, async (req, res) => {
 
     let specialistEarnings = 0;
     if (specialistProfile) {
-      const specialistBookings = await Booking.find({ specialist: specialistProfile._id, status: 'completed' });
+      const specialistBookings = await Booking.find({
+        $or: [{ specialist: specialistProfile._id }, { specialistOwner: userId }],
+        status: 'completed'
+      });
       specialistEarnings = specialistBookings.reduce((sum, b) => sum + (b.pricing?.specialistCost || 0), 0);
     }
 

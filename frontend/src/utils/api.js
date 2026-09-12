@@ -40,6 +40,7 @@ export const authAPI = {
 export const equipmentAPI = {
   getAll: (params) => API.get('/equipment', { params }),
   getById: (id) => API.get(`/equipment/${id}`),
+  getRoute: (id, params) => API.get(`/equipment/${id}/route`, { params }),
   create: (data) => API.post('/equipment', data),
   update: (id, data) => API.put(`/equipment/${id}`, data),
   delete: (id) => API.delete(`/equipment/${id}`),
@@ -62,7 +63,8 @@ export const bookingAPI = {
   getMyBookings: (params) => API.get('/bookings/my', { params }),
   getProviderBookings: () => API.get('/bookings/provider'),
   getById: (id) => API.get(`/bookings/${id}`),
-  updateStatus: (id, status) => API.put(`/bookings/${id}/status`, { status }),
+  updateStatus: (id, status, extra = {}) => API.put(`/bookings/${id}/status`, { status, ...extra }),
+  dismissAlert: (id) => API.put(`/bookings/${id}/dismiss-alert`),
 };
 
 // Requirements

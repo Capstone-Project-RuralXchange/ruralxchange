@@ -4,13 +4,17 @@
 - **Backend API** (Node/Express):
   - User authentication (login/register) with JWT.
   - CRUD endpoints for Equipment, Booking, Rating, Requirement, Specialist, and Seasonal data.
+  - Accurate Road Distance Engine via OpenStreetMap / OSRM (`backend/utils/routing.js`) with in-memory caching and Haversine rural-winding fallback.
+  - Route calculation endpoint `@GET /api/equipment/:id/route` and live coordinate support in `@POST /api/equipment`.
   - Seed script (`backend/seed.js`) that populates the database with sample data.
   - Middleware for auth protection.
 - **Frontend SPA** (React):
   - Routing for all main pages (Home, Equipment, Equipment Detail, Booking, Dashboard, Requirements, Seasonal, Specialists, Profile, Login, Register, etc.).
   - Context‑based authentication (`src/context/AuthContext.js`).
-  - i18n translation dictionary located at `src/i18n.js` (kept as a single file as per requirements).
-  - Forms for posting requirements and adding equipment (UI redesign approved).
+  - Accurate OSRM road distance badges (`🚗 X km • Y mins drive`) with live browser GPS buttons on `EquipmentPage.js`, `ListEquipmentPage.js`, and `EquipmentDetailPage.js`.
+  - Google Maps Directions integration on equipment detail page.
+  - i18n translation dictionary located at `src/i18n.js` (English, Kannada, Hindi).
+  - Forms for posting requirements and adding equipment with live GPS capture.
   - API utility (`src/utils/api.js`) that abstracts calls to the backend.
   - Basic UI components (Navbar, Footer, layout wrappers).
 - **Project Setup**

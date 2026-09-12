@@ -5,10 +5,51 @@ const Equipment = require('../models/Equipment');
 const Specialist = require('../models/Specialist');
 const { protect } = require('../middleware/auth');
 
+// Helper to check and process expired pending bookings
+async function checkAndExpirePendingBookings(userId = null) {
+  try {
+    const query = {
+      status: 'pending',
+      acceptanceDeadline: { $lte: new Date() }
+    };
+    if (userId) {
+      query.$or = [{ seeker: userId }, { equipmentOwner: userId }, { specialistOwner: userId }];
+    }
+
+    const expiredBookings = await Booking.find(query);
+    for (const b of expiredBookings) {
+      if (b.autoCancelOnExpiry !== false) {
+        // Auto-cancel and release locks
+        b.status = 'cancelled';
+        b.cancellationReason = `Provider acceptance timeout (auto-cancelled after ${b.acceptanceWindowHours || 6}h)`;
+        await b.save();
+
+        if (b.equipment) {
+          await Equipment.findByIdAndUpdate(b.equipment, {
+            availabilityStatus: 'available',
+            $pull: { bookedDates: { bookingId: b._id } }
+          });
+        }
+        if (b.specialist) {
+          await Specialist.findByIdAndUpdate(b.specialist, {
+            availabilityStatus: 'available',
+            $pull: { bookedDates: { bookingId: b._id } }
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error processing expired bookings:', err.message);
+  }
+}
+
 // @POST /api/bookings - Create booking (bundle or individual)
 router.post('/', protect, async (req, res) => {
   try {
-    const { equipmentId, specialistId, startDate, endDate, location, purpose, bookingType, specialRequirements } = req.body;
+    const {
+      equipmentId, specialistId, startDate, endDate, location, purpose,
+      bookingType, specialRequirements, acceptanceWindowHours = 6, autoCancelOnExpiry = true
+    } = req.body;
 
     let pricing = { equipmentCost: 0, specialistCost: 0, platformFee: 0, totalAmount: 0 };
     let equipmentOwner;
@@ -35,15 +76,44 @@ router.post('/', protect, async (req, res) => {
       }
       const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
       pricing.specialistCost = specialist.pricePerDay * days;
-      specialistOwner = specialist.user; // The User _id behind this specialist profile
+      specialistOwner = specialist.user;
     }
 
     pricing.platformFee = Math.round((pricing.equipmentCost + pricing.specialistCost) * 0.05);
     pricing.totalAmount = pricing.equipmentCost + pricing.specialistCost + pricing.platformFee;
 
+    // Atomically lock equipment
+    if (equipmentId) {
+      const lockedEq = await Equipment.findOneAndUpdate(
+        { _id: equipmentId, availabilityStatus: 'available' },
+        { availabilityStatus: 'booked', $push: { bookedDates: { start: startDate, end: endDate } } },
+        { new: true }
+      );
+      if (!lockedEq) {
+        return res.status(409).json({ success: false, message: 'Conflict: Equipment was just booked by someone else.' });
+      }
+    }
+
+    // Atomically lock specialist
+    if (specialistId) {
+      const lockedSp = await Specialist.findOneAndUpdate(
+        { _id: specialistId, availabilityStatus: 'available' },
+        { availabilityStatus: 'booked', $push: { bookedDates: { start: startDate, end: endDate } } },
+        { new: true }
+      );
+      if (!lockedSp) {
+        if (equipmentId) await Equipment.findByIdAndUpdate(equipmentId, { availabilityStatus: 'available' });
+        return res.status(409).json({ success: false, message: 'Conflict: Specialist was just booked by someone else.' });
+      }
+    }
+
+    const normalizedBookingType = (bookingType || 'equipment_only').trim().toLowerCase().replace(/[\s-]+/g, '_');
+    const winHours = Math.max(1, Math.min(168, Number(acceptanceWindowHours) || 6));
+    const deadline = new Date(Date.now() + winHours * 60 * 60 * 1000);
+
     const booking = await Booking.create({
       seeker: req.user.id,
-      bookingType,
+      bookingType: normalizedBookingType,
       equipment: equipmentId || undefined,
       equipmentOwner,
       specialist: specialistId || undefined,
@@ -53,21 +123,23 @@ router.post('/', protect, async (req, res) => {
       location,
       purpose,
       pricing,
-      specialRequirements
+      specialRequirements,
+      acceptanceWindowHours: winHours,
+      acceptanceDeadline: deadline,
+      autoCancelOnExpiry: autoCancelOnExpiry !== false
     });
 
-    // Mark equipment/specialist as booked
     if (equipmentId) {
-      await Equipment.findByIdAndUpdate(equipmentId, {
-        availabilityStatus: 'booked',
-        $push: { bookedDates: { start: startDate, end: endDate, bookingId: booking._id } }
-      });
+      await Equipment.updateOne(
+        { _id: equipmentId, 'bookedDates.start': startDate },
+        { $set: { 'bookedDates.$.bookingId': booking._id } }
+      );
     }
     if (specialistId) {
-      await Specialist.findByIdAndUpdate(specialistId, {
-        availabilityStatus: 'booked',
-        $push: { bookedDates: { start: startDate, end: endDate, bookingId: booking._id } }
-      });
+      await Specialist.updateOne(
+        { _id: specialistId, 'bookedDates.start': startDate },
+        { $set: { 'bookedDates.$.bookingId': booking._id } }
+      );
     }
 
     const populated = await Booking.findById(booking._id)
@@ -84,6 +156,8 @@ router.post('/', protect, async (req, res) => {
 // @GET /api/bookings/my - Get my bookings (as seeker)
 router.get('/my', protect, async (req, res) => {
   try {
+    await checkAndExpirePendingBookings(req.user.id);
+
     const { status } = req.query;
     const query = { seeker: req.user.id };
     if (status) query.status = status;
@@ -104,7 +178,8 @@ router.get('/my', protect, async (req, res) => {
 // @GET /api/bookings/provider - Bookings where I am the provider (equipment owner OR specialist)
 router.get('/provider', protect, async (req, res) => {
   try {
-    // Find bookings where the current user is either the equipment owner OR the specialist owner
+    await checkAndExpirePendingBookings(req.user.id);
+
     const bookings = await Booking.find({
       $or: [
         { equipmentOwner: req.user.id },
@@ -123,14 +198,13 @@ router.get('/provider', protect, async (req, res) => {
   }
 });
 
-// @PUT /api/bookings/:id/status - Update booking status (accept/reject/complete)
+// @PUT /api/bookings/:id/status - Update booking status (accept/reject/complete/cancel)
 router.put('/:id/status', protect, async (req, res) => {
   try {
     const { status, cancellationReason, completionNotes } = req.body;
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
 
-    // Auth: seeker, equipment owner, specialist owner, or admin can update
     const isSeeker = booking.seeker.toString() === req.user.id;
     const isEquipmentOwner = booking.equipmentOwner && booking.equipmentOwner.toString() === req.user.id;
     const isSpecialistOwner = booking.specialistOwner && booking.specialistOwner.toString() === req.user.id;
@@ -139,7 +213,6 @@ router.put('/:id/status', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to update this booking' });
     }
 
-    // Seekers can only cancel
     if (isSeeker && !isEquipmentOwner && !isSpecialistOwner && status !== 'cancelled') {
       return res.status(403).json({ success: false, message: 'Seekers can only cancel bookings' });
     }
@@ -148,13 +221,19 @@ router.put('/:id/status', protect, async (req, res) => {
     if (cancellationReason) updates.cancellationReason = cancellationReason;
     if (completionNotes) updates.completionNotes = completionNotes;
 
-    // If cancelled or completed, free up equipment/specialist
+    // If cancelled or completed, release equipment and specialist locks
     if (status === 'cancelled' || status === 'completed') {
       if (booking.equipment) {
-        await Equipment.findByIdAndUpdate(booking.equipment, { availabilityStatus: 'available' });
+        await Equipment.findByIdAndUpdate(booking.equipment, {
+          availabilityStatus: 'available',
+          $pull: { bookedDates: { bookingId: booking._id } }
+        });
       }
       if (booking.specialist) {
-        await Specialist.findByIdAndUpdate(booking.specialist, { availabilityStatus: 'available' });
+        await Specialist.findByIdAndUpdate(booking.specialist, {
+          availabilityStatus: 'available',
+          $pull: { bookedDates: { bookingId: booking._id } }
+        });
       }
     }
 
@@ -166,6 +245,21 @@ router.put('/:id/status', protect, async (req, res) => {
       .populate('specialistOwner', 'name phone');
 
     res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// @PUT /api/bookings/:id/dismiss-alert - Dismiss expiry popup
+router.put('/:id/dismiss-alert', protect, async (req, res) => {
+  try {
+    const booking = await Booking.findOneAndUpdate(
+      { _id: req.params.id, seeker: req.user.id },
+      { notifiedSeekerOfExpiry: true },
+      { new: true }
+    );
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+    res.json({ success: true, data: booking });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }

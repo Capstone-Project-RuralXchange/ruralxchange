@@ -30,21 +30,29 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
     enum: ['seeker', 'provider', 'specialist', 'admin'],
     default: 'seeker'
   },
   district: {
     type: String,
-    required: [true, 'District is required']
+    required: [true, 'District is required'],
+    trim: true
   },
   state: {
     type: String,
     required: [true, 'State is required'],
-    default: 'Karnataka'
+    default: 'Karnataka',
+    trim: true
   },
-  village: String,
+  village: { type: String, trim: true },
   preferredLanguage: {
     type: String,
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
     enum: ['en', 'kn', 'hi'],
     default: 'en'
   },
@@ -63,6 +71,17 @@ const userSchema = new mongoose.Schema({
   bio: { type: String, maxlength: 500 },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
+
+// Pre-validate hook
+userSchema.pre('validate', function(next) {
+  if (this.role && typeof this.role === 'string') {
+    this.role = this.role.trim().toLowerCase();
+  }
+  if (this.preferredLanguage && typeof this.preferredLanguage === 'string') {
+    this.preferredLanguage = this.preferredLanguage.trim().toLowerCase();
+  }
+  next();
+});
 
 // Hash password before save
 userSchema.pre('save', async function(next) {

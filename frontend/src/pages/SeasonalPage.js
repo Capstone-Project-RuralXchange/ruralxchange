@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiChevronRight } from 'react-icons/fi';
+import { FiChevronRight, FiArrowRight } from 'react-icons/fi';
 import { GiWheat, GiSunflower } from 'react-icons/gi';
 import { Link } from 'react-router-dom';
 import { seasonalAPI } from '../utils/api';
 import { useTranslation } from 'react-i18next';
+import { getEquipmentCategory, getSpecialistType } from '../utils/constants';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const SEASON_COLORS = {
-  Kharif: { bg: '#f0fdf4', border: '#86efac', text: '#15803d', badge: '#dcfce7' },
-  Rabi: { bg: '#eff6ff', border: '#93c5fd', text: '#1d4ed8', badge: '#dbeafe' },
-  Zaid: { bg: '#fef9ee', border: '#fcd34d', text: '#b45309', badge: '#fef3c7' },
-  'Pre-Kharif': { bg: '#fdf4ff', border: '#d8b4fe', text: '#7e22ce', badge: '#f3e8ff' },
+const MONTHS_FULL = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const getSeasonTheme = (seasonStr = '') => {
+  const s = seasonStr.toLowerCase();
+  if (s.includes('kharif')) return { bg: '#f0fdf4', border: '#86efac', text: '#15803d', badge: '#dcfce7' };
+  if (s.includes('rabi')) return { bg: '#eff6ff', border: '#93c5fd', text: '#1d4ed8', badge: '#dbeafe' };
+  if (s.includes('summer')) return { bg: '#fef9ee', border: '#fcd34d', text: '#b45309', badge: '#fef3c7' };
+  if (s.includes('wedding') || s.includes('festival') || s.includes('post-harvest')) return { bg: '#fdf4ff', border: '#d8b4fe', text: '#7e22ce', badge: '#f3e8ff' };
+  return { bg: '#fef9ee', border: '#fcd34d', text: '#b45309', badge: '#fef3c7' };
 };
 
 export default function SeasonalPage() {
@@ -24,16 +32,18 @@ export default function SeasonalPage() {
     seasonalAPI.getCalendar()
       .then(res => {
         const raw = res.data.data || {};
-        // Backend returns {1: {...}, 2: {...}, ...12: {...}} — convert to array[0..11]
         const arr = Array.from({ length: 12 }, (_, i) => {
           const m = raw[i + 1] || {};
           return {
             month: MONTHS[i],
+            monthFull: MONTHS_FULL[i],
             season: m.season || '',
             topEquipment: m.top || m.topEquipment || [],
             topServices: m.services || m.topServices || [],
             message: m.message || '',
             icon: m.icon || '',
+            isLiveDynamic: m.isLiveDynamic || false,
+            totalSignals: m.totalSignals || 0,
           };
         });
         setData(arr);
@@ -43,7 +53,7 @@ export default function SeasonalPage() {
   }, []);
 
   const active = data[activeMonth];
-  const colors = active ? SEASON_COLORS[active.season] || SEASON_COLORS['Zaid'] : null;
+  const colors = active ? getSeasonTheme(active.season) : null;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)', paddingBottom: '4rem' }}>
@@ -99,13 +109,20 @@ export default function SeasonalPage() {
           <motion.div key={activeMonth} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
             {/* Month Header */}
             <div className="card" style={{ padding: '1.5rem 2rem', marginBottom: '1.5rem', background: colors?.bg, border: `2px solid ${colors?.border}` }}>
-              <div style={{ display: 'flex', justify: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                     <span style={{ background: colors?.badge, color: colors?.text, padding: '4px 14px', borderRadius: 20, fontWeight: 700, fontSize: '0.85rem' }}>
-                      {t(active.season)} {t("Season")}
+                      {t(active.season)}
                     </span>
-                    <h2 style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '1.5rem' }}>{t(MONTHS[activeMonth])} — {t(active.month)}</h2>
+                    {active.isLiveDynamic && (
+                      <span style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#dc2626', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '3px 10px', borderRadius: 20, fontWeight: 700, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        🔥 {t("Live Platform Demand Active")}
+                      </span>
+                    )}
+                    <h2 style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '1.5rem', width: '100%', marginTop: 2 }}>
+                      {t(active.monthFull)} {active.icon}
+                    </h2>
                   </div>
                   <p style={{ color: 'var(--clay)', fontSize: '0.95rem', maxWidth: 560 }}>{t(active.message)}</p>
                 </div>
@@ -120,13 +137,32 @@ export default function SeasonalPage() {
                   🚜 {t("High-Demand Equipment")}
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {(active.topEquipment || []).map((eq, i) => (
-                    <div key={eq} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: 8, background: i === 0 ? 'rgba(232,160,32,0.1)' : 'transparent' }}>
-                      <span style={{ fontWeight: 800, color: colors?.text, fontSize: '0.85rem', minWidth: 20 }}>#{i+1}</span>
-                      <span style={{ fontWeight: 600, color: 'var(--soil)', fontSize: '0.9rem', flex: 1 }}>{t(eq)}</span>
-                      {i === 0 && <span style={{ fontSize: '0.75rem', background: colors?.badge, color: colors?.text, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t("Peak")}</span>}
-                    </div>
-                  ))}
+                  {(active.topEquipment || []).map((eq, i) => {
+                    const cat = getEquipmentCategory(eq);
+                    return (
+                      <Link
+                        key={eq}
+                        to={`/equipment?category=${eq}`}
+                        style={{ textDecoration: 'none' }}>
+                        <div
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.75rem',
+                            padding: '0.75rem 0.875rem', borderRadius: 10,
+                            background: i === 0 ? 'rgba(232,160,32,0.12)' : 'rgba(0,0,0,0.02)',
+                            border: `1px solid ${i === 0 ? 'rgba(232,160,32,0.3)' : 'transparent'}`,
+                            transition: 'all 0.2s', cursor: 'pointer'
+                          }}>
+                          <span style={{ fontWeight: 800, color: colors?.text, fontSize: '0.85rem', minWidth: 20 }}>#{i+1}</span>
+                          <span style={{ fontSize: '1.2rem' }}>{cat.icon}</span>
+                          <span style={{ fontWeight: 600, color: 'var(--soil)', fontSize: '0.92rem', flex: 1 }}>
+                            {t(cat.label)}
+                          </span>
+                          {i === 0 && <span style={{ fontSize: '0.75rem', background: colors?.badge, color: colors?.text, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>{t("Peak")}</span>}
+                          <FiArrowRight size={14} color="var(--clay)" />
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
                 <Link to="/equipment" className="btn btn-outline" style={{ marginTop: '1rem', width: '100%', justifyContent: 'center', fontSize: '0.85rem' }}>
                   {t("Browse Available Equipment")} <FiChevronRight />
@@ -139,13 +175,32 @@ export default function SeasonalPage() {
                   👷 {t("High-Demand Services")}
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {(active.topServices || []).map((svc, i) => (
-                    <div key={svc} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: 8, background: i === 0 ? 'rgba(45,106,45,0.1)' : 'transparent' }}>
-                      <span style={{ fontWeight: 800, color: 'var(--leaf)', fontSize: '0.85rem', minWidth: 20 }}>#{i+1}</span>
-                      <span style={{ fontWeight: 600, color: 'var(--soil)', fontSize: '0.9rem', flex: 1 }}>{t(svc)}</span>
-                      {i === 0 && <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: 'var(--leaf)', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t("Peak")}</span>}
-                    </div>
-                  ))}
+                  {(active.topServices || []).map((svc, i) => {
+                    const sp = getSpecialistType(svc);
+                    return (
+                      <Link
+                        key={svc}
+                        to={`/specialists?specialization=${svc}`}
+                        style={{ textDecoration: 'none' }}>
+                        <div
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.75rem',
+                            padding: '0.75rem 0.875rem', borderRadius: 10,
+                            background: i === 0 ? 'rgba(45,106,45,0.1)' : 'rgba(0,0,0,0.02)',
+                            border: `1px solid ${i === 0 ? 'rgba(45,106,45,0.3)' : 'transparent'}`,
+                            transition: 'all 0.2s', cursor: 'pointer'
+                          }}>
+                          <span style={{ fontWeight: 800, color: 'var(--leaf)', fontSize: '0.85rem', minWidth: 20 }}>#{i+1}</span>
+                          <span style={{ fontSize: '1.2rem' }}>{sp.icon}</span>
+                          <span style={{ fontWeight: 600, color: 'var(--soil)', fontSize: '0.92rem', flex: 1 }}>
+                            {t(sp.label)}
+                          </span>
+                          {i === 0 && <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: 'var(--leaf)', padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>{t("Peak")}</span>}
+                          <FiArrowRight size={14} color="var(--clay)" />
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
                 <Link to="/specialists" className="btn btn-outline" style={{ marginTop: '1rem', width: '100%', justifyContent: 'center', fontSize: '0.85rem' }}>
                   {t("Find Specialists")} <FiChevronRight />
@@ -158,16 +213,19 @@ export default function SeasonalPage() {
               <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: '1rem' }}>{t("Full Year at a Glance")}</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
                 {data.map((m, i) => {
-                  const mc = SEASON_COLORS[m.season] || {};
+                  const mc = getSeasonTheme(m.season);
+                  const firstCat = getEquipmentCategory(m.topEquipment?.[0]);
                   return (
                     <div key={m.month} onClick={() => setActiveMonth(i)}
                       style={{ padding: '0.875rem 1rem', borderRadius: 10, border: `2px solid ${activeMonth === i ? mc.border : 'var(--sand)'}`,
                         background: activeMonth === i ? mc.bg : 'white', cursor: 'pointer', transition: 'all 0.15s' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                        <span style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '0.9rem' }}>{t(MONTHS[i])}</span>
+                        <span style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '0.9rem' }}>{t(MONTHS[i])} {m.icon}</span>
                         <span style={{ background: mc.badge, color: mc.text, padding: '1px 7px', borderRadius: 20, fontSize: '0.7rem', fontWeight: 600 }}>{t(m.season)}</span>
                       </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--clay)', lineHeight: 1.4 }}>{t(m.topEquipment?.[0])}</p>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--clay)', lineHeight: 1.4, margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span>{firstCat.icon}</span> <span>{t(firstCat.label)}</span>
+                      </p>
                     </div>
                   );
                 })}
@@ -183,3 +241,4 @@ export default function SeasonalPage() {
     </div>
   );
 }
+

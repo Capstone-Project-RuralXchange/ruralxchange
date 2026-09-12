@@ -3,13 +3,14 @@ const router = express.Router();
 const Equipment = require('../models/Equipment');
 const { protect, authorize } = require('../middleware/auth');
 const { geocodeWithFallback } = require('../utils/geocode');
+const { getRoadDistance, enrichItemsWithRoadDistance } = require('../utils/routing');
 
-// @GET /api/equipment - Get all equipment with filters + distance sorting
+// @GET /api/equipment - Get all equipment with filters + accurate road distance sorting
 router.get('/', async (req, res) => {
   try {
     const { district, category, status, minPrice, maxPrice, lat, lng, page = 1, limit = 12 } = req.query;
 
-    // If seeker provides coordinates, use $geoNear for distance-sorted results
+    // If seeker provides coordinates, calculate accurate road distances
     if (lat && lng) {
       const seekerLat = parseFloat(lat);
       const seekerLng = parseFloat(lng);
@@ -56,12 +57,22 @@ router.get('/', async (req, res) => {
           select: 'name phone district rating isVerified'
         });
 
+        // Enrich with real OSRM road distance & driving duration
+        const enriched = await enrichItemsWithRoadDistance({ lat: seekerLat, lng: seekerLng }, populated);
+
+        // Sort primarily by road distance if available
+        enriched.sort((a, b) => {
+          const distA = a.roadDistanceKm != null ? a.roadDistanceKm : (a.distanceKm || Infinity);
+          const distB = b.roadDistanceKm != null ? b.roadDistanceKm : (b.distanceKm || Infinity);
+          return distA - distB;
+        });
+
         return res.json({
           success: true,
-          count: populated.length,
+          count: enriched.length,
           total,
           pages: Math.ceil(total / limit),
-          data: populated
+          data: enriched
         });
       }
     }
@@ -91,6 +102,51 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @GET /api/equipment/:id/route - Calculate accurate road route & travel time to equipment
+router.get('/:id/route', async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+    if (!lat || !lng) {
+      return res.status(400).json({ success: false, message: 'Current lat and lng query coordinates required' });
+    }
+
+    const seekerLat = parseFloat(lat);
+    const seekerLng = parseFloat(lng);
+    if (isNaN(seekerLat) || isNaN(seekerLng)) {
+      return res.status(400).json({ success: false, message: 'Invalid coordinates' });
+    }
+
+    const equipment = await Equipment.findById(req.params.id);
+    if (!equipment) return res.status(404).json({ success: false, message: 'Equipment not found' });
+
+    const coords = equipment.location?.coordinates;
+    if (!coords || coords.length < 2 || (coords[0] === 0 && coords[1] === 0)) {
+      return res.status(400).json({ success: false, message: 'Equipment has no valid coordinates registered' });
+    }
+
+    const eqLng = coords[0];
+    const eqLat = coords[1];
+
+    const routeInfo = await getRoadDistance(seekerLat, seekerLng, eqLat, eqLng);
+
+    res.json({
+      success: true,
+      data: {
+        origin: { lat: seekerLat, lng: seekerLng },
+        destination: { lat: eqLat, lng: eqLng, district: equipment.district, village: equipment.village },
+        roadDistanceKm: routeInfo.distanceKm,
+        drivingTimeMinutes: routeInfo.durationMinutes,
+        drivingTimeText: routeInfo.durationText,
+        isRoadDistance: routeInfo.isRoadDistance,
+        isFallback: routeInfo.isFallback,
+        googleMapsUrl: `https://www.google.com/maps/dir/?api=1&origin=${seekerLat},${seekerLng}&destination=${eqLat},${eqLng}`
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // @GET /api/equipment/:id
 router.get('/:id', async (req, res) => {
   try {
@@ -104,20 +160,89 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @POST /api/equipment - Create equipment listing (auto-geocode address)
+// Helper to extract coordinates from request
+function extractCoordinates(body) {
+  if (Array.isArray(body.coordinates) && body.coordinates.length === 2) {
+    const [c0, c1] = body.coordinates.map(Number);
+    if (!isNaN(c0) && !isNaN(c1) && (c0 !== 0 || c1 !== 0)) {
+      // If coordinates is [lng, lat] (standard GeoJSON) or [lat, lng]
+      // India latitude is ~8-37 N, longitude is ~68-97 E
+      if (c0 >= 60 && c0 <= 100 && c1 >= 5 && c1 <= 40) {
+        return { lng: c0, lat: c1 };
+      } else if (c1 >= 60 && c1 <= 100 && c0 >= 5 && c0 <= 40) {
+        return { lng: c1, lat: c0 };
+      }
+      return { lng: c0, lat: c1 };
+    }
+  }
+  if (body.latitude != null && body.longitude != null) {
+    const lat = parseFloat(body.latitude);
+    const lng = parseFloat(body.longitude);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      return { lng, lat };
+    }
+  }
+  if (body.location?.coordinates && Array.isArray(body.location.coordinates)) {
+    const [lng, lat] = body.location.coordinates.map(Number);
+    if (!isNaN(lng) && !isNaN(lat) && (lng !== 0 || lat !== 0)) {
+      return { lng, lat };
+    }
+  }
+  return null;
+}
+
+// Helper to sanitize equipment payload (normalizes enums, formats specifications)
+function sanitizeEquipmentPayload(body) {
+  if (body.category && typeof body.category === 'string') {
+    body.category = body.category.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  }
+  if (body.condition && typeof body.condition === 'string') {
+    body.condition = body.condition.trim().toLowerCase();
+  }
+  if (body.availabilityStatus && typeof body.availabilityStatus === 'string') {
+    body.availabilityStatus = body.availabilityStatus.trim().toLowerCase();
+  }
+  
+  // Map specifications from root or nested
+  if (!body.specifications) body.specifications = {};
+  if (body.brand) body.specifications.brand = body.brand;
+  if (body.model) body.specifications.model = body.model;
+  if (body.yearOfManufacture) body.specifications.year = Number(body.yearOfManufacture);
+  if (body.year) body.specifications.year = Number(body.year);
+  if (body.horsePower) body.specifications.horsePower = Number(body.horsePower);
+  if (body.fuelType && typeof body.fuelType === 'string') {
+    const ft = body.fuelType.trim().toLowerCase();
+    if (['diesel', 'petrol', 'electric', 'manual'].includes(ft)) {
+      body.specifications.fuelType = ft;
+    }
+  }
+  return body;
+}
+
+// @POST /api/equipment - Create equipment listing (live GPS or auto-geocode address)
 router.post('/', protect, authorize('provider', 'admin'), async (req, res) => {
   try {
     req.body.owner = req.user.id;
     req.body.district = req.body.district || req.user.district;
     req.body.state = req.body.state || req.user.state;
+    sanitizeEquipmentPayload(req.body);
 
-    // Auto-geocode: address → coordinates
-    const coords = await geocodeWithFallback(req.body.address, req.body.district);
-    if (coords) {
+    // 1. Direct GPS coordinates provided (e.g. from live GPS button)
+    const directCoords = extractCoordinates(req.body);
+    if (directCoords) {
       req.body.location = {
         type: 'Point',
-        coordinates: [coords.lng, coords.lat]
+        coordinates: [directCoords.lng, directCoords.lat]
       };
+    } else {
+      // 2. Fallback: Auto-geocode address → coordinates
+      const coords = await geocodeWithFallback(req.body.address, req.body.district);
+      if (coords) {
+        req.body.location = {
+          type: 'Point',
+          coordinates: [coords.lng, coords.lat]
+        };
+      }
     }
 
     const equipment = await Equipment.create(req.body);
@@ -136,8 +261,17 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    // Re-geocode if address changed
-    if (req.body.address && req.body.address !== equipment.address) {
+    sanitizeEquipmentPayload(req.body);
+
+    // Direct GPS coordinates provided
+    const directCoords = extractCoordinates(req.body);
+    if (directCoords) {
+      req.body.location = {
+        type: 'Point',
+        coordinates: [directCoords.lng, directCoords.lat]
+      };
+    } else if (req.body.address && req.body.address !== equipment.address) {
+      // Re-geocode if address changed
       const coords = await geocodeWithFallback(req.body.address, req.body.district || equipment.district);
       if (coords) {
         req.body.location = {

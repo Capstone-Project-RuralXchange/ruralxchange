@@ -1,33 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiMapPin, FiClock, FiMessageCircle, FiX, FiSearch, FiNavigation } from 'react-icons/fi';
+import { FiPlus, FiMapPin, FiClock, FiMessageCircle, FiX, FiSearch, FiNavigation, FiPhone, FiChevronDown, FiChevronUp, FiDollarSign, FiCrosshair, FiCheckCircle } from 'react-icons/fi';
 import { GiWheat } from 'react-icons/gi';
 import Select from 'react-select';
 import { useAuth } from '../context/AuthContext';
-import { requirementAPI } from '../utils/api';
-import { formatDate, EQUIPMENT_CATEGORIES, KARNATAKA_DISTRICTS } from '../utils/constants';
-import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { requirementAPI } from '../utils/api';
+import { KARNATAKA_DISTRICTS, EQUIPMENT_CATEGORIES, formatDate, getEquipmentCategory } from '../utils/constants';
+import toast from 'react-hot-toast';
 
 const REQUIREMENT_TYPES = ['Equipment', 'Specialist', 'Bundle', 'Other'];
 
 function RequirementCard({ req, onRespond, currentUser }) {
+  const { t } = useTranslation();
   const [showRespond, setShowRespond] = useState(false);
+  const [showResponses, setShowResponses] = useState(false);
   const [responseText, setResponseText] = useState('');
+  const [offeredPrice, setOfferedPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const daysLeft = Math.max(0, Math.ceil((new Date(req.expiresAt) - Date.now()) / 86400000));
+  const isAuthor = currentUser && req.postedBy?._id === currentUser._id;
 
   const handleRespond = async () => {
     if (!responseText.trim()) return;
     setSubmitting(true);
     try {
-      await requirementAPI.respond(req._id, { message: responseText });
-      toast.success('Response sent!');
+      await requirementAPI.respond(req._id, {
+        message: responseText.trim(),
+        offeredPrice: offeredPrice ? Number(offeredPrice) : undefined
+      });
+      toast.success(t('Response sent!'));
       setShowRespond(false);
       setResponseText('');
+      setOfferedPrice('');
       onRespond(req._id);
     } catch (err) {
-      toast.error('Failed to send response');
+      toast.error(t('Failed to send response'));
     } finally {
       setSubmitting(false);
     }
@@ -39,56 +47,97 @@ function RequirementCard({ req, onRespond, currentUser }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: 6 }}>
-            <span style={{ background: 'rgba(232,160,32,0.15)', color: '#b8860b', padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>
-              {req.requirementType}
+            <span style={{ background: 'rgba(232,160,32,0.15)', color: '#b8860b', padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, textTransform: 'capitalize' }}>
+              {t(req.requirementType?.replace(/_/g, ' '))}
             </span>
-            {req.category && <span style={{ background: 'rgba(193,68,14,0.1)', color: 'var(--terracotta)', padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{req.category}</span>}
+            {req.category && <span style={{ background: 'rgba(193,68,14,0.1)', color: 'var(--terracotta)', padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{t(req.category)}</span>}
             <span style={{ background: daysLeft <= 3 ? '#fef2f2' : '#f0faf0', color: daysLeft <= 3 ? '#dc2626' : 'var(--leaf)', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>
-              {daysLeft === 0 ? 'Expires today' : `${daysLeft} days left`}
+              {daysLeft === 0 ? t('Expires today') : `${daysLeft} ${t('days left')}`}
             </span>
             {req.distanceKm != null && (
               <span style={{ background: 'rgba(45,27,14,0.08)', color: 'var(--soil)', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
-                📍 {req.distanceKm < 1 ? '<1' : req.distanceKm} km away
+                📍 {req.distanceKm < 1 ? '<1' : req.distanceKm} km {t('away')}
               </span>
             )}
           </div>
-          <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: 4, fontSize: '1rem' }}>{req.title}</h3>
+          <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: 4, fontSize: '1.05rem' }}>{req.title}</h3>
           <p style={{ color: 'var(--clay)', fontSize: '0.88rem', lineHeight: 1.6 }}>{req.description}</p>
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.82rem', color: 'var(--clay)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FiMapPin size={13} /> {req.district}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.82rem', color: 'var(--clay)', flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FiMapPin size={13} /> {t(req.district)}</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FiClock size={13} /> {formatDate(req.createdAt)}</span>
-          <span style={{ fontWeight: 600, color: 'var(--soil)' }}>— {req.postedBy?.name}</span>
+          <span style={{ fontWeight: 600, color: 'var(--soil)' }}>— {req.postedBy?.name || t('Community Member')}</span>
           {req.responses?.length > 0 && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FiMessageCircle size={13} color="var(--terracotta)" /> {req.responses.length} responses</span>
+            <button
+              type="button"
+              onClick={() => setShowResponses(!showResponses)}
+              style={{
+                background: 'rgba(193,68,14,0.1)', color: 'var(--terracotta)', border: 'none',
+                borderRadius: 20, padding: '3px 10px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, fontSize: '0.78rem'
+              }}>
+              <FiMessageCircle size={13} /> {req.responses.length} {req.responses.length === 1 ? t('Response') : t('Responses')} {showResponses ? <FiChevronUp size={12} /> : <FiChevronDown size={12} />}
+            </button>
           )}
         </div>
-        {currentUser && req.postedBy?._id !== currentUser._id && (
+        {currentUser && !isAuthor && (
           <button onClick={() => setShowRespond(!showRespond)}
-            style={{ background: 'var(--terracotta)', color: 'white', border: 'none', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <FiMessageCircle size={14} /> Respond
+            style={{ background: 'var(--terracotta)', color: 'white', border: 'none', borderRadius: 8, padding: '0.45rem 1rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <FiMessageCircle size={14} /> {t("Respond / Send Offer")}
           </button>
         )}
       </div>
 
+      {/* Accordion: View Responses List */}
+      <AnimatePresence>
+        {showResponses && req.responses?.length > 0 && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--sand)', overflow: 'hidden' }}>
+            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--soil)', marginBottom: '0.75rem' }}>
+              💬 {t("Community Responses")} ({req.responses.length}):
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {req.responses.map((resp, i) => (
+                <div key={i} style={{ background: '#F9F7F2', borderRadius: 8, padding: '0.75rem 1rem', border: '1px solid var(--sand)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--soil)' }}>{resp.respondent?.name || t('Community Member')}</span>
+                    {resp.offeredPrice != null && (
+                      <span style={{ fontWeight: 800, color: 'var(--terracotta)', fontSize: '0.88rem' }}>₹{resp.offeredPrice}</span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--soil)', margin: '0 0 4px 0' }}>{resp.message}</p>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--clay)' }}>{formatDate(resp.respondedAt)}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Response Drawer */}
       <AnimatePresence>
         {showRespond && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--sand)', overflow: 'hidden' }}>
-            <textarea className="form-input" rows={2} placeholder="Describe your offer — availability, price, experience..."
-              value={responseText} onChange={e => setResponseText(e.target.value)}
-              style={{ marginBottom: '0.5rem', resize: 'none', fontFamily: 'inherit' }} />
+            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--soil)', marginBottom: '0.5rem' }}>{t("Your Response / Quote")}</h4>
+            <textarea rows={3} placeholder={t("I have this equipment available / I can provide this service...")} value={responseText} onChange={e => setResponseText(e.target.value)}
+              style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: 8, border: '1.5px solid var(--sand)', fontFamily: 'inherit', fontSize: '0.85rem', resize: 'vertical', outline: 'none', marginBottom: '0.5rem' }} />
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <FiDollarSign color="var(--terracotta)" />
+              <input type="number" placeholder={t("Offered price (₹) — optional")} value={offeredPrice} onChange={e => setOfferedPrice(e.target.value)}
+                style={{ flex: 1, maxWidth: 220, padding: '0.45rem 0.75rem', borderRadius: 8, border: '1.5px solid var(--sand)', fontSize: '0.85rem', outline: 'none' }} />
+            </div>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowRespond(false)}
                 style={{ background: 'var(--sand)', border: 'none', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem', color: 'var(--clay)' }}>
-                Cancel
+                {t("Cancel")}
               </button>
               <button onClick={handleRespond} disabled={submitting}
-                style={{ background: 'var(--leaf)', color: 'white', border: 'none', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}>
-                {submitting ? 'Sending...' : 'Send Response'}
+                style={{ background: 'var(--leaf)', color: 'white', border: 'none', borderRadius: 8, padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}>
+                {submitting ? t('Sending...') : t('Send Offer / Response')}
               </button>
             </div>
           </motion.div>
@@ -109,26 +158,78 @@ export default function RequirementsPage() {
   const [filterDistrict, setFilterDistrict] = useState('');
   const [form, setForm] = useState({ title: '', description: '', requirementType: 'Equipment', category: '', district: 'Bengaluru Urban' });
   const [submitting, setSubmitting] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
-  const [locationStatus, setLocationStatus] = useState('idle');
+  const [userLocation, setUserLocation] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user_gps_coords');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [locationStatus, setLocationStatus] = useState(() => {
+    return localStorage.getItem('user_gps_coords') ? 'granted' : 'idle';
+  });
 
-  // Request browser geolocation on mount
+  // Handle GPS location capture
+  const handleGetLocation = (highAccuracy = true) => {
+    if (!('geolocation' in navigator)) {
+      toast.error(t("Geolocation is not supported by your browser"));
+      return;
+    }
+    setLocationStatus('loading');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: Math.round(pos.coords.accuracy)
+        };
+        setUserLocation(coords);
+        setLocationStatus('granted');
+        try {
+          localStorage.setItem('user_gps_coords', JSON.stringify(coords));
+        } catch (e) {}
+      },
+      (err) => {
+        console.warn('Geolocation denied:', err.message);
+        setLocationStatus('denied');
+      },
+      { timeout: 10000, enableHighAccuracy: highAccuracy, maximumAge: 60000 }
+    );
+  };
+
+  const handleClearLocation = () => {
+    setUserLocation(null);
+    setLocationStatus('idle');
+    try {
+      localStorage.removeItem('user_gps_coords');
+    } catch (e) {}
+  };
+
+  // Request browser geolocation on mount if not already saved
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      setLocationStatus('loading');
+    if (!userLocation && locationStatus === 'idle' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          const coords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: Math.round(pos.coords.accuracy)
+          };
+          setUserLocation(coords);
           setLocationStatus('granted');
+          try {
+            localStorage.setItem('user_gps_coords', JSON.stringify(coords));
+          } catch (e) {}
         },
         (err) => {
-          console.warn('Geolocation denied:', err.message);
+          console.warn('Geolocation auto-detect failed:', err.message);
           setLocationStatus('denied');
         },
-        { timeout: 8000, enableHighAccuracy: false }
+        { timeout: 6000, enableHighAccuracy: false }
       );
     }
-  }, []);
+  }, [userLocation, locationStatus]);
 
   const load = async () => {
     try {
@@ -153,7 +254,12 @@ export default function RequirementsPage() {
     if (!form.title || !form.description) return toast.error('Please fill title and description');
     setSubmitting(true);
     try {
-      const payload = { ...form, title: form.title.trim(), description: form.description.trim() };
+      const payload = {
+        ...form,
+        requirementType: form.requirementType.trim().toLowerCase().replace(/[\s-]+/g, '_'),
+        title: form.title.trim(),
+        description: form.description.trim()
+      };
       await requirementAPI.create(payload);
       toast.success('Requirement posted!');
       setShowForm(false);
@@ -168,7 +274,7 @@ export default function RequirementsPage() {
 
   const filtered = requirements.filter(r =>
     (!search || r.title?.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase())) &&
-    (!filterType || r.requirementType === filterType)
+    (!filterType || r.requirementType?.toLowerCase() === filterType.toLowerCase() || (r.requirementType && r.requirementType.toLowerCase().replace(/_/g, ' ') === filterType.toLowerCase()))
   );
 
   return (
@@ -200,18 +306,53 @@ export default function RequirementsPage() {
                   </span>
                 )}
                 {locationStatus === 'denied' && (
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    📍 {t("Location access denied — showing default order")}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      📍 {t("Location access denied — showing default order")}
+                    </span>
+                    <button
+                      onClick={() => handleGetLocation(true)}
+                      style={{ background: 'none', border: 'none', color: 'var(--harvest)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}>
+                      ({t("Enable GPS")})
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-            {user && (
-              <button onClick={() => setShowForm(!showForm)} className="btn"
-                style={{ background: 'var(--terracotta)', color: 'white', gap: 6, padding: '0.75rem 1.5rem' }}>
-                <FiPlus /> {t("Post Requirement")}
-              </button>
-            )}
+
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* GPS Button in Header */}
+              {locationStatus !== 'granted' && (
+                <button
+                  onClick={() => handleGetLocation(true)}
+                  disabled={locationStatus === 'loading'}
+                  className="btn"
+                  style={{
+                    background: 'rgba(255,255,255,0.12)', color: 'white',
+                    border: '1px solid rgba(255,255,255,0.3)', borderRadius: '30px', padding: '0.5rem 1.1rem',
+                    fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
+                    cursor: 'pointer'
+                  }}>
+                  {locationStatus === 'loading' ? (
+                    <>
+                      <div style={{ width: 14, height: 14, border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                      {t("Getting GPS...")}
+                    </>
+                  ) : (
+                    <>
+                      <FiCrosshair size={16} /> {t("📍 Use Current Location")}
+                    </>
+                  )}
+                </button>
+              )}
+
+              {user && (
+                <button onClick={() => setShowForm(!showForm)} className="btn"
+                  style={{ background: 'var(--terracotta)', color: 'white', padding: '0.65rem 1.25rem', fontSize: '0.9rem', gap: 6, display: 'flex', alignItems: 'center' }}>
+                  <FiPlus size={16} /> {t("Post a Requirement")}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -234,8 +375,8 @@ export default function RequirementsPage() {
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}><FiPlus /> {t("Type")}</label>
                   <Select
-                    options={REQUIREMENT_TYPES.map(t => ({ value: t, label: t }))}
-                    value={{ value: form.requirementType, label: form.requirementType }}
+                    options={REQUIREMENT_TYPES.map(type => ({ value: type, label: t(type) }))}
+                    value={{ value: form.requirementType, label: t(form.requirementType) }}
                     onChange={v => setForm({...form, requirementType: v.value})}
                     styles={{ control: (base) => ({ ...base, borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'none' }) }}
                   />
@@ -243,8 +384,8 @@ export default function RequirementsPage() {
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}><GiWheat /> {t("Category (optional)")}</label>
                   <Select
-                    options={EQUIPMENT_CATEGORIES}
-                    value={form.category ? EQUIPMENT_CATEGORIES.find(c => c.value === form.category) : null}
+                    options={EQUIPMENT_CATEGORIES.map(c => ({ value: c.value, label: `${c.icon} ${t(c.label)}` }))}
+                    value={form.category ? { value: form.category, label: `${getEquipmentCategory(form.category).icon} ${t(getEquipmentCategory(form.category).label)}` } : null}
                     onChange={v => setForm({...form, category: v ? v.value : ''})}
                     placeholder={t("Category (optional)")}
                     isClearable
@@ -254,8 +395,8 @@ export default function RequirementsPage() {
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}><FiMapPin /> {t("District")}</label>
                   <Select
-                    options={KARNATAKA_DISTRICTS.map(d => ({ value: d, label: d }))}
-                    value={{ value: form.district, label: form.district }}
+                    options={KARNATAKA_DISTRICTS.map(d => ({ value: d, label: t(d) }))}
+                    value={{ value: form.district, label: t(form.district) }}
                     onChange={v => setForm({...form, district: v.value})}
                     styles={{ control: (base) => ({ ...base, borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'none' }) }}
                   />
@@ -286,16 +427,16 @@ export default function RequirementsPage() {
           </div>
           <div style={{ width: '180px' }}>
             <Select
-              options={[{value: '', label: t('All Types')}, ...REQUIREMENT_TYPES.map(t => ({value: t, label: t}))]}
-              value={{ value: filterType, label: filterType || t('All Types') }}
+              options={[{value: '', label: t('All Types')}, ...REQUIREMENT_TYPES.map(rt => ({value: rt, label: t(rt)}))]}
+              value={{ value: filterType, label: filterType ? t(filterType) : t('All Types') }}
               onChange={v => setFilterType(v.value)}
               styles={{ control: (base) => ({ ...base, borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'none' }) }}
             />
           </div>
           <div style={{ width: '180px' }}>
             <Select
-              options={[{value: '', label: t('All Districts')}, ...KARNATAKA_DISTRICTS.map(d => ({value: d, label: d}))]}
-              value={{ value: filterDistrict, label: filterDistrict || t('All Districts') }}
+              options={[{value: '', label: t('All Districts')}, ...KARNATAKA_DISTRICTS.map(d => ({value: d, label: t(d)}))]}
+              value={{ value: filterDistrict, label: filterDistrict ? t(filterDistrict) : t('All Districts') }}
               onChange={v => setFilterDistrict(v.value)}
               styles={{ control: (base) => ({ ...base, borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'none' }) }}
             />

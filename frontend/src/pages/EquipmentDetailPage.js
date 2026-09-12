@@ -4,7 +4,7 @@ import { equipmentAPI, ratingAPI } from '../utils/api';
 import { getEquipmentCategory, formatCurrency, formatDate, SPECIALIST_TYPES } from '../utils/constants';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { FiCalendar, FiMapPin, FiUser, FiStar, FiArrowLeft, FiCheckCircle, FiPackage } from 'react-icons/fi';
+import { FiCalendar, FiMapPin, FiUser, FiStar, FiArrowLeft, FiCheckCircle, FiPackage, FiNavigation, FiCrosshair, FiExternalLink } from 'react-icons/fi';
 
 const EquipmentDetailPage = () => {
   const { id } = useParams();
@@ -15,11 +15,30 @@ const EquipmentDetailPage = () => {
   const [ratings, setRatings] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Road distance & routing state
+  const [userLocation, setUserLocation] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user_gps_coords');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const eqRes = await equipmentAPI.getById(id);
-        setEquipment(eqRes.data.data);
+        const eqData = eqRes.data.data;
+        setEquipment(eqData);
+
+        // If user coordinates exist, fetch route distance immediately
+        if (userLocation && eqData?.location?.coordinates) {
+          fetchRoute(eqData._id, userLocation.lat, userLocation.lng);
+        }
+
         try {
           const ratRes = await ratingAPI.getEquipmentRatings(id);
           setRatings(ratRes.data.data || []);
@@ -34,7 +53,50 @@ const EquipmentDetailPage = () => {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, userLocation?.lat, userLocation?.lng]);
+
+  const fetchRoute = async (eqId, lat, lng) => {
+    try {
+      setRouteLoading(true);
+      const res = await equipmentAPI.getRoute(eqId, { lat, lng });
+      if (res.data.success) {
+        setRouteInfo(res.data.data);
+      }
+    } catch (err) {
+      console.warn("Could not fetch road route:", err.message);
+    } finally {
+      setRouteLoading(false);
+    }
+  };
+
+  const handleGetLocationAndRoute = () => {
+    if (!('geolocation' in navigator)) {
+      alert(t("Geolocation is not supported by your browser"));
+      return;
+    }
+    setRouteLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: Math.round(pos.coords.accuracy)
+        };
+        setUserLocation(coords);
+        try {
+          localStorage.setItem('user_gps_coords', JSON.stringify(coords));
+        } catch (e) {}
+        if (equipment) {
+          fetchRoute(equipment._id, coords.lat, coords.lng);
+        }
+      },
+      (err) => {
+        setRouteLoading(false);
+        alert(t("Could not fetch your GPS location. Please allow location permissions in your browser."));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   if (loading) return (
     <div className="page-loader">
@@ -52,6 +114,8 @@ const EquipmentDetailPage = () => {
   );
 
   const cat = getEquipmentCategory(equipment.category);
+  const eqCoords = equipment.location?.coordinates;
+  const hasEqCoords = Array.isArray(eqCoords) && eqCoords.length === 2 && (eqCoords[0] !== 0 || eqCoords[1] !== 0);
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
@@ -96,7 +160,7 @@ const EquipmentDetailPage = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                   <FiMapPin /> {equipment.district}{equipment.village && `, ${equipment.village}`}
                 </div>
@@ -110,6 +174,76 @@ const EquipmentDetailPage = () => {
                 <span style={{ background: '#E8F5E8', color: 'var(--leaf)', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 }}>
                   {t("Condition")}: {t(equipment.condition)}
                 </span>
+              </div>
+
+              {/* Road Distance & Navigation Card */}
+              <div style={{
+                background: 'linear-gradient(135deg, #F9F7F2, #F0EDE5)',
+                border: '1.5px solid #E0D7C6',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.25rem',
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      background: 'var(--soil)', color: 'white',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem'
+                    }}>
+                      📍
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--soil)' }}>
+                        {t("Road Distance")}
+                      </h4>
+                      {routeInfo ? (
+                        <div style={{ fontSize: '0.9rem', color: 'var(--leaf)', fontWeight: 700, marginTop: 2 }}>
+                          {routeInfo.roadDistanceKm} km
+                        </div>
+                      ) : routeLoading ? (
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 12, height: 12, border: '2px solid var(--terracotta)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                          {t("Calculating distance...")}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                          {t("Enable GPS to calculate distance from your location.")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={handleGetLocationAndRoute}
+                      disabled={routeLoading}
+                      className="btn btn-sm"
+                      style={{
+                        background: 'white', color: 'var(--soil)',
+                        border: '1px solid var(--border)', borderRadius: 8,
+                        fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
+                        cursor: 'pointer', padding: '0.45rem 0.8rem'
+                      }}>
+                      <FiCrosshair size={13} color="var(--terracotta)" />
+                      {userLocation ? t("Update GPS") : t("📍 Calculate Distance")}
+                    </button>
+
+                    {routeInfo?.googleMapsUrl && (
+                      <a
+                        href={routeInfo.googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-primary"
+                        style={{
+                          fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5,
+                          padding: '0.45rem 0.85rem', textDecoration: 'none'
+                        }}>
+                        <FiNavigation size={13} /> {t("Google Maps Directions")} <FiExternalLink size={11} />
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {equipment.description && (
@@ -215,7 +349,7 @@ const EquipmentDetailPage = () => {
                       <strong style={{ fontSize: '0.9rem', color: 'var(--soil)' }}>{r.ratedBy?.name || 'Anonymous'}</strong>
                       <div style={{ color: 'var(--harvest)', fontWeight: 700 }}>{'★'.repeat(r.score)}{'☆'.repeat(5-r.score)}</div>
                     </div>
-                    {r.review && <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.review}</p>}
+                    {(r.review || r.comment) && <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.review || r.comment}</p>}
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>{formatDate(r.createdAt)}</div>
                   </div>
                 ))}
