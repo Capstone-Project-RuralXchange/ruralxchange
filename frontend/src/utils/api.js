@@ -1,8 +1,17 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  let url = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  url = url.trim().replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
-  timeout: 15000,
+  baseURL: getBaseURL(),
+  timeout: 30000,
 });
 
 // Attach JWT token
