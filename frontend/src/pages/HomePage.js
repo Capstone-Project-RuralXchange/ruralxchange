@@ -129,7 +129,10 @@ const HomePage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    navigate(`/equipment${district ? `?district=${district}` : ''}`);
+    const params = new URLSearchParams();
+    if (searchQuery && searchQuery.trim()) params.set('search', searchQuery.trim());
+    if (district) params.set('district', district);
+    navigate(`/equipment${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
   const stats = [

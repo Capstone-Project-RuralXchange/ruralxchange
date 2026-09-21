@@ -112,12 +112,30 @@ const EquipmentPage = () => {
     return localStorage.getItem('user_gps_coords') ? 'granted' : 'idle';
   }); // idle | loading | granted | denied
   const [filters, setFilters] = useState({
+    search: searchParams.get('search') || searchParams.get('q') || '',
     category: searchParams.get('category') || '',
     district: searchParams.get('district') || '',
     status: 'available',
     minPrice: '',
     maxPrice: '',
   });
+
+  // Sync filters if URL search params change
+  useEffect(() => {
+    const searchVal = searchParams.get('search') || searchParams.get('q') || '';
+    const catVal = searchParams.get('category') || '';
+    const distVal = searchParams.get('district') || '';
+    setFilters(prev => {
+      if (prev.search === searchVal && prev.category === catVal && prev.district === distVal) return prev;
+      return {
+        ...prev,
+        search: searchVal,
+        category: catVal,
+        district: distVal,
+      };
+    });
+    setPage(1);
+  }, [searchParams]);
 
   // Handle GPS location capture
   const handleGetLocation = (highAccuracy = true) => {
@@ -214,11 +232,12 @@ const EquipmentPage = () => {
   };
 
   const clearFilters = () => {
-    setFilters({ category: '', district: '', status: 'available', minPrice: '', maxPrice: '' });
+    setFilters({ search: '', category: '', district: '', status: 'available', minPrice: '', maxPrice: '' });
+    setSearchParams({});
     setPage(1);
   };
 
-  const hasActiveFilters = filters.category || filters.district || filters.minPrice || filters.maxPrice;
+  const hasActiveFilters = filters.search || filters.category || filters.district || filters.minPrice || filters.maxPrice;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -286,6 +305,19 @@ const EquipmentPage = () => {
           border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)',
           display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center',
         }}>
+          {/* Search Input */}
+          <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 160 }}>
+            <FiSearch style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--clay)' }} />
+            <input
+              type="text"
+              className="form-input"
+              placeholder={t("Search Equipment")}
+              value={filters.search}
+              onChange={e => handleFilterChange('search', e.target.value)}
+              style={{ paddingLeft: '2.2rem', width: '100%' }}
+            />
+          </div>
+
           <select className="form-select" style={{ flex: '1 1 160px', minWidth: 140 }}
             value={filters.category} onChange={e => handleFilterChange('category', e.target.value)}>
             <option value="">{t("All Categories")}</option>

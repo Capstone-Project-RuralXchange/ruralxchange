@@ -5,10 +5,76 @@ const { protect, authorize } = require('../middleware/auth');
 const { geocodeWithFallback } = require('../utils/geocode');
 const { getRoadDistance, enrichItemsWithRoadDistance } = require('../utils/routing');
 
+const MULTILINGUAL_SYNONYMS = {
+  // Kannada
+  'ಟ್ರಾಕ್ಟರ್': ['tractor'],
+  'ಟ್ರಾಕ್ಟರು': ['tractor'],
+  'ಕೊಯ್ಲು': ['harvester'],
+  'ಹಾರ್ವೆಸ್ಟರ್': ['harvester'],
+  'ಡ್ರೋನ್': ['drone'],
+  'ರೋಟಾವೇಟರ್': ['rotavator'],
+  'ನೇಗಿಲು': ['cultivator'],
+  'ಕಲ್ಟಿವೇಟರ್': ['cultivator'],
+  'ಬೀಜ': ['seed_drill', 'seed'],
+  'ಬಿತ್ತನೆ': ['seed_drill'],
+  'ಬೇಲರ್': ['baler'],
+  'ಹುಲ್ಲು': ['baler'],
+  'ಮೇವು': ['chaff_cutter'],
+  'ಕಳೆ': ['power_weeder', 'weeder'],
+  'ಸ್ಪ್ರೇಯರ್': ['sprayer'],
+  'ಪಂಪ್': ['water_pump', 'pump'],
+  'ನೀರು': ['water_pump'],
+  'ಥ್ರೆಷರ್': ['thresher'],
+  'ಒಕ್ಕುವ': ['thresher'],
+  'ಟಿಲ್ಲರ್': ['tiller'],
+  'ಜನರೇಟರ್': ['generator'],
+  'ಮಿಕ್ಸರ್': ['concrete_mixer'],
+  'ವೆಲ್ಡಿಂಗ್': ['welding_machine'],
+  'ಡ್ರಿಲ್': ['drill'],
+  'ಟೆಂಟ್': ['tent_structure'],
+
+  // Hindi
+  'ट्रैक्टर': ['tractor'],
+  'हार्वेस्टर': ['harvester'],
+  'ड्रोन': ['drone'],
+  'रोटावेटर': ['rotavator'],
+  'कल्टीवेटर': ['cultivator'],
+  'हल': ['cultivator'],
+  'पंप': ['water_pump', 'pump'],
+  'स्प्रेयर': ['sprayer'],
+  'थ्रेशर': ['thresher'],
+  'टिलर': ['tiller'],
+  'जनरेटर': ['generator'],
+  'ड्रिल': ['drill'],
+};
+
 // @GET /api/equipment - Get all equipment with filters + accurate road distance sorting
 router.get('/', async (req, res) => {
   try {
-    const { district, category, status, minPrice, maxPrice, lat, lng, page = 1, limit = 12 } = req.query;
+    const { district, category, status, minPrice, maxPrice, search, q, lat, lng, page = 1, limit = 12 } = req.query;
+    const searchTerm = (search || q || '').trim();
+
+    let searchCondition = null;
+    if (searchTerm) {
+      const searchTerms = [searchTerm];
+      // Expand multilingual terms (Kannada / Hindi -> English categories)
+      for (const [key, mappedList] of Object.entries(MULTILINGUAL_SYNONYMS)) {
+        if (searchTerm.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(searchTerm.toLowerCase())) {
+          searchTerms.push(...mappedList);
+        }
+      }
+      const uniqueTerms = Array.from(new Set(searchTerms));
+
+      searchCondition = {
+        $or: uniqueTerms.flatMap(term => [
+          { title: { $regex: term, $options: 'i' } },
+          { category: { $regex: term, $options: 'i' } },
+          { description: { $regex: term, $options: 'i' } },
+          { brand: { $regex: term, $options: 'i' } },
+          { model: { $regex: term, $options: 'i' } }
+        ])
+      };
+    }
 
     // If seeker provides coordinates, calculate accurate road distances
     if (lat && lng) {
@@ -24,6 +90,9 @@ router.get('/', async (req, res) => {
           matchStage.pricePerDay = {};
           if (minPrice) matchStage.pricePerDay.$gte = Number(minPrice);
           if (maxPrice) matchStage.pricePerDay.$lte = Number(maxPrice);
+        }
+        if (searchCondition) {
+          matchStage.$or = searchCondition.$or;
         }
 
         const skip = (page - 1) * limit;
@@ -87,6 +156,10 @@ router.get('/', async (req, res) => {
       if (minPrice) query.pricePerDay.$gte = Number(minPrice);
       if (maxPrice) query.pricePerDay.$lte = Number(maxPrice);
     }
+    if (searchCondition) {
+      query.$or = searchCondition.$or;
+    }
+
     const skip = (page - 1) * limit;
     const [equipment, total] = await Promise.all([
       Equipment.find(query)

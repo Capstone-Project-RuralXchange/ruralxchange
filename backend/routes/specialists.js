@@ -7,7 +7,17 @@ const { geocodeWithFallback } = require('../utils/geocode');
 // @GET /api/specialists - Get all with filters + distance sorting
 router.get('/', async (req, res) => {
   try {
-    const { district, specialization, status, lat, lng, page = 1, limit = 12 } = req.query;
+    const { district, specialization, status, search, q, lat, lng, page = 1, limit = 12 } = req.query;
+    const searchTerm = (search || q || '').trim();
+
+    const searchCondition = searchTerm ? {
+      $or: [
+        { specialization: { $regex: searchTerm, $options: 'i' } },
+        { skills: { $regex: searchTerm, $options: 'i' } },
+        { bio: { $regex: searchTerm, $options: 'i' } },
+        { qualifications: { $regex: searchTerm, $options: 'i' } }
+      ]
+    } : null;
 
     // If seeker provides coordinates, use $geoNear for distance-sorted results
     if (lat && lng) {
@@ -19,6 +29,9 @@ router.get('/', async (req, res) => {
         if (district) matchStage.district = district;
         if (specialization) matchStage.specialization = specialization;
         if (status) matchStage.availabilityStatus = status;
+        if (searchCondition) {
+          matchStage.$or = searchCondition.$or;
+        }
 
         const skip = (page - 1) * limit;
         const pipeline = [
@@ -65,6 +78,9 @@ router.get('/', async (req, res) => {
     if (district) query.district = district;
     if (specialization) query.specialization = specialization;
     if (status) query.availabilityStatus = status;
+    if (searchCondition) {
+      query.$or = searchCondition.$or;
+    }
 
     const skip = (page - 1) * limit;
     const [specialists, total] = await Promise.all([
