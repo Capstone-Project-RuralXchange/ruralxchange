@@ -31,7 +31,7 @@ router.post('/', protect, async (req, res) => {
     // Check for duplicate rating
     const existing = await Rating.findOne({ booking: bookingId, ratedBy: req.user.id, ratingType });
     if (existing) {
-      return res.status(400).json({ success: false, message: 'You have already submitted a rating for this booking' });
+      return res.status(409).json({ success: false, message: 'You have already submitted a rating for this booking' });
     }
 
     const rating = await Rating.create({

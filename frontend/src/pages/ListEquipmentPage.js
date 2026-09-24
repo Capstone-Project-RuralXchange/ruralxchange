@@ -94,8 +94,8 @@ export default function ListEquipmentPage() {
         yearOfManufacture: form.yearOfManufacture ? Number(form.yearOfManufacture) : undefined,
         pricePerDay: Number(form.pricePerDay),
         pricePerHour: form.pricePerHour ? Number(form.pricePerHour) : undefined,
-        minimumRentalDays: Number(form.minimumRentalDays),
-        maximumRentalDays: Number(form.maximumRentalDays),
+        minimumRentalDays: form.minimumRentalDays ? Number(form.minimumRentalDays) : undefined,
+        maximumRentalDays: form.maximumRentalDays ? Number(form.maximumRentalDays) : undefined,
         specifications: {
           brand: form.brand || undefined,
           model: form.model || undefined,

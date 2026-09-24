@@ -40,7 +40,8 @@ const specialistSchema = new mongoose.Schema({
   },
   pricePerDay: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
   pricePerHour: Number,
   district: {
