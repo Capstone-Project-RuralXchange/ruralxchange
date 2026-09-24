@@ -33,7 +33,7 @@ router.post('/register', async (req, res) => {
   try {
     const { name, phone, email, password, district, state, village, preferredLanguage } = req.body;
     // Prevent admin role injection
-    const role = ['seeker', 'provider'].includes(req.body.role) ? req.body.role : 'seeker';
+    const role = ['seeker', 'provider', 'specialist'].includes(req.body.role) ? req.body.role : 'seeker';
     const existing = await User.findOne({ phone });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Phone number already registered' });
@@ -65,6 +65,9 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+    if (!user.isActive) {
+      return res.status(403).json({ success: false, message: 'Your account has been deactivated. Please contact support.' });
     }
     sendTokenResponse(user, 200, res);
   } catch (err) {

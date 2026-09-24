@@ -42,7 +42,7 @@ export default function BookingPage() {
 
   const isBundle = type === 'bundle';
   const isSpecialistOnly = type === 'specialist';
-  const days = getDurationDays(startDate, endDate);
+  const days = startDate && endDate ? getDurationDays(startDate, endDate) : 0;
 
   useEffect(() => {
     const load = async () => {
@@ -177,7 +177,7 @@ export default function BookingPage() {
                     <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Start Date")}</label>
                     <DatePicker
                       selected={startDate}
-                      onChange={setStartDate}
+                      onChange={(date) => { setStartDate(date); setEndDate(null); }}
                       minDate={new Date()}
                       placeholderText={t("Pick start date")}
                       dateFormat="dd MMM yyyy"
