@@ -60,7 +60,7 @@ router.get('/', async (req, res) => {
 
         const populated = await Specialist.populate(data, {
           path: 'user',
-          select: 'name phone district rating isVerified avatar'
+          select: 'name district rating isVerified avatar'
         });
 
         return res.json({
@@ -85,7 +85,7 @@ router.get('/', async (req, res) => {
     const skip = (page - 1) * limit;
     const [specialists, total] = await Promise.all([
       Specialist.find(query)
-        .populate('user', 'name phone district rating isVerified avatar')
+        .populate('user', 'name district rating isVerified avatar')
         .sort({ 'rating.average': -1, isVerified: -1 })
         .skip(skip)
         .limit(Number(limit)),

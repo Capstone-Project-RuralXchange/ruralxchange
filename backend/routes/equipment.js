@@ -163,7 +163,7 @@ router.get('/', async (req, res) => {
     const skip = (page - 1) * limit;
     const [equipment, total] = await Promise.all([
       Equipment.find(query)
-        .populate('owner', 'name phone district rating isVerified')
+        .populate('owner', 'name district rating isVerified')
         .sort({ 'rating.average': -1, createdAt: -1 })
         .skip(skip)
         .limit(Number(limit)),

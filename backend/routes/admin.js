@@ -347,8 +347,9 @@ router.delete('/users/:id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'You cannot delete your own admin account' });
     }
 
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'User deleted successfully' });
+    user.isActive = false;
+    await user.save();
+    res.json({ success: true, message: 'User deactivated successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
