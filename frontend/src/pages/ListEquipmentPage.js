@@ -118,6 +118,23 @@ export default function ListEquipmentPage() {
     }
   };
 
+  const validateStep = (targetStep) => {
+    if (targetStep > 1 && (!form.title || !form.category)) {
+      toast.error(t('Please fill Title and Category before proceeding'));
+      return false;
+    }
+    if (targetStep > 2 && (!form.pricePerDay)) {
+      toast.error(t('Please fill Price Per Day before proceeding'));
+      return false;
+    }
+    return true;
+  };
+
+  const goToStep = (targetStep) => {
+    if (targetStep > step && !validateStep(targetStep)) return;
+    setStep(targetStep);
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)', paddingBottom: '4rem' }}>
       {/* Header */}
@@ -139,7 +156,7 @@ export default function ListEquipmentPage() {
         {/* Steps */}
         <div style={{ display: 'flex', gap: 4, background: 'white', borderRadius: 12, padding: 4, marginBottom: '1.5rem', border: '1px solid var(--sand)', width: 'fit-content' }}>
           {[t('Basic Info'), t('Pricing & Rental'), t('Location')].map((s, i) => (
-            <button key={s} onClick={() => setStep(i+1)}
+            <button key={s} onClick={() => goToStep(i+1)}
               style={{ padding: '0.5rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s',
                 background: step === i+1 ? 'var(--terracotta)' : 'transparent', color: step === i+1 ? 'white' : 'var(--clay)' }}>
               {step > i+1 ? <FiCheck style={{ display: 'inline', marginRight: 4 }} /> : null}{s}
@@ -338,14 +355,17 @@ export default function ListEquipmentPage() {
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginTop: '1.75rem' }}>
-            {step > 1 && <button className="btn btn-outline" onClick={() => setStep(s => s-1)}>← {t("Previous")}</button>}
-            {step < 3 ? (
-              <button className="btn btn-primary" onClick={() => setStep(s => s+1)} style={{ marginLeft: 'auto' }}>{t("Next")} →</button>
-            ) : (
-              <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting} style={{ marginLeft: 'auto', padding: '0.75rem 2rem' }}>
-                {submitting ? t('Listing...') : `🚜 ${t('List Equipment CTA')}`}
-              </button>
-            )}
+            <button className="btn btn-outline" style={{ color: 'var(--terracotta)', borderColor: 'var(--terracotta)' }} onClick={() => navigate('/dashboard')}>{t("Cancel")}</button>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              {step > 1 && <button className="btn btn-outline" onClick={() => goToStep(step-1)}>← {t("Previous")}</button>}
+              {step < 3 ? (
+                <button className="btn btn-primary" onClick={() => goToStep(step+1)}>{t("Next")} →</button>
+              ) : (
+                <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting} style={{ padding: '0.75rem 2rem' }}>
+                  {submitting ? t('Listing...') : `🚜 ${t('List Equipment CTA')}`}
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>

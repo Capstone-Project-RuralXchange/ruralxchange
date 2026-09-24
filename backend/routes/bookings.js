@@ -372,6 +372,21 @@ router.put('/:id/status', protect, async (req, res) => {
       const newSpStatus = updates.specialistStatus ?? booking.specialistStatus;
       updates.status = deriveOverallStatus(newEqStatus, newSpStatus);
 
+      if (updates.status === 'cancelled') {
+        if (booking.equipment) {
+          await Equipment.findByIdAndUpdate(booking.equipment, {
+            availabilityStatus: 'available',
+            $pull: { bookedDates: { bookingId: booking._id } }
+          });
+        }
+        if (booking.specialist) {
+          await Specialist.findByIdAndUpdate(booking.specialist, {
+            availabilityStatus: 'available',
+            $pull: { bookedDates: { bookingId: booking._id } }
+          });
+        }
+      }
+
       const updated = await Booking.findByIdAndUpdate(req.params.id, updates, { new: true })
         .populate('seeker', 'name phone district village')
         .populate('equipment', 'title category images')

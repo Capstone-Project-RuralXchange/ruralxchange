@@ -62,27 +62,28 @@ router.post('/', protect, async (req, res) => {
       }
     }
 
-    // Update aggregated rating on target
     if (ratingType === 'equipment') {
-      const ratings = await Rating.find({
-        $or: [{ targetEquipment: targetId }, { equipment: targetId }],
-        ratingType: 'equipment'
-      });
-      const avg = ratings.reduce((a, b) => a + b.score, 0) / (ratings.length || 1);
-      await Equipment.findByIdAndUpdate(targetId, {
-        'rating.average': Number(avg.toFixed(1)),
-        'rating.count': ratings.length
-      });
+      const eq = await Equipment.findById(targetId).select('rating');
+      if (eq) {
+        const count = (eq.rating.count || 0) + 1;
+        const currentAvg = eq.rating.average || 0;
+        const newAvg = currentAvg + (score - currentAvg) / count;
+        await Equipment.findByIdAndUpdate(targetId, {
+          'rating.average': Number(newAvg.toFixed(1)),
+          'rating.count': count
+        });
+      }
     } else if (ratingType === 'specialist') {
-      const ratings = await Rating.find({
-        $or: [{ targetSpecialist: targetId }, { specialist: targetId }],
-        ratingType: 'specialist'
-      });
-      const avg = ratings.reduce((a, b) => a + b.score, 0) / (ratings.length || 1);
-      await Specialist.findByIdAndUpdate(targetId, {
-        'rating.average': Number(avg.toFixed(1)),
-        'rating.count': ratings.length
-      });
+      const sp = await Specialist.findById(targetId).select('rating');
+      if (sp) {
+        const count = (sp.rating.count || 0) + 1;
+        const currentAvg = sp.rating.average || 0;
+        const newAvg = currentAvg + (score - currentAvg) / count;
+        await Specialist.findByIdAndUpdate(targetId, {
+          'rating.average': Number(newAvg.toFixed(1)),
+          'rating.count': count
+        });
+      }
     }
 
     res.status(201).json({ success: true, data: rating });

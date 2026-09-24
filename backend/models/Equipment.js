@@ -113,4 +113,6 @@ equipmentSchema.pre('validate', function(next) {
   next();
 });
 
+equipmentSchema.index({ 'rating.average': -1, createdAt: -1 });
+
 module.exports = mongoose.model('Equipment', equipmentSchema);

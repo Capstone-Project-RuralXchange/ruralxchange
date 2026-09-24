@@ -44,6 +44,9 @@ export default function DashboardPage() {
   const [myEquipment, setMyEquipment] = useState([]);
   const [myProfile, setMyProfile] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [bookingsLimit, setBookingsLimit] = useState(10);
+  const [incomingLimit, setIncomingLimit] = useState(10);
+  const [equipmentLimit, setEquipmentLimit] = useState(10);
   const [loading, setLoading] = useState(true);
 
   // Review Modal State
@@ -104,14 +107,18 @@ export default function DashboardPage() {
 
   const handleStatusUpdate = async (bookingId, status) => {
     try {
-      await bookingAPI.updateStatus(bookingId, status);
-      const updateList = (list) => list.map(b => b._id === bookingId ? { ...b, status } : b);
+      const res = await bookingAPI.updateStatus(bookingId, status);
+      const updated = res?.data?.data;
+      const updateList = (list) => list.map(b => b._id === bookingId ? (updated || { ...b, status }) : b);
       setBookings(updateList);
       setIncomingBookings(updateList);
     } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to update booking status';
+      toast.error(msg);
       console.error(err);
     }
   };
+
 
   const handleDismissAlert = async (bookingId) => {
     try {
@@ -131,9 +138,11 @@ export default function DashboardPage() {
       setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status: 'cancelled', notifiedSeekerOfExpiry: true } : b));
       navigate(isSpecialist ? '/specialists' : '/equipment');
     } catch (err) {
-      toast.error(t('Failed to cancel booking'));
+      const msg = err?.response?.data?.message || t('Failed to cancel booking');
+      toast.error(msg);
     }
   };
+
 
   const handleSubmitReview = async (e) => {
     e?.preventDefault();
@@ -568,7 +577,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div>
-                  {bookings.map((booking, idx) => {
+                  {bookings.slice(0, bookingsLimit).map((booking, idx) => {
                     const cfg = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
                     return (
                       <div key={booking._id} style={{ padding: '1.25rem 1.5rem', borderBottom: idx < bookings.length - 1 ? '1px solid var(--sand)' : 'none', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -603,13 +612,14 @@ export default function DashboardPage() {
                           <p style={{ fontWeight: 800, color: 'var(--soil)', fontSize: '1.1rem' }}>{formatCurrency(booking.pricing?.totalAmount || 0)}</p>
                           <span style={{ background: cfg.bg, color: cfg.color, padding: '2px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{t(cfg.label)}</span>
                         </div>
-                        {/* Seeker can cancel pending bookings */}
-                        {booking.status === 'pending' && (
+                        {/* Seeker can cancel pending or confirmed bookings (server guards against cancelling completed ones) */}
+                        {(booking.status === 'pending' || booking.status === 'confirmed') && (
                           <button onClick={() => handleStatusUpdate(booking._id, 'cancelled')}
                             style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}>
                             {t("Cancel")}
                           </button>
                         )}
+
 
                         {/* Seeker can rate completed bookings */}
                         {booking.status === 'completed' && (
@@ -701,6 +711,11 @@ export default function DashboardPage() {
                       </div>
                     );
                   })}
+                  {bookingsLimit < bookings.length && (
+                    <div style={{ textAlign: 'center', padding: '1rem' }}>
+                      <button className="btn btn-outline" onClick={() => setBookingsLimit(l => l + 10)}>{t("Load More")}</button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -728,11 +743,29 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div>
-                  {incomingBookings.map((booking, idx) => {
+                  {incomingBookings.slice(0, incomingLimit).map((booking, idx) => {
                     const cfg = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
-                    const isPending = booking.status === 'pending';
-                    const isConfirmed = booking.status === 'confirmed';
-                    const isInProgress = booking.status === 'in_progress';
+                    const isBundle = booking.bookingType === 'bundle';
+
+                    // For bundle bookings, check the sub-status relevant to the logged-in user
+                    // This prevents showing buttons after the user's side is already done
+                    const mySubStatus = isBundle
+                      ? (user?.role === 'specialist'
+                          ? booking.specialistStatus
+                          : booking.equipmentOwnerStatus)
+                      : booking.status;
+
+                    const myStatusIsPending = mySubStatus === 'pending';
+                    const myStatusIsConfirmed = mySubStatus === 'confirmed';
+                    const myStatusIsCompleted = mySubStatus === 'completed';
+                    const myStatusIsCancelled = mySubStatus === 'cancelled';
+
+                    // For non-bundle, fall back to overall status
+                    const isPending = isBundle ? myStatusIsPending : booking.status === 'pending';
+                    const isConfirmed = isBundle ? myStatusIsConfirmed : booking.status === 'confirmed';
+                    const isInProgress = !isBundle && booking.status === 'in_progress';
+                    const isDoneOnMySide = myStatusIsCompleted || myStatusIsCancelled;
+
                     return (
                       <div key={booking._id} style={{ padding: '1.5rem', borderBottom: idx < incomingBookings.length - 1 ? '1px solid var(--sand)' : 'none' }}>
                         {/* Top Row: Status + Amount */}
@@ -744,6 +777,16 @@ export default function DashboardPage() {
                             <span style={{ fontSize: '0.78rem', color: 'var(--clay)' }}>
                               {booking.bookingType === 'bundle' ? '📦 Bundle' : booking.bookingType === 'specialist_only' ? '👷 Service' : '🔧 Equipment'}
                             </span>
+                            {/* Show per-participant sub-status badge for bundle bookings */}
+                            {isBundle && mySubStatus && (
+                              <span style={{
+                                fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                                background: myStatusIsCompleted ? '#f0fdf4' : myStatusIsCancelled ? '#fef2f2' : myStatusIsConfirmed ? '#eff6ff' : '#fefce8',
+                                color: myStatusIsCompleted ? '#15803d' : myStatusIsCancelled ? '#dc2626' : myStatusIsConfirmed ? '#1d4ed8' : '#92400e'
+                              }}>
+                                Your side: {mySubStatus}
+                              </span>
+                            )}
                           </div>
                           <p style={{ fontWeight: 800, color: 'var(--terracotta)', fontSize: '1.15rem' }}>
                             {formatCurrency(booking.pricing?.totalAmount || 0)}
@@ -787,7 +830,20 @@ export default function DashboardPage() {
 
                         {/* Action Buttons */}
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          {isPending && (
+                          {/* Already done on this side — show a locked badge */}
+                          {isDoneOnMySide && (
+                            <span style={{
+                              fontSize: '0.82rem', fontWeight: 600, padding: '0.4rem 1rem', borderRadius: 8,
+                              background: myStatusIsCompleted ? '#f0fdf4' : '#fef2f2',
+                              color: myStatusIsCompleted ? '#15803d' : '#dc2626',
+                              display: 'flex', alignItems: 'center', gap: 6
+                            }}>
+                              <FiCheckCircle size={14} />
+                              {myStatusIsCompleted ? t('You marked as Completed') : t('You Declined')}
+                            </span>
+                          )}
+
+                          {isPending && !isDoneOnMySide && (
                             <>
                               <button onClick={() => handleStatusUpdate(booking._id, 'confirmed')}
                                 style={{ background: 'var(--leaf)', color: 'white', border: 'none', borderRadius: 8, padding: '0.5rem 1.25rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -799,13 +855,7 @@ export default function DashboardPage() {
                               </button>
                             </>
                           )}
-                          {isConfirmed && (
-                            <button onClick={() => handleStatusUpdate(booking._id, 'completed')}
-                                style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: 8, padding: '0.5rem 1.25rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <FiCheckCircle size={16} /> {t("Mark as Completed")}
-                            </button>
-                          )}
-                          {isInProgress && (
+                          {(isConfirmed || isInProgress) && !isDoneOnMySide && (
                             <button onClick={() => handleStatusUpdate(booking._id, 'completed')}
                                 style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: 8, padding: '0.5rem 1.25rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                               <FiCheckCircle size={16} /> {t("Mark as Completed")}
@@ -814,7 +864,13 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     );
+
                   })}
+                  {incomingLimit < incomingBookings.length && (
+                    <div style={{ textAlign: 'center', padding: '1rem' }}>
+                      <button className="btn btn-outline" onClick={() => setIncomingLimit(l => l + 10)}>{t("Load More")}</button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -837,9 +893,10 @@ export default function DashboardPage() {
                 <Link to="/list-equipment" className="btn btn-primary" style={{ marginTop: '0.5rem' }}>{t("List Your First Equipment")}</Link>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                {myEquipment.map(eq => (
-                  <div key={eq._id} className="card" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                  {myEquipment.slice(0, equipmentLimit).map(eq => (
+                    <div key={eq._id} className="card" style={{ padding: '1.25rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                       <h4 style={{ fontWeight: 700, color: 'var(--soil)', fontSize: '0.95rem' }}>{eq.title}</h4>
                       <select
@@ -884,6 +941,12 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
+                </div>
+                {equipmentLimit < myEquipment.length && (
+                  <div style={{ textAlign: 'center', padding: '1rem' }}>
+                    <button className="btn btn-outline" onClick={() => setEquipmentLimit(l => l + 10)}>{t("Load More")}</button>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

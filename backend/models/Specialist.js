@@ -100,4 +100,6 @@ specialistSchema.pre('validate', function(next) {
   next();
 });
 
+specialistSchema.index({ 'rating.average': -1, isVerified: -1 });
+
 module.exports = mongoose.model('Specialist', specialistSchema);

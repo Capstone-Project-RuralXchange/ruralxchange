@@ -280,7 +280,11 @@ export default function RequirementsPage() {
       toast.success('Requirement posted!');
       setShowForm(false);
       setForm({ title: '', description: '', requirementType: 'Equipment', category: '', district: 'Bengaluru Urban' });
-      load();
+      if (page === 1) {
+        load();
+      } else {
+        setPage(1);
+      }
     } catch (err) {
       toast.error('Failed to post');
     } finally {
@@ -475,7 +479,7 @@ export default function RequirementsPage() {
           ) : (
             <>
               {filtered.map(req => (
-                <RequirementCard key={req._id} req={req} currentUser={user} onRespond={() => load()} />
+                <RequirementCard key={req._id} req={req} currentUser={user} onRespond={() => { if (page === 1) load(); else setPage(1); }} />
               ))}
               {hasMore && (
                 <div style={{ textAlign: 'center', marginTop: '1rem' }}>

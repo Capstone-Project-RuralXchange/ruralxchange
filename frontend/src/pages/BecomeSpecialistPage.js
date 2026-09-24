@@ -218,14 +218,17 @@ export default function BecomeSpecialistPage() {
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginTop: '1.75rem' }}>
-            {step > 1 && <button className="btn btn-outline" onClick={() => setStep(s => s-1)}>← {t("Back")}</button>}
-            {step < 3 ? (
-              <button className="btn" onClick={() => setStep(s => s+1)} style={{ marginLeft: 'auto', background: 'var(--leaf)', color: 'white' }}>{t("Next")} →</button>
-            ) : (
-              <button className="btn" onClick={handleSubmit} disabled={submitting} style={{ marginLeft: 'auto', background: 'var(--leaf)', color: 'white', padding: '0.75rem 2rem' }}>
-                {submitting ? t('Creating...') : t('🔧 Create Profile')}
-              </button>
-            )}
+            <button className="btn btn-outline" style={{ color: 'var(--terracotta)', borderColor: 'var(--terracotta)' }} onClick={() => navigate('/dashboard')}>{t("Cancel")}</button>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              {step > 1 && <button className="btn btn-outline" onClick={() => setStep(s => s-1)}>← {t("Back")}</button>}
+              {step < 3 ? (
+                <button className="btn" onClick={() => setStep(s => s+1)} style={{ background: 'var(--leaf)', color: 'white' }}>{t("Next")} →</button>
+              ) : (
+                <button className="btn" onClick={handleSubmit} disabled={submitting} style={{ background: 'var(--leaf)', color: 'white', padding: '0.75rem 2rem' }}>
+                  {submitting ? t('Creating...') : t('🔧 Create Profile')}
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
