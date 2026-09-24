@@ -9,7 +9,30 @@ const { protect } = require('../middleware/auth');
 // @POST /api/ratings
 router.post('/', protect, async (req, res) => {
   try {
-    const { bookingId, ratingType, targetId, score, review, comment, ...rest } = req.body;
+    const { bookingId, ratingType, targetId, score, review, comment } = req.body;
+
+    if (!bookingId || !ratingType || !targetId || !score) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    
+    if (booking.seeker.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to rate this booking' });
+    }
+
+    if (booking.status !== 'completed') {
+      return res.status(400).json({ success: false, message: 'Can only rate completed bookings' });
+    }
+
+    // Check for duplicate rating
+    const existing = await Rating.findOne({ booking: bookingId, ratedBy: req.user.id, ratingType });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'You have already submitted a rating for this booking' });
+    }
 
     const rating = await Rating.create({
       booking: bookingId,
@@ -21,8 +44,7 @@ router.post('/', protect, async (req, res) => {
       specialist: ratingType === 'specialist' ? targetId : undefined,
       score: Number(score),
       review: review || comment,
-      comment: comment || review,
-      ...rest
+      comment: comment || review
     });
 
     // Update rating flags on Booking document if bookingId provided

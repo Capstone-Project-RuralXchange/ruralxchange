@@ -43,6 +43,29 @@ async function checkAndExpirePendingBookings(userId = null) {
   }
 }
 
+// Helper: derive the overall booking status from sub-statuses (for bundle bookings)
+// Rules:
+//  - If either side is cancelled and neither side is completed → overall cancelled
+//  - If both sides are completed → overall completed
+//  - If one side is completed and the other is cancelled → keep completed (irreversible)
+//  - If both sides are confirmed → overall confirmed
+//  - Otherwise → pending (still waiting for at least one side)
+function deriveOverallStatus(equipmentOwnerStatus, specialistStatus) {
+  const statuses = [equipmentOwnerStatus, specialistStatus].filter(Boolean);
+  if (statuses.length === 0) return 'pending';
+
+  if (statuses.every(s => s === 'completed')) return 'completed';
+  if (statuses.some(s => s === 'completed')) {
+    // One side done — if the other cancelled, we still honour the completed work
+    // Overall status reflects the dominant completion
+    return 'completed';
+  }
+  if (statuses.every(s => s === 'cancelled')) return 'cancelled';
+  if (statuses.some(s => s === 'cancelled')) return 'cancelled'; // one side declined
+  if (statuses.every(s => s === 'confirmed')) return 'confirmed';
+  return 'pending';
+}
+
 // @POST /api/bookings - Create booking (bundle or individual)
 router.post('/', protect, async (req, res) => {
   try {
@@ -126,7 +149,10 @@ router.post('/', protect, async (req, res) => {
       specialRequirements,
       acceptanceWindowHours: winHours,
       acceptanceDeadline: deadline,
-      autoCancelOnExpiry: autoCancelOnExpiry !== false
+      autoCancelOnExpiry: autoCancelOnExpiry !== false,
+      // Initialize sub-statuses based on booking type
+      equipmentOwnerStatus: equipmentId ? 'pending' : undefined,
+      specialistStatus: specialistId ? 'pending' : undefined,
     });
 
     if (equipmentId) {
@@ -208,20 +234,175 @@ router.put('/:id/status', protect, async (req, res) => {
     const isSeeker = booking.seeker.toString() === req.user.id;
     const isEquipmentOwner = booking.equipmentOwner && booking.equipmentOwner.toString() === req.user.id;
     const isSpecialistOwner = booking.specialistOwner && booking.specialistOwner.toString() === req.user.id;
+    const isBundle = booking.bookingType === 'bundle';
 
     if (!isSeeker && !isEquipmentOwner && !isSpecialistOwner && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized to update this booking' });
     }
 
-    if (isSeeker && !isEquipmentOwner && !isSpecialistOwner && status !== 'cancelled') {
-      return res.status(403).json({ success: false, message: 'Seekers can only cancel bookings' });
+    // Seekers can only cancel, and only if no provider has already completed their portion
+    if (isSeeker && !isEquipmentOwner && !isSpecialistOwner) {
+      if (status !== 'cancelled') {
+        return res.status(403).json({ success: false, message: 'Seekers can only cancel bookings' });
+      }
+
+      // Block cancellation if any provider side has already completed their work
+      if (isBundle) {
+        if (booking.equipmentOwnerStatus === 'completed' || booking.specialistStatus === 'completed') {
+          return res.status(400).json({
+            success: false,
+            message: 'Cannot cancel: one or more providers have already completed their service'
+          });
+        }
+      } else {
+        // Non-bundle: block if booking is already completed
+        if (booking.status === 'completed') {
+          return res.status(400).json({
+            success: false,
+            message: 'Cannot cancel a booking that has already been completed'
+          });
+        }
+      }
+    }
+
+    // --- Bundle booking: per-participant status update ---
+    if (isBundle) {
+      const updates = {};
+
+      if (isEquipmentOwner && !isSeeker) {
+        // Equipment owner can confirm or cancel their side (only if not already completed)
+        if (booking.equipmentOwnerStatus === 'completed') {
+          return res.status(400).json({
+            success: false,
+            message: 'Your side of this booking has already been marked as completed'
+          });
+        }
+        if (status === 'confirmed') {
+          updates.equipmentOwnerStatus = 'confirmed';
+        } else if (status === 'completed') {
+          // Can only complete after confirming
+          if (booking.equipmentOwnerStatus !== 'confirmed') {
+            return res.status(400).json({ success: false, message: 'Please accept the booking before marking it as completed' });
+          }
+          updates.equipmentOwnerStatus = 'completed';
+          // Release equipment lock when equipment side is completed
+          if (booking.equipment) {
+            await Equipment.findByIdAndUpdate(booking.equipment, {
+              availabilityStatus: 'available',
+              $pull: { bookedDates: { bookingId: booking._id } }
+            });
+          }
+        } else if (status === 'cancelled') {
+          updates.equipmentOwnerStatus = 'cancelled';
+          // Release equipment lock when equipment owner declines
+          if (booking.equipment) {
+            await Equipment.findByIdAndUpdate(booking.equipment, {
+              availabilityStatus: 'available',
+              $pull: { bookedDates: { bookingId: booking._id } }
+            });
+          }
+        }
+      }
+
+      if (isSpecialistOwner && !isSeeker) {
+        // Specialist owner can confirm or cancel their side (only if not already completed)
+        if (booking.specialistStatus === 'completed') {
+          return res.status(400).json({
+            success: false,
+            message: 'Your side of this booking has already been marked as completed'
+          });
+        }
+        if (status === 'confirmed') {
+          updates.specialistStatus = 'confirmed';
+        } else if (status === 'completed') {
+          if (booking.specialistStatus !== 'confirmed') {
+            return res.status(400).json({ success: false, message: 'Please accept the booking before marking it as completed' });
+          }
+          updates.specialistStatus = 'completed';
+          // Release specialist lock when specialist side is completed
+          if (booking.specialist) {
+            await Specialist.findByIdAndUpdate(booking.specialist, {
+              availabilityStatus: 'available',
+              $pull: { bookedDates: { bookingId: booking._id } }
+            });
+          }
+        } else if (status === 'cancelled') {
+          updates.specialistStatus = 'cancelled';
+          // Release specialist lock when specialist declines
+          if (booking.specialist) {
+            await Specialist.findByIdAndUpdate(booking.specialist, {
+              availabilityStatus: 'available',
+              $pull: { bookedDates: { bookingId: booking._id } }
+            });
+          }
+        }
+      }
+
+      // Seeker cancellation in bundle (already guarded above — neither side completed)
+      if (isSeeker && status === 'cancelled') {
+        updates.equipmentOwnerStatus = 'cancelled';
+        updates.specialistStatus = 'cancelled';
+        updates.cancellationReason = cancellationReason || 'Cancelled by seeker';
+        // Release both locks
+        if (booking.equipment) {
+          await Equipment.findByIdAndUpdate(booking.equipment, {
+            availabilityStatus: 'available',
+            $pull: { bookedDates: { bookingId: booking._id } }
+          });
+        }
+        if (booking.specialist) {
+          await Specialist.findByIdAndUpdate(booking.specialist, {
+            availabilityStatus: 'available',
+            $pull: { bookedDates: { bookingId: booking._id } }
+          });
+        }
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ success: false, message: 'No valid status update provided' });
+      }
+
+      if (cancellationReason) updates.cancellationReason = cancellationReason;
+      if (completionNotes) updates.completionNotes = completionNotes;
+
+      // Derive overall status from the (potentially updated) sub-statuses
+      const newEqStatus = updates.equipmentOwnerStatus ?? booking.equipmentOwnerStatus;
+      const newSpStatus = updates.specialistStatus ?? booking.specialistStatus;
+      updates.status = deriveOverallStatus(newEqStatus, newSpStatus);
+
+      const updated = await Booking.findByIdAndUpdate(req.params.id, updates, { new: true })
+        .populate('seeker', 'name phone district village')
+        .populate('equipment', 'title category images')
+        .populate({ path: 'specialist', populate: { path: 'user', select: 'name phone avatar' } })
+        .populate('equipmentOwner', 'name phone')
+        .populate('specialistOwner', 'name phone');
+
+      return res.json({ success: true, data: updated });
+    }
+
+    // --- Non-bundle booking: simple status update ---
+
+    // Providers cannot move backward from completed
+    if ((isEquipmentOwner || isSpecialistOwner) && booking.status === 'completed') {
+      return res.status(400).json({
+        success: false,
+        message: 'This booking has already been completed and cannot be changed'
+      });
+    }
+
+    // Providers must accept (confirm) before marking complete
+    if ((isEquipmentOwner || isSpecialistOwner) && status === 'completed' && booking.status !== 'confirmed' && booking.status !== 'in_progress') {
+      return res.status(400).json({
+        success: false,
+        message: 'Please accept the booking before marking it as completed'
+      });
     }
 
     const updates = { status };
     if (cancellationReason) updates.cancellationReason = cancellationReason;
     if (completionNotes) updates.completionNotes = completionNotes;
 
-    // If cancelled or completed, release equipment and specialist locks
+    // Release locks only for cancellation or completion (not for other transitions)
     if (status === 'cancelled' || status === 'completed') {
       if (booking.equipment) {
         await Equipment.findByIdAndUpdate(booking.equipment, {
@@ -275,6 +456,16 @@ router.get('/:id', protect, async (req, res) => {
       .populate('specialistOwner', 'name phone')
       .populate({ path: 'specialist', populate: { path: 'user', select: 'name phone avatar' } });
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+    
+    const isSeeker = booking.seeker?._id.toString() === req.user.id;
+    const isEqOwner = booking.equipmentOwner?._id.toString() === req.user.id;
+    const isSpOwner = booking.specialistOwner?._id.toString() === req.user.id;
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isSeeker && !isEqOwner && !isSpOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized to view this booking' });
+    }
+    
     res.json({ success: true, data: booking });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

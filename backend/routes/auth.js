@@ -31,7 +31,9 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @route POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, phone, email, password, role, district, state, village, preferredLanguage } = req.body;
+    const { name, phone, email, password, district, state, village, preferredLanguage } = req.body;
+    // Prevent admin role injection
+    const role = ['seeker', 'provider'].includes(req.body.role) ? req.body.role : 'seeker';
     const existing = await User.findOne({ phone });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Phone number already registered' });

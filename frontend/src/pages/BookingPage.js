@@ -96,7 +96,7 @@ export default function BookingPage() {
           village: user?.village || ''
         },
         ...(equipment && { equipmentId: equipment._id }),
-        ...(isSpecialistOnly ? { specialistId: specialist._id } : {}),
+        ...(isSpecialistOnly && specialist ? { specialistId: specialist._id } : {}),
         ...(isBundle && selectedSpecialist ? { specialistId: selectedSpecialist } : {}),
       };
       await bookingAPI.create(payload);

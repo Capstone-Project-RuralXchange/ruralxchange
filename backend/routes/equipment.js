@@ -175,6 +175,31 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @GET /api/equipment/owner/listings
+router.get('/owner/listings', protect, async (req, res) => {
+  try {
+    const equipment = await Equipment.find({ owner: req.user.id, isActive: true })
+      .sort({ createdAt: -1 });
+    res.json({ success: true, count: equipment.length, data: equipment });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Category summary
+router.get('/meta/categories', async (req, res) => {
+  try {
+    const summary = await Equipment.aggregate([
+      { $match: { isActive: true, availabilityStatus: 'available' } },
+      { $group: { _id: '$category', count: { $sum: 1 }, avgPrice: { $avg: '$pricePerDay' } } },
+      { $sort: { count: -1 } }
+    ]);
+    res.json({ success: true, data: summary });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // @GET /api/equipment/:id/route - Calculate accurate road route & travel time to equipment
 router.get('/:id/route', async (req, res) => {
   try {
@@ -354,7 +379,21 @@ router.put('/:id', protect, async (req, res) => {
       }
     }
 
-    equipment = await Equipment.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    // Prevent mass assignment by whitelisting editable fields
+    const allowedFields = [
+      'title', 'description', 'category', 'brand', 'model', 
+      'yearOfManufacture', 'condition', 'pricePerDay', 'minimumRentalDays', 
+      'maximumRentalDays', 'district', 'state', 'village', 'address', 
+      'location', 'specifications', 'images', 'availabilityStatus'
+    ];
+    const updateData = {};
+    for (const key of Object.keys(req.body)) {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    }
+
+    equipment = await Equipment.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     res.json({ success: true, data: equipment });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -371,31 +410,6 @@ router.delete('/:id', protect, async (req, res) => {
     }
     await Equipment.findByIdAndUpdate(req.params.id, { isActive: false });
     res.json({ success: true, message: 'Equipment removed' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// @GET /api/equipment/owner/listings
-router.get('/owner/listings', protect, async (req, res) => {
-  try {
-    const equipment = await Equipment.find({ owner: req.user.id, isActive: true })
-      .sort({ createdAt: -1 });
-    res.json({ success: true, count: equipment.length, data: equipment });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Category summary
-router.get('/meta/categories', async (req, res) => {
-  try {
-    const summary = await Equipment.aggregate([
-      { $match: { isActive: true, availabilityStatus: 'available' } },
-      { $group: { _id: '$category', count: { $sum: 1 }, avgPrice: { $avg: '$pricePerDay' } } },
-      { $sort: { count: -1 } }
-    ]);
-    res.json({ success: true, data: summary });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

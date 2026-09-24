@@ -26,7 +26,7 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     // Only redirect if it's an unauthorized API call (not login/register itself)
-    if (error.response?.status === 401 && !error.config.url.includes('/auth/login')) {
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

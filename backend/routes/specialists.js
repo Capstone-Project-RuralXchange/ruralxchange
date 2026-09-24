@@ -97,6 +97,17 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get my specialist profile
+router.get('/me/profile', protect, async (req, res) => {
+  try {
+    const specialist = await Specialist.findOne({ user: req.user.id });
+    if (!specialist) return res.status(404).json({ success: false, message: 'No specialist profile found' });
+    res.json({ success: true, data: specialist });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // @GET /api/specialists/:id
 router.get('/:id', async (req, res) => {
   try {
@@ -179,22 +190,27 @@ router.put('/:id', protect, async (req, res) => {
       }
     }
 
-    specialist = await Specialist.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    // Prevent mass assignment by whitelisting editable fields
+    const allowedFields = [
+      'specialization', 'experience', 'skills', 'qualifications', 
+      'dailyRate', 'hourlyRate', 'pricePerDay', 'pricePerHour', 
+      'district', 'state', 'village', 'address', 'location', 
+      'bio', 'availabilityStatus'
+    ];
+    const updateData = {};
+    for (const key of Object.keys(req.body)) {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    }
+
+    specialist = await Specialist.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     res.json({ success: true, data: specialist });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
 });
 
-// Get my specialist profile
-router.get('/me/profile', protect, async (req, res) => {
-  try {
-    const specialist = await Specialist.findOne({ user: req.user.id });
-    if (!specialist) return res.status(404).json({ success: false, message: 'No specialist profile found' });
-    res.json({ success: true, data: specialist });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+
 
 module.exports = router;
