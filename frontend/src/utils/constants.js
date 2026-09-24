@@ -91,5 +91,5 @@ export const formatDate = (date) =>
   new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
 export const getDurationDays = (start, end) =>
-  Math.max(1, Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24)));
+  Math.max(1, Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24)) + 1);
 export const BOOKING_STATUSES = ['pending','confirmed','in_progress','completed','cancelled'];

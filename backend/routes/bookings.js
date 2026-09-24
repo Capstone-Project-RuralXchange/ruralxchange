@@ -86,7 +86,7 @@ router.post('/', protect, async (req, res) => {
         return res.status(400).json({ success: false, message: 'Equipment not available' });
       }
       if (new Date(endDate) < new Date(startDate)) return res.status(400).json({ success: false, message: 'End date cannot be before start date' });
-      const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)));
+      const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1);
       pricing.equipmentCost = equipment.pricePerDay * days;
       equipmentOwner = equipment.owner;
     }
@@ -99,7 +99,7 @@ router.post('/', protect, async (req, res) => {
         return res.status(400).json({ success: false, message: 'Specialist not available' });
       }
       if (new Date(endDate) < new Date(startDate)) return res.status(400).json({ success: false, message: 'End date cannot be before start date' });
-      const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)));
+      const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1);
       pricing.specialistCost = specialist.pricePerDay * days;
       specialistOwner = specialist.user;
     }
