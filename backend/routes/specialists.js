@@ -112,7 +112,7 @@ router.get('/me/profile', protect, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const specialist = await Specialist.findById(req.params.id)
-      .populate('user', 'name phone district rating isVerified avatar bio createdAt');
+      .populate('user', 'name district rating isVerified avatar bio createdAt');
     if (!specialist) return res.status(404).json({ success: false, message: 'Specialist not found' });
     res.json({ success: true, data: specialist });
   } catch (err) {

@@ -67,7 +67,7 @@ router.post('/', protect, async (req, res) => {
       if (eq) {
         const count = (eq.rating.count || 0) + 1;
         const currentAvg = eq.rating.average || 0;
-        const newAvg = currentAvg + (score - currentAvg) / count;
+        const newAvg = currentAvg + (Number(score) - currentAvg) / count;
         await Equipment.findByIdAndUpdate(targetId, {
           'rating.average': Number(newAvg.toFixed(1)),
           'rating.count': count
@@ -78,7 +78,7 @@ router.post('/', protect, async (req, res) => {
       if (sp) {
         const count = (sp.rating.count || 0) + 1;
         const currentAvg = sp.rating.average || 0;
-        const newAvg = currentAvg + (score - currentAvg) / count;
+        const newAvg = currentAvg + (Number(score) - currentAvg) / count;
         await Specialist.findByIdAndUpdate(targetId, {
           'rating.average': Number(newAvg.toFixed(1)),
           'rating.count': count

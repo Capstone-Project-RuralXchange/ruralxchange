@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
 
         const populated = await Requirement.populate(data, [
           { path: 'postedBy', select: 'name district village rating' },
-          { path: 'responses.respondent', select: 'name phone district rating avatar' }
+          { path: 'responses.respondent', select: 'name district rating avatar' }
         ]);
 
         return res.json({
@@ -67,7 +67,7 @@ router.get('/', async (req, res) => {
     const [requirements, total] = await Promise.all([
       Requirement.find(query)
         .populate('postedBy', 'name district village rating')
-        .populate({ path: 'responses.respondent', select: 'name phone district rating avatar' })
+        .populate({ path: 'responses.respondent', select: 'name district rating avatar' })
         .sort({ isUrgent: -1, createdAt: -1 })
         .skip(skip).limit(Number(limit)),
       Requirement.countDocuments(query)
@@ -126,8 +126,8 @@ router.post('/:id/respond', protect, async (req, res) => {
       { $push: { responses: { respondent: req.user.id, message, offeredPrice: offeredPrice ? Number(offeredPrice) : undefined } } },
       { new: true }
     )
-      .populate('postedBy', 'name phone')
-      .populate({ path: 'responses.respondent', select: 'name phone district rating avatar' });
+      .populate('postedBy', 'name district')
+      .populate({ path: 'responses.respondent', select: 'name district rating avatar' });
     res.json({ success: true, data: requirement });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
