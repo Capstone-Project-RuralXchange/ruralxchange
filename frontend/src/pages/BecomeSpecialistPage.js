@@ -56,7 +56,7 @@ export default function BecomeSpecialistPage() {
         hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
         bio: form.bio ? form.bio.trim() : undefined,
         experience: Number(form.experience),
-        qualifications: form.qualifications ? form.qualifications.split(',').map(s => s.trim()).filter(Boolean) : [],
+        qualifications: form.qualifications ? form.qualifications.split(',').map(s => ({ degree: s.trim(), institution: 'Self-Reported', year: new Date().getFullYear() })) : [],
         skills: form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         address: form.address ? form.address.trim() : undefined,
       };
