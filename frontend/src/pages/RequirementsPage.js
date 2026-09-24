@@ -152,6 +152,8 @@ export default function RequirementsPage() {
   const { user } = useAuth();
   const [requirements, setRequirements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
@@ -232,15 +234,24 @@ export default function RequirementsPage() {
   }, [userLocation, locationStatus]);
 
   const load = async () => {
+    if (page === 1) setLoading(true);
     try {
-      const params = {};
+      const params = { limit: 12, page };
       if (filterDistrict) params.district = filterDistrict;
       if (userLocation) {
         params.lat = userLocation.lat;
         params.lng = userLocation.lng;
       }
       const res = await requirementAPI.getAll(params);
-      setRequirements(res.data.data || []);
+      const items = res.data.data || [];
+      const totalPages = res.data.pages || 1;
+      
+      if (page === 1) {
+        setRequirements(items);
+      } else {
+        setRequirements(prev => [...prev, ...items]);
+      }
+      setHasMore(page < totalPages);
     } catch (err) {
       console.error(err);
     } finally {
@@ -248,7 +259,12 @@ export default function RequirementsPage() {
     }
   };
 
-  useEffect(() => { load(); }, [filterDistrict, userLocation]);
+  useEffect(() => { load(); }, [filterDistrict, userLocation, page]);
+
+  const handleDistrictFilter = (district) => {
+    setFilterDistrict(district);
+    setPage(1);
+  };
 
   const handlePost = async () => {
     if (!form.title || !form.description) return toast.error('Please fill title and description');
@@ -437,7 +453,7 @@ export default function RequirementsPage() {
             <Select
               options={[{value: '', label: t('All Districts')}, ...KARNATAKA_DISTRICTS.map(d => ({value: d, label: t(d)}))]}
               value={{ value: filterDistrict, label: filterDistrict ? t(filterDistrict) : t('All Districts') }}
-              onChange={v => setFilterDistrict(v.value)}
+              onChange={v => handleDistrictFilter(v.value)}
               styles={{ control: (base) => ({ ...base, borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'none' }) }}
             />
           </div>
@@ -445,7 +461,7 @@ export default function RequirementsPage() {
 
         {/* Results */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {loading ? (
+          {loading && page === 1 ? (
             Array(4).fill(0).map((_, i) => (
               <div key={i} className="card skeleton" style={{ height: 120, borderRadius: 12 }} />
             ))
@@ -457,9 +473,23 @@ export default function RequirementsPage() {
               {user && <button onClick={() => setShowForm(true)} className="btn btn-primary" style={{ marginTop: '1rem' }}>{t("Post Requirement")}</button>}
             </div>
           ) : (
-            filtered.map(req => (
-              <RequirementCard key={req._id} req={req} currentUser={user} onRespond={() => load()} />
-            ))
+            <>
+              {filtered.map(req => (
+                <RequirementCard key={req._id} req={req} currentUser={user} onRespond={() => load()} />
+              ))}
+              {hasMore && (
+                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                  <button
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={loading}
+                    className="btn btn-outline"
+                    style={{ minWidth: '200px' }}
+                  >
+                    {loading ? t("Loading...") : t("Load More")}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
