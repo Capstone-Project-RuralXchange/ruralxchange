@@ -34,15 +34,27 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Routes
+const bookingsRoute = require('./routes/bookings');
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/equipment', require('./routes/equipment'));
 app.use('/api/specialists', require('./routes/specialists'));
-app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/bookings', bookingsRoute);
 app.use('/api/requirements', require('./routes/requirements'));
 app.use('/api/ratings', require('./routes/ratings'));
 app.use('/api/seasonal', require('./routes/seasonal'));
 app.use('/api/admin', require('./routes/admin'));
+
+// Global Daemon: Auto-expire pending bookings to free resource locks
+setInterval(async () => {
+  try {
+    if (typeof bookingsRoute.checkAndExpirePendingBookings === 'function') {
+      await bookingsRoute.checkAndExpirePendingBookings();
+    }
+  } catch (err) {
+    console.error('Daemon Error:', err.message);
+  }
+}, 5 * 60 * 1000);
 
 // Health check
 app.get('/api/health', (req, res) => {
