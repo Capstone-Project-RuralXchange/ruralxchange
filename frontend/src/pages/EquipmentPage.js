@@ -384,6 +384,18 @@ const EquipmentPage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '1.5rem' }}>
               {equipment.map(item => <EquipmentCard key={item._id} item={item} />)}
             </div>
+            {hasMore && (
+              <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                <button
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={loading}
+                  className="btn btn-outline"
+                  style={{ minWidth: '200px' }}
+                >
+                  {loading ? t("Loading...") : t("Load More")}
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: '5rem 2rem', color: 'var(--text-muted)' }}>

@@ -30,7 +30,7 @@ const SpecialistDetailPage = () => {
         } catch (err) {
           console.error(err);
         }
-      } finally { setLoading(false); }
+        setLoading(false);
     };
     fetchData();
   }, [id]);

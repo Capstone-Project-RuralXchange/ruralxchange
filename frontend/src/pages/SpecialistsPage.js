@@ -83,6 +83,8 @@ export default function SpecialistsPage() {
   const [specialists, setSpecialists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [userLocation, setUserLocation] = useState(() => {
     try {
       const saved = localStorage.getItem('user_gps_coords');
@@ -163,9 +165,9 @@ export default function SpecialistsPage() {
   }, [userLocation, locationStatus]);
 
   const fetchSpecialists = useCallback(async () => {
-    setLoading(true);
+    if (page === 1) setLoading(true);
     try {
-      const params = { limit: 20, ...filters };
+      const params = { limit: 12, page, ...filters };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
       // Pass coordinates for distance sorting
       if (userLocation) {
@@ -173,19 +175,34 @@ export default function SpecialistsPage() {
         params.lng = userLocation.lng;
       }
       const res = await specialistAPI.getAll(params);
-      setSpecialists(res.data.data || []);
-      setTotal(res.data.total || 0);
+      const items = res.data.data || [];
+      const totalItems = res.data.total || 0;
+      const totalPages = res.data.pages || 1;
+      
+      if (page === 1) {
+        setSpecialists(items);
+      } else {
+        setSpecialists(prev => [...prev, ...items]);
+      }
+      setHasMore(page < totalPages);
+      setTotal(totalItems);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [filters, userLocation]);
+  }, [filters, page, userLocation]);
 
   useEffect(() => { fetchSpecialists(); }, [fetchSpecialists]);
 
-  const handleFilter = (key, value) => setFilters(p => ({ ...p, [key]: value }));
-  const clearFilters = () => setFilters({ specialization: '', district: '', status: 'available', tier: '' });
+  const handleFilter = (key, value) => {
+    setFilters(p => ({ ...p, [key]: value }));
+    setPage(1);
+  };
+  const clearFilters = () => {
+    setFilters({ specialization: '', district: '', status: 'available', tier: '' });
+    setPage(1);
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -331,6 +348,18 @@ export default function SpecialistsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
               {specialists.map(item => <SpecialistCard key={item._id} item={item} />)}
             </div>
+            {hasMore && (
+              <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                <button
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={loading}
+                  className="btn btn-outline"
+                  style={{ minWidth: '200px' }}
+                >
+                  {loading ? t("Loading...") : t("Load More")}
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: '5rem 2rem', color: 'var(--text-muted)' }}>
