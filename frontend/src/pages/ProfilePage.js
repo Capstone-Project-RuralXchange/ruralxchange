@@ -34,7 +34,10 @@ export default function ProfilePage() {
           });
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error(err);
+        toast.error(t('Failed to refresh profile'));
+      });
   }, []);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));

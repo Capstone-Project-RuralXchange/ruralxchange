@@ -49,6 +49,7 @@ const EquipmentDetailPage = () => {
         }
       } catch (err) {
         console.error(err);
+        toast.error(t('Failed to load equipment details'));
       } finally {
         setLoading(false);
       }

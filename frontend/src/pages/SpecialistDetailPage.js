@@ -17,15 +17,20 @@ const SpecialistDetailPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [spRes, ratRes] = await Promise.all([
-          specialistAPI.getById(id),
-          ratingAPI.getSpecialistRatings(id),
-        ]);
-        setSpecialist(spRes.data.data);
-        setRatings(ratRes.data.data || []);
-      } catch (err) { console.error(err); }
-      finally { setLoading(false); }
+        try {
+          const spRes = await specialistAPI.getById(id);
+          setSpecialist(spRes.data.data);
+        } catch (err) {
+          console.error(err);
+          toast.error(t('Failed to load specialist details'));
+        }
+        try {
+          const ratRes = await ratingAPI.getSpecialistRatings(id);
+          setRatings(ratRes.data.data || []);
+        } catch (err) {
+          console.error(err);
+        }
+      } finally { setLoading(false); }
     };
     fetchData();
   }, [id]);

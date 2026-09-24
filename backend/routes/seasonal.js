@@ -97,7 +97,15 @@ const baselineSeasonalData = {
  * Dynamic Hybrid Aggregation Algorithm
  * Combines Agro-Climatic Baseline + Real Platform Usage (Bookings + Notice Board Requirements)
  */
+let cachedSeasonalData = null;
+let lastSeasonalDataUpdate = 0;
+const SEASONAL_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
 async function computeDynamicSeasonalData() {
+  if (cachedSeasonalData && (Date.now() - lastSeasonalDataUpdate < SEASONAL_CACHE_TTL)) {
+    return cachedSeasonalData;
+  }
+
   try {
     const since = new Date(Date.now() - 45 * 24 * 3600 * 1000); // 45-day rolling platform usage window
 
@@ -214,7 +222,10 @@ async function computeDynamicSeasonalData() {
       curBase.totalSignals = totalLiveSignals;
     }
 
-    return { calendar, currentMonth, isLiveDynamic: totalLiveSignals > 0, totalLiveSignals };
+    const finalResult = { calendar, currentMonth, isLiveDynamic: totalLiveSignals > 0, totalLiveSignals };
+    cachedSeasonalData = finalResult;
+    lastSeasonalDataUpdate = Date.now();
+    return finalResult;
   } catch (err) {
     console.error('Dynamic seasonal aggregation fallback:', err.message);
     const currentMonth = new Date().getMonth() + 1;
@@ -229,32 +240,40 @@ async function computeDynamicSeasonalData() {
 
 // @GET /api/seasonal/current - Dynamic current month + calendar
 router.get('/current', async (req, res) => {
-  const result = await computeDynamicSeasonalData();
-  const currentMonthData = result.calendar[result.currentMonth];
-  res.json({
-    success: true,
-    data: {
-      month: result.currentMonth,
-      isLiveDynamic: result.isLiveDynamic,
-      totalLiveSignals: result.totalLiveSignals,
-      ...currentMonthData,
-      allMonths: result.calendar
-    }
-  });
+  try {
+    const result = await computeDynamicSeasonalData();
+    const currentMonthData = result.calendar[result.currentMonth];
+    res.json({
+      success: true,
+      data: {
+        month: result.currentMonth,
+        isLiveDynamic: result.isLiveDynamic,
+        totalLiveSignals: result.totalLiveSignals,
+        ...currentMonthData,
+        allMonths: result.calendar
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // @GET /api/seasonal/all - Dynamic calendar for all months
 router.get('/all', async (req, res) => {
-  const result = await computeDynamicSeasonalData();
-  res.json({
-    success: true,
-    data: result.calendar,
-    meta: {
-      isLiveDynamic: result.isLiveDynamic,
-      totalLiveSignals: result.totalLiveSignals,
-      currentMonth: result.currentMonth
-    }
-  });
+  try {
+    const result = await computeDynamicSeasonalData();
+    res.json({
+      success: true,
+      data: result.calendar,
+      meta: {
+        isLiveDynamic: result.isLiveDynamic,
+        totalLiveSignals: result.totalLiveSignals,
+        currentMonth: result.currentMonth
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 module.exports = router;

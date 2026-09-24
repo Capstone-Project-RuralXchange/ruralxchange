@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiCheck, FiAlertCircle } from 'react-icons/fi';
 import { GiToolbox } from 'react-icons/gi';
 import { specialistAPI } from '../utils/api';
 import { KARNATAKA_DISTRICTS, LANGUAGES, SPECIALIST_TYPES } from '../utils/constants';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +18,16 @@ const TIERS = [
 export default function BecomeSpecialistPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  if (!user) return null;
+
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     specialization: 'tractor_driver', tier: 'skilled',

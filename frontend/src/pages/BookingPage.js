@@ -18,6 +18,14 @@ export default function BookingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  if (!user) return null;
+
   const [equipment, setEquipment] = useState(null);
   const [specialist, setSpecialist] = useState(null);
   const [availableSpecialists, setAvailableSpecialists] = useState([]);

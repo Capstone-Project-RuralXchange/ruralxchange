@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiCheck, FiAlertCircle, FiTool, FiCrosshair, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
 import { equipmentAPI } from '../utils/api';
 import { EQUIPMENT_CATEGORIES, KARNATAKA_DISTRICTS } from '../utils/constants';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 const FUEL_TYPES = [
@@ -21,6 +22,16 @@ const CONDITIONS = [
 export default function ListEquipmentPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  if (!user) return null;
+
   const [form, setForm] = useState({
     title: '', category: 'tractor', description: '', brand: '', model: '', yearOfManufacture: '',
     pricePerDay: '', pricePerHour: '', minimumRentalDays: 1, maximumRentalDays: 30,
