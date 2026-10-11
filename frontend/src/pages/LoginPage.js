@@ -94,9 +94,11 @@ export default function LoginPage() {
         <div style={{ marginTop: '1.5rem', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.3)', borderRadius: 12, padding: '1rem 1.25rem' }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--soil)', marginBottom: 6 }}>🧪 {t("Demo Credentials")}</p>
           <div style={{ fontSize: '0.8rem', color: 'var(--clay)', lineHeight: 1.8 }}>
-            <div>{t("Seeker")}: <code>9000000001</code> / <code>pass123</code></div>
-            <div>{t("Provider")}: <code>9000000002</code> / <code>pass123</code></div>
-            <div>{t("Specialist")}: <code>9000000003</code> / <code>pass123</code></div>
+            <div>{t("Seeker")}: <code>9845011111</code> / <code>password123</code> (Ramesh Gowda)</div>
+            <div>{t("Provider")}: <code>9845022222</code> / <code>password123</code> (Suresh Patel)</div>
+            <div>{t("Specialist")}: <code>9845033333</code> / <code>password123</code> (Dr. Ananya Rao)</div>
+            <div>{t("Skilled Operator")}: <code>9845044444</code> / <code>password123</code> (Manjunath K)</div>
+            <div>{t("Admin")}: <code>admin@ruralxchange.in</code> / <code>admin123</code></div>
           </div>
         </div>
       </motion.div>

@@ -195,7 +195,7 @@ export default function RegisterPage() {
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("District")}</label>
                   <select className="form-input" value={form.district} onChange={e => set('district', e.target.value)}>
-                    {KARNATAKA_DISTRICTS.map(d => <option key={d}>{t(d)}</option>)}
+                    {KARNATAKA_DISTRICTS.map(d => <option key={d} value={d}>{t(d)}</option>)}
                   </select>
                 </div>
 

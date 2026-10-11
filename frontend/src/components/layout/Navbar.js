@@ -78,7 +78,7 @@ const Navbar = () => {
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.15rem', color: 'var(--soil)', letterSpacing: '-0.5px' }}>
               RuralX<span style={{ color: 'var(--terracotta)' }}>change</span>
             </div>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '-2px' }}>Rural Service Marketplace</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '-2px' }}>{t("Rural Service Marketplace")}</div>
           </div>
         </Link>
 
@@ -95,7 +95,7 @@ const Navbar = () => {
               color: '#BE185D',
               border: '1px solid #FBCFE8'
             }}>
-              <FiShield /> Admin RBAC
+              <FiShield /> {t("Admin RBAC")}
             </Link>
           )}
         </div>
@@ -182,13 +182,13 @@ const Navbar = () => {
                 }}>
                   <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
                     <div style={{ fontWeight: 700, color: 'var(--soil)', fontSize: '0.9rem' }}>{user?.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>{user?.district} · {user?.role}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>{t(user?.district)} · {t(user?.role)}</div>
                   </div>
                   {[
-                    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <FiShield />, label: 'Admin RBAC Console' }] : []),
-                    { to: '/dashboard', icon: <FiGrid />, label: 'Dashboard' },
-                    { to: '/profile', icon: <FiUser />, label: 'My Profile' },
-                    { to: '/list-equipment', icon: <FiPlusCircle />, label: 'List Equipment' },
+                    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <FiShield />, label: t('Admin RBAC Console') }] : []),
+                    { to: '/dashboard', icon: <FiGrid />, label: t('Dashboard') },
+                    { to: '/profile', icon: <FiUser />, label: t('My Profile') },
+                    { to: '/list-equipment', icon: <FiPlusCircle />, label: t('List Equipment') },
                   ].map(item => (
                     <Link key={item.to} to={item.to} style={{
                       display: 'flex', alignItems: 'center', gap: '0.6rem',
@@ -213,7 +213,7 @@ const Navbar = () => {
                     onMouseEnter={e => e.currentTarget.style.background = '#FFF0EA'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <FiLogOut /> Logout
+                      <FiLogOut /> {t("Logout")}
                     </button>
                   </div>
                 </div>
@@ -249,7 +249,7 @@ const Navbar = () => {
             { to: '/requirements', label: `📋 ${t('Notice Board')}` },
             { to: '/seasonal', label: `🗓️ ${t('Season')}` },
             { to: '/dashboard', label: `📊 ${t('Dashboard')}`, auth: true },
-            ...(user?.role === 'admin' ? [{ to: '/admin/users', label: '👑 Admin RBAC Console', auth: true }] : []),
+            ...(user?.role === 'admin' ? [{ to: '/admin/users', label: `👑 ${t('Admin RBAC Console')}`, auth: true }] : []),
           ].map(item => (!item.auth || user) && (
             <Link key={item.to} to={item.to} style={{
               display: 'block', padding: '0.75rem 0.5rem',

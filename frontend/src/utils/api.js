@@ -1,8 +1,17 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  let url = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  url = url.trim().replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
-  timeout: 15000,
+  baseURL: getBaseURL(),
+  timeout: 30000,
 });
 
 // Attach JWT token
@@ -17,7 +26,7 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     // Only redirect if it's an unauthorized API call (not login/register itself)
-    if (error.response?.status === 401 && !error.config.url.includes('/auth/login')) {
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -40,6 +49,7 @@ export const authAPI = {
 export const equipmentAPI = {
   getAll: (params) => API.get('/equipment', { params }),
   getById: (id) => API.get(`/equipment/${id}`),
+  getRoute: (id, params) => API.get(`/equipment/${id}/route`, { params }),
   create: (data) => API.post('/equipment', data),
   update: (id, data) => API.put(`/equipment/${id}`, data),
   delete: (id) => API.delete(`/equipment/${id}`),
@@ -62,7 +72,8 @@ export const bookingAPI = {
   getMyBookings: (params) => API.get('/bookings/my', { params }),
   getProviderBookings: () => API.get('/bookings/provider'),
   getById: (id) => API.get(`/bookings/${id}`),
-  updateStatus: (id, status) => API.put(`/bookings/${id}/status`, { status }),
+  updateStatus: (id, status, extra = {}) => API.put(`/bookings/${id}/status`, { status, ...extra }),
+  dismissAlert: (id) => API.put(`/bookings/${id}/dismiss-alert`),
 };
 
 // Requirements

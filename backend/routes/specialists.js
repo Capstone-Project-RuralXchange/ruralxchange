@@ -7,7 +7,17 @@ const { geocodeWithFallback } = require('../utils/geocode');
 // @GET /api/specialists - Get all with filters + distance sorting
 router.get('/', async (req, res) => {
   try {
-    const { district, specialization, status, lat, lng, page = 1, limit = 12 } = req.query;
+    const { district, specialization, status, search, q, lat, lng, page = 1, limit = 12 } = req.query;
+    const searchTerm = (search || q || '').trim();
+
+    const searchCondition = searchTerm ? {
+      $or: [
+        { specialization: { $regex: searchTerm, $options: 'i' } },
+        { skills: { $regex: searchTerm, $options: 'i' } },
+        { bio: { $regex: searchTerm, $options: 'i' } },
+        { qualifications: { $regex: searchTerm, $options: 'i' } }
+      ]
+    } : null;
 
     // If seeker provides coordinates, use $geoNear for distance-sorted results
     if (lat && lng) {
@@ -19,6 +29,9 @@ router.get('/', async (req, res) => {
         if (district) matchStage.district = district;
         if (specialization) matchStage.specialization = specialization;
         if (status) matchStage.availabilityStatus = status;
+        if (searchCondition) {
+          matchStage.$or = searchCondition.$or;
+        }
 
         const skip = (page - 1) * limit;
         const pipeline = [
@@ -47,7 +60,7 @@ router.get('/', async (req, res) => {
 
         const populated = await Specialist.populate(data, {
           path: 'user',
-          select: 'name phone district rating isVerified avatar'
+          select: 'name district rating isVerified avatar'
         });
 
         return res.json({
@@ -65,11 +78,14 @@ router.get('/', async (req, res) => {
     if (district) query.district = district;
     if (specialization) query.specialization = specialization;
     if (status) query.availabilityStatus = status;
+    if (searchCondition) {
+      query.$or = searchCondition.$or;
+    }
 
     const skip = (page - 1) * limit;
     const [specialists, total] = await Promise.all([
       Specialist.find(query)
-        .populate('user', 'name phone district rating isVerified avatar')
+        .populate('user', 'name district rating isVerified avatar')
         .sort({ 'rating.average': -1, isVerified: -1 })
         .skip(skip)
         .limit(Number(limit)),
@@ -81,17 +97,48 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get my specialist profile
+router.get('/me/profile', protect, async (req, res) => {
+  try {
+    const specialist = await Specialist.findOne({ user: req.user.id });
+    if (!specialist) return res.status(404).json({ success: false, message: 'No specialist profile found' });
+    res.json({ success: true, data: specialist });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // @GET /api/specialists/:id
 router.get('/:id', async (req, res) => {
   try {
     const specialist = await Specialist.findById(req.params.id)
-      .populate('user', 'name phone district rating isVerified avatar bio createdAt');
+      .populate('user', 'name district rating isVerified avatar bio createdAt');
     if (!specialist) return res.status(404).json({ success: false, message: 'Specialist not found' });
     res.json({ success: true, data: specialist });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// Helper to sanitize specialist payload
+function sanitizeSpecialistPayload(body) {
+  if (body.specialization && typeof body.specialization === 'string') {
+    let spec = body.specialization.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (spec === 'tractor_operator') spec = 'tractor_driver';
+    if (spec === 'general_labour' || spec === 'general_labor') spec = 'general_laborer';
+    body.specialization = spec;
+  }
+  if (body.availabilityStatus && typeof body.availabilityStatus === 'string') {
+    body.availabilityStatus = body.availabilityStatus.trim().toLowerCase();
+  }
+  if (body.dailyRate != null && body.pricePerDay == null) {
+    body.pricePerDay = Number(body.dailyRate);
+  }
+  if (body.hourlyRate != null && body.pricePerHour == null) {
+    body.pricePerHour = Number(body.hourlyRate);
+  }
+  return body;
+}
 
 // @POST /api/specialists - Create specialist profile (auto-geocode)
 router.post('/', protect, async (req, res) => {
@@ -102,6 +149,7 @@ router.post('/', protect, async (req, res) => {
     }
     req.body.user = req.user.id;
     req.body.district = req.body.district || req.user.district;
+    sanitizeSpecialistPayload(req.body);
 
     // Auto-geocode
     const coords = await geocodeWithFallback(req.body.address, req.body.district);
@@ -129,6 +177,7 @@ router.put('/:id', protect, async (req, res) => {
     if (specialist.user.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+    sanitizeSpecialistPayload(req.body);
 
     // Re-geocode if address changed
     if (req.body.address && req.body.address !== specialist.address) {
@@ -141,22 +190,27 @@ router.put('/:id', protect, async (req, res) => {
       }
     }
 
-    specialist = await Specialist.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Prevent mass assignment by whitelisting editable fields
+    const allowedFields = [
+      'specialization', 'experience', 'skills', 'qualifications', 
+      'dailyRate', 'hourlyRate', 'pricePerDay', 'pricePerHour', 
+      'district', 'state', 'village', 'address', 'location', 
+      'bio', 'availabilityStatus'
+    ];
+    const updateData = {};
+    for (const key of Object.keys(req.body)) {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    }
+
+    specialist = await Specialist.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     res.json({ success: true, data: specialist });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
 });
 
-// Get my specialist profile
-router.get('/me/profile', protect, async (req, res) => {
-  try {
-    const specialist = await Specialist.findOne({ user: req.user.id });
-    if (!specialist) return res.status(404).json({ success: false, message: 'No specialist profile found' });
-    res.json({ success: true, data: specialist });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+
 
 module.exports = router;

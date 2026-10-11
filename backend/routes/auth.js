@@ -22,7 +22,8 @@ const sendTokenResponse = (user, statusCode, res) => {
       avatar: user.avatar,
       rating: user.rating,
       earnings: user.earnings,
-      isVerified: user.isVerified
+      isVerified: user.isVerified,
+      createdAt: user.createdAt
     }
   });
 };
@@ -30,7 +31,9 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @route POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, phone, email, password, role, district, state, village, preferredLanguage } = req.body;
+    const { name, phone, email, password, district, state, village, preferredLanguage } = req.body;
+    // Prevent admin role injection
+    const role = ['seeker', 'provider', 'specialist'].includes(req.body.role) ? req.body.role : 'seeker';
     const existing = await User.findOne({ phone });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Phone number already registered' });
@@ -47,15 +50,24 @@ router.post('/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
     if (!phone || !password) {
-      return res.status(400).json({ success: false, message: 'Phone and password required' });
+      return res.status(400).json({ success: false, message: 'Phone/Email and password required' });
     }
-    const user = await User.findOne({ phone }).select('+password');
+    const cleanIdentifier = phone.trim();
+    const user = await User.findOne({
+      $or: [
+        { phone: cleanIdentifier },
+        { email: cleanIdentifier.toLowerCase() }
+      ]
+    }).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+    if (!user.isActive) {
+      return res.status(403).json({ success: false, message: 'Your account has been deactivated. Please contact support.' });
     }
     sendTokenResponse(user, 200, res);
   } catch (err) {
@@ -76,13 +88,13 @@ router.get('/me', protect, async (req, res) => {
 // @route PUT /api/auth/updateprofile
 router.put('/updateprofile', protect, async (req, res) => {
   try {
-    const allowedFields = ['name', 'email', 'village', 'preferredLanguage', 'bio'];
+    const allowedFields = ['name', 'email', 'district', 'state', 'village', 'preferredLanguage', 'bio', 'avatar'];
     const updates = {};
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
     const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
-    res.json({ success: true, user });
+    res.json({ success: true, data: user, user });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }

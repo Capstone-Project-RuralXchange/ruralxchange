@@ -14,23 +14,48 @@ const requirementSchema = new mongoose.Schema({
   description: String,
   requirementType: {
     type: String,
-    enum: ['equipment', 'specialist', 'bundle', 'professional'],
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase().replace(/[\s-]+/g, '_') : v),
+    enum: ['equipment', 'specialist', 'bundle', 'professional', 'other'],
     required: true
   },
   equipmentNeeded: {
-    category: String,
+    category: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      set: (v) => (typeof v === 'string' ? v.trim().toLowerCase().replace(/[\s-]+/g, '_') : v)
+    },
     quantity: Number,
     withOperator: Boolean
   },
   specialistNeeded: {
-    specialization: String,
-    qualificationLevel: { type: String, enum: ['any', 'certified', 'engineer'] }
+    specialization: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      set: (v) => (typeof v === 'string' ? v.trim().toLowerCase().replace(/[\s-]+/g, '_') : v)
+    },
+    qualificationLevel: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
+      enum: ['any', 'certified', 'engineer']
+    }
   },
   startDate: Date,
   endDate: Date,
   duration: {
     value: Number,
-    unit: { type: String, enum: ['hours', 'days', 'weeks'] }
+    unit: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
+      enum: ['hours', 'days', 'weeks']
+    }
   },
   district: { type: String, required: true },
   village: String,
@@ -50,6 +75,9 @@ const requirementSchema = new mongoose.Schema({
   },
   status: {
     type: String,
+    trim: true,
+    lowercase: true,
+    set: (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v),
     enum: ['open', 'filled', 'expired', 'cancelled'],
     default: 'open'
   },
@@ -60,12 +88,22 @@ const requirementSchema = new mongoose.Schema({
     respondedAt: { type: Date, default: Date.now }
   }],
   expiresAt: Date,
-  isUrgent: { type: Boolean, default: false },
   views: { type: Number, default: 0 }
 }, { timestamps: true });
 
 requirementSchema.index({ district: 1, status: 1, createdAt: -1 });
 requirementSchema.index({ requirementType: 1, district: 1, status: 1 });
 requirementSchema.index({ location: '2dsphere' });
+
+// Pre-validate hook
+requirementSchema.pre('validate', function(next) {
+  if (this.requirementType && typeof this.requirementType === 'string') {
+    this.requirementType = this.requirementType.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  }
+  if (this.status && typeof this.status === 'string') {
+    this.status = this.status.trim().toLowerCase();
+  }
+  next();
+});
 
 module.exports = mongoose.model('Requirement', requirementSchema);

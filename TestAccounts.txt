@@ -1,0 +1,95 @@
+=========================================================
+      RURALXCHANGE - TEST PERSONAS & CREDENTIALS
+=========================================================
+
+All test accounts are pre-seeded in the database via:
+  npm run seed  OR  node backend/seed.js
+
+Password for all user accounts: password123
+Password for admin accounts:    admin123
+
+---------------------------------------------------------
+1. KEY TEST SCENARIO PERSONAS
+---------------------------------------------------------
+
+👤 1. Seeker (Alert Banner & Rating Test):
+   Name: Ramesh Gowda
+   Phone: 9845011111  |  Password: password123
+   Location: Mandya (Shivapura)
+   Key Scenarios:
+     - Log in and visit /dashboard to view the auto-cancelled booking alert banner with "Search Alternatives" button.
+     - View unaccepted pending warning banner.
+     - Rate completed equipment & specialist bookings with ⭐ 1-5 stars & reviews.
+
+🚜 2. Equipment Provider (Incoming Bookings & Listings):
+   Name: Suresh Patel
+   Phone: 9845022222  |  Password: password123
+   Location: Belagavi (Bailhongal)
+   Key Scenarios:
+     - Log in and view 3 listed equipment (John Deere Tractor, Sonalika Rotavator, Sugarcane Haulage Trailer).
+     - Switch to "Incoming Requests" tab on Dashboard to accept/decline incoming pending bookings with countdown deadlines.
+     - Manage bookings and view earnings.
+
+👩‍🔬 3. Professional Specialist (Agronomist Tier):
+   Name: Dr. Ananya Rao
+   Phone: 9845033333  |  Password: password123
+   Location: Bengaluru Urban (GKVK Campus)
+   Key Scenarios:
+     - Certified Agronomist profile (B.Sc & M.Sc Agriculture, UAS GKVK).
+     - ₹1,200/day advisory booking flow and incoming advisory consultation requests.
+
+👷 4. Skilled Operator (Bundle & Standalone):
+   Name: Manjunath K
+   Phone: 9845044444  |  Password: password123
+   Location: Mysuru (Nanjangud)
+   Key Scenarios:
+     - Heavy Tractor Driver (₹800/day).
+     - Available for standalone booking or combined bundle booking with tractors.
+
+👑 5. Platform Super Admin (RBAC Management):
+   Email: admin@ruralxchange.in  |  Password: admin123
+   Phone: 9845000000            |  Password: admin123
+   Location: Bengaluru Urban
+   Key Scenarios:
+     - Full Admin Console at /admin/users.
+     - Real-time KPIs, revenue volume aggregation, user verification toggle, role escalation.
+
+---------------------------------------------------------
+2. ADDITIONAL SEEKERS (FARMERS)
+---------------------------------------------------------
+- Basavarajappa K.   | Phone: 9845022223 | Pass: password123 | Dharwad (Navalgund)
+- Ningappa Biradar   | Phone: 9845022224 | Pass: password123 | Vijayapura (Indi)
+- Chennamma Patil    | Phone: 9845022225 | Pass: password123 | Belagavi (Bailhongal)
+- Revanna Siddappa   | Phone: 9845022226 | Pass: password123 | Tumakuru (Tiptur)
+
+---------------------------------------------------------
+3. ADDITIONAL PROVIDERS (EQUIPMENT OWNERS)
+---------------------------------------------------------
+- Manjunath H.K.     | Phone: 9845033334 | Pass: password123 | Mandya (Maddur)
+- Basavaraj Patil    | Phone: 9845044445 | Pass: password123 | Dharwad (Hubballi Rural)
+- Mahadeva Swamy     | Phone: 9845044446 | Pass: password123 | Mysuru (Nanjangud)
+- Kalleshappa Nayak  | Phone: 9845044447 | Pass: password123 | Davangere (Harihara)
+- Mallikarjun Reddy  | Phone: 9845044448 | Pass: password123 | Ballari (Siruguppa)
+- Sharanappa Gowda   | Phone: 9845044449 | Pass: password123 | Raichur (Sindhanur)
+- Anand Shettigar    | Phone: 9845044450 | Pass: password123 | Udupi (Kundapura)
+- Veerendra Patil    | Phone: 9845044451 | Pass: password123 | Kalaburagi (Afzalpur)
+- Shankar Bhat       | Phone: 9845044452 | Pass: password123 | Shivamogga (Thirthahalli)
+
+---------------------------------------------------------
+4. ADDITIONAL SPECIALISTS (ALL 16 CATEGORIES)
+---------------------------------------------------------
+- Basavaraj M. (Harvester Op.)   | Phone: 9845055551 | Pass: password123 | Mandya
+- Prakash Naik (Drone Pilot)     | Phone: 9845055552 | Pass: password123 | Belagavi
+- Chandru N. (Pump Mechanic)     | Phone: 9845055553 | Pass: password123 | Tumakuru
+- Kumar Swamy (Electrician)      | Phone: 9845055554 | Pass: password123 | Hassan
+- Er. Rajesh Murthy (Civil Eng.) | Phone: 9845055555 | Pass: password123 | Mysuru
+- Dr. Shivaraj Patil (Vet Asst.) | Phone: 9845055556 | Pass: password123 | Kalaburagi
+- Siddaramaiah (Mason)           | Phone: 9845055557 | Pass: password123 | Vijayapura
+- Venkatesh Rao (Solar Tech.)    | Phone: 9845055558 | Pass: password123 | Bengaluru Rural
+- Somasekhar (Plumber)           | Phone: 9845055559 | Pass: password123 | Kolar
+- Parashuram (Welder)            | Phone: 9845055560 | Pass: password123 | Bagalkot
+- Gangadhar (Chaff & Silage)     | Phone: 9845055561 | Pass: password123 | Haveri
+- Manjula Bai (Nursery Tech.)    | Phone: 9845055562 | Pass: password123 | Chikkamagaluru
+- Guruswamy (Carpenter)          | Phone: 9845055563 | Pass: password123 | Chamarajanagar
+- Nagarajappa (General Labour)   | Phone: 9845055564 | Pass: password123 | Chitradurga
+=========================================================

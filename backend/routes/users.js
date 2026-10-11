@@ -27,7 +27,10 @@ router.get('/dashboard', protect, async (req, res) => {
 
     let specialistEarnings = 0;
     if (specialistProfile) {
-      const specialistBookings = await Booking.find({ specialist: specialistProfile._id, status: 'completed' });
+      const specialistBookings = await Booking.find({
+        $or: [{ specialist: specialistProfile._id }, { specialistOwner: userId }],
+        status: 'completed'
+      });
       specialistEarnings = specialistBookings.reduce((sum, b) => sum + (b.pricing?.specialistCost || 0), 0);
     }
 
@@ -56,7 +59,7 @@ router.get('/dashboard', protect, async (req, res) => {
 // @GET /api/users/:id - Public profile
 router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(req.params.id).select('name district state village role avatar bio rating isVerified createdAt');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     res.json({ success: true, data: user });
   } catch (err) {

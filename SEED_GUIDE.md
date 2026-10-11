@@ -35,76 +35,73 @@ node backend/seed.js
 ## 🔐 Test Accounts by Role
 
 All accounts use the following standard passwords:
-- **Seeker / Provider / Specialist Accounts**: `pass123`
+- **Seeker / Provider / Specialist Accounts**: `password123`
 - **Admin Accounts**: `admin123`
 
 ---
 
 ### 1. 👑 Admin Accounts (RBAC User Management)
 
-| Name | Phone | Password | Role | District / Note |
-|------|-------|----------|------|-----------------|
-| **Super Admin** | `9000000000` | `admin123` | `admin` | Bengaluru Urban (Full Console) |
-| **Karnataka Regional Admin** | `9000000001` | `admin123` | `admin` | Mysuru (Southern Zone Operations) |
+| Name | Phone / Login | Password | Role | District / Note |
+|------|---------------|----------|------|-----------------|
+| **Admin Console** | `admin@ruralxchange.in` / `9845000000` | `admin123` | `admin` | Bengaluru Urban (Full RBAC Console at `/admin/users`) |
 
-> 💡 **Admin Console Access**: Log in with either admin account to see the **"👑 Admin RBAC"** link in the navigation bar or access [`http://localhost:3000/admin/users`](http://localhost:3000/admin/users).
+> 💡 **Admin Console Access**: Log in with `admin@ruralxchange.in` / `admin123` to access the **"👑 Admin RBAC"** console in the navigation bar or visit [`/admin/users`](http://localhost:3000/admin/users).
 
 ---
 
-### 2. 🔍 Seekers (Farmers & Hirers — 10 Users)
+### 2. 🔍 Key Test Scenario Personas
+
+| Role | Name | Phone / Login | District | Key Scenario to Test |
+|------|------|---------------|----------|----------------------|
+| **Seeker (Alert Banner & Ratings)** | Ramesh Gowda | `9845011111` | Mandya | **Seeker Alert Popup**: Log in and visit Dashboard to see the auto-cancelled booking alert with "Search Alternatives" button, unaccepted pending warning, and rate completed bookings. |
+| **Equipment Provider** | Suresh Patel | `9845022222` | Belagavi | **Incoming Bookings**: Log in to view 3 listed tractors/rotavators, incoming seeker requests, and acceptance deadlines. |
+| **Professional Specialist** | Dr. Ananya Rao | `9845033333` | Bengaluru Urban | **Professional Tier**: Certified Agronomist profile with degree certificates, ₹1,200/day advisory booking flow. |
+| **Skilled Operator** | Manjunath K | `9845044444` | Mysuru | **Bundle Booking Operator**: Tractor driver available for standalone hire or bundled with tractors. |
+
+---
+
+### 3. 🔍 Additional Seekers (Farmers & Hirers)
 
 | Name | Phone | Password | District | Village | Speciality / Bio |
 |------|-------|----------|----------|---------|------------------|
-| Krishnamurthy B. | `9100000001` | `pass123` | Mandya | Maddur | Sugarcane & Paddy (12 acres) |
-| Savitha Naik | `9100000002` | `pass123` | Tumakuru | Sira | Groundnut & Ragi farmer |
-| Prakash Gowda | `9100000003` | `pass123` | Hassan | Alur | Coffee & Cardamom planter |
-| Anitha Reddy | `9100000004` | `pass123` | Kolar | Bangarpet | Greenhouse Tomato & Capsicum |
-| Basavaraj Patil | `9100000005` | `pass123` | Belagavi | Gokak | Sugarcane grower |
-| Mallikarjun Hiremath | `9100000006` | `pass123` | Kalaburagi | Sedam | Red Gram (Tur Dal) cultivator |
-| Suma Prabhakar | `9100000007` | `pass123` | Mysuru | Hunsur | Tobacco & Ginger farmer |
-| Devendrappa Nayak | `9100000008` | `pass123` | Davangere | Harihar | Maize & Cotton grower |
-| Gangadhar Biradar | `9100000009` | `pass123` | Bagalkot | Mudhol | Pomegranate & Jowar farmer |
-| Manjunath Shettigar | `9100000010` | `pass123` | Shivamogga | Sagar | Arecanut & Vanilla plantation |
+| Basavarajappa K. | `9845022223` | `password123` | Dharwad | Navalgund | Cotton & Chili grower |
+| Ningappa Biradar | `9845022224` | `password123` | Vijayapura | Indi | Pomegranate & Lime orchard |
+| Chennamma Patil | `9845022225` | `password123` | Belagavi | Bailhongal | Sugarcane farmer (6 acres) |
+| Revanna Siddappa | `9845022226` | `password123` | Tumakuru | Tiptur | Coconut & Arecanut farmer |
 
 ---
 
-### 3. 🚜 Providers (Equipment Fleet Owners — 10 Users)
+### 4. 🚜 Additional Equipment Providers
 
 | Name | Phone | Password | District | Village | Primary Equipment Owned |
 |------|-------|----------|----------|---------|-------------------------|
-| Ramu Gowda | `9200000001` | `pass123` | Mandya | Kirugavalu | Mahindra 575 DI, John Deere, Shaktiman Rotavators |
-| Manjula Devi | `9200000002` | `pass123` | Hassan | Sakleshpur | Kubota Combine Harvesters, Kirloskar Power Tillers |
-| Suresh Nagaraj | `9200000003` | `pass123` | Mysuru | Nanjangud | Kirloskar 15 kVA Silent DG Set, CRI Submersible Pumps |
-| Venkatesh Rao | `9200000004` | `pass123` | Davangere | Honnali | Diesel Concrete Mixers, Bosch Demolition Drills |
-| Chandrasekhar Kulkarni | `9200000005` | `pass123` | Dharwad | Navalgund | Aspee Battery Sprayers, National Threshers, VST Tillers |
-| Hemanth Kumar | `9200000006` | `pass123` | Chitradurga | Hiriyur | Diesel Pump Sets, Agrimate 52cc Earth Augers |
-| Santosh Badiger | `9200000007` | `pass123` | Vijayapura | Indi | ESAB 300A Inverter Welders, Honda Portable DG sets |
-| Ramesh Reddy | `9200000008` | `pass123` | Ballari | Siruguppa | Preet 987 Multi-Crop Combine Harvester |
-| Gopalakrishna Bhat | `9200000009` | `pass123` | Dakshina Kannada | Puttur | Ahuja 2000W Sound System, Shamiana Tents, LED Masts |
-| Mahantesh Kadadi | `9200000010` | `pass123` | Koppal | Gangavathi | Fieldking 7-ft Rotavators, Mitra 600L Boom Sprayers |
+| Manjunath H.K. | `9845033334` | `password123` | Mandya | Maddur | Kubota Combine Harvester, Mahindra 575 DI, Water Pump |
+| Basavaraj Patil | `9845044445` | `password123` | Dharwad | Hubballi Rural | Power Weeder, Concrete Mixer, Generator |
+| Mahadeva Swamy | `9845044446` | `password123` | Mysuru | Nanjangud | John Deere Tractor, Boom Sprayer |
+| Kalleshappa Nayak | `9845044447` | `password123` | Davangere | Harihara | Seed Drill, Rotavator |
+| Mallikarjun Reddy | `9845044448` | `password123` | Ballari | Siruguppa | Laser Leveler, Multi-Crop Thresher |
 
 ---
 
-### 4. 👷 Specialists (Covering All 16 Specializations — 16 Users)
+### 5. 👷 Specialists (Covering All 16 Specializations)
 
 | Name | Phone | Password | District | Specialization | Daily Rate |
 |------|-------|----------|----------|----------------|------------|
-| Shiva Kumar | `9300000001` | `pass123` | Mysuru | Tractor Driver / Laser Leveller | ₹850/day |
-| Raju Harvester | `9300000002` | `pass123` | Mandya | Combine Harvester Operator | ₹1,200/day |
-| Vijay Electrician | `9300000003` | `pass123` | Bengaluru Rural | Licensed Farm Electrician | ₹900/day |
-| Basavanna Mason | `9300000004` | `pass123` | Dharwad | Rural Construction Mason | ₹950/day |
-| Naveen Plumber | `9300000005` | `pass123` | Tumakuru | Drip Irrigation Plumber | ₹800/day |
-| Chandru Pump Mech | `9300000006` | `pass123` | Hassan | Borewell Pump Technician | ₹900/day |
-| Santosh Welder | `9300000007` | `pass123` | Belagavi | Mobile Implement Welder | ₹850/day |
-| Ganesh Carpenter | `9300000008` | `pass123` | Shivamogga | Timber Craftsman | ₹900/day |
-| Manjunath Painter | `9300000009` | `pass123` | Kolar | Farmhouse Painter | ₹750/day |
-| Hanumantha Labourer | `9300000010` | `pass123` | Raichur | Agricultural Labour Team Lead | ₹650/day |
-| Dr. Srinivas Agronomist | `9300000011` | `pass123` | Bengaluru Urban | Crop Health & IPM Agronomist | ₹2,000/day |
-| Er. Rajesh Civil | `9300000012` | `pass123` | Udupi | Farm Pond & Civil Engineer | ₹2,500/day |
-| Er. Preethi Electrical | `9300000013` | `pass123` | Mysuru | Solar Agri Microgrid Engineer | ₹2,200/day |
-| Dr. Anand Vet | `9300000014` | `pass123` | Ballari | Livestock Healthcare Assistant | ₹900/day |
-| Karthik Fridge Tech | `9300000015` | `pass123` | Chikkamagaluru | Milk Cooler & RAC Tech | ₹1,100/day |
-| Subhash Drone Tech | `9300000016` | `pass123` | Bagalkot | DGCA Agri Drone Pilot | ₹2,500/day |
+| Basavaraj M. | `9845055551` | `password123` | Mandya | Harvester Operator | ₹1,200/day |
+| Prakash Naik | `9845055552` | `password123` | Belagavi | Agri Drone Pilot | ₹2,500/day |
+| Chandru N. | `9845055553` | `password123` | Tumakuru | Pump Mechanic | ₹900/day |
+| Kumar Swamy | `9845055554` | `password123` | Hassan | Farm Electrician | ₹900/day |
+| Er. Rajesh Murthy | `9845055555` | `password123` | Mysuru | Civil Engineer | ₹2,500/day |
+| Dr. Shivaraj Patil | `9845055556` | `password123` | Kalaburagi | Vet Assistant | ₹900/day |
+| Siddaramaiah | `9845055557` | `password123` | Vijayapura | Construction Mason | ₹950/day |
+| Venkatesh Rao | `9845055558` | `password123` | Bengaluru Rural | Solar Agri Technician | ₹2,200/day |
+| Somasekhar | `9845055559` | `password123` | Kolar | Drip Irrigation Plumber | ₹800/day |
+| Parashuram | `9845055560` | `password123` | Bagalkot | Implement Welder | ₹850/day |
+| Gangadhar | `9845055561` | `password123` | Haveri | Chaff & Silage Tech | ₹800/day |
+| Manjula Bai | `9845055562` | `password123` | Chikkamagaluru | Nursery Specialist | ₹900/day |
+| Guruswamy | `9845055563` | `password123` | Chamarajanagar | Timber Carpenter | ₹900/day |
+| Nagarajappa | `9845055564` | `password123` | Chitradurga | General Labour Lead | ₹650/day |
 
 ---
 

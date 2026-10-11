@@ -46,7 +46,7 @@ router.get('/stats', async (req, res) => {
 
     // Calculate total platform booking revenue/volume
     const completedBookingsList = await Booking.find({ status: 'completed' }).select('pricing');
-    const totalVolume = completedBookingsList.reduce((sum, b) => sum + (b.pricing?.totalPrice || 0), 0);
+    const totalVolume = completedBookingsList.reduce((sum, b) => sum + (b.pricing?.totalAmount || b.pricing?.totalPrice || 0), 0);
 
     // District breakdown of users
     const districtStats = await User.aggregate([
@@ -347,8 +347,9 @@ router.delete('/users/:id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'You cannot delete your own admin account' });
     }
 
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'User deleted successfully' });
+    user.isActive = false;
+    await user.save();
+    res.json({ success: true, message: 'User deactivated successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
