@@ -134,6 +134,7 @@ export default function DashboardPage() {
   };
 
   const handleCancelAndSearch = async (bookingId, isSpecialist = false) => {
+    if (!window.confirm(t('Cancel this pending request and search for alternatives?'))) return;
     try {
       await bookingAPI.updateStatus(bookingId, 'cancelled', {
         cancellationReason: 'Cancelled by seeker due to provider acceptance timeout'
@@ -1167,8 +1168,8 @@ export default function DashboardPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <label style={{ flex: 1 }}>Minimum rental days<input aria-label="Minimum rental days" className="form-input" type="number" min="1" required value={editFormData.minRentalDays} onChange={e => setEditFormData({...editFormData, minRentalDays: e.target.value})} /></label>
-                <label style={{ flex: 1 }}>Maximum rental days<input aria-label="Maximum rental days" className="form-input" type="number" min="1" required value={editFormData.maxRentalDays} onChange={e => setEditFormData({...editFormData, maxRentalDays: e.target.value})} /></label>
+                <label style={{ flex: 1, minWidth: 0 }}>Minimum rental days<input aria-label="Minimum rental days" style={{ width: '100%' }} className="form-input" type="number" min="1" required value={editFormData.minRentalDays} onChange={e => setEditFormData({...editFormData, minRentalDays: e.target.value})} /></label>
+                <label style={{ flex: 1, minWidth: 0 }}>Maximum rental days<input aria-label="Maximum rental days" style={{ width: '100%' }} className="form-input" type="number" min="1" required value={editFormData.maxRentalDays} onChange={e => setEditFormData({...editFormData, maxRentalDays: e.target.value})} /></label>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
                 <button 

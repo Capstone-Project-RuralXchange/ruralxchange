@@ -22,7 +22,7 @@ async function expirePending() {
   for (const item of stale) await transaction(async session => {
     const booking = await Booking.findOne({ _id: item._id, status: 'pending' }).session(session);
     if (!booking) return;
-    booking.status = 'cancelled'; booking.equipmentOwnerStatus = booking.equipment ? 'cancelled' : undefined; booking.specialistStatus = booking.specialist ? 'cancelled' : undefined; booking.cancellationReason = 'Request expired before provider acceptance';
+    booking.status = 'cancelled'; booking.equipmentOwnerStatus = booking.equipment ? 'cancelled' : undefined; booking.specialistStatus = booking.specialist ? 'cancelled' : undefined; booking.cancellationReason = 'Request expired before provider acceptance (auto-cancelled)';
     await booking.save({ session }); await release(booking, session);
   });
 }
