@@ -55,6 +55,7 @@ const specialistSchema = new mongoose.Schema({
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }  // [lng, lat]
   },
+  bio: { type: String, trim: true, maxlength: 500 },
   skills: [String],
   languages: {
     type: [String],

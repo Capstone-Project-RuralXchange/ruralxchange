@@ -364,6 +364,15 @@ router.put('/:id', protect, async (req, res) => {
 
     req.body = pick(req.body, [...equipmentFields, 'coordinates', 'latitude', 'longitude', 'location']);
     if (req.body.availabilityStatus && !['available', 'maintenance'].includes(req.body.availabilityStatus)) return res.status(400).json({ success: false, message: 'Invalid operational availability status' });
+    for (const key of ['minRentalDays', 'maxRentalDays']) {
+      if (req.body[key] === undefined) continue;
+      const raw = req.body[key];
+      const n = typeof raw === 'string' ? (raw.trim() === '' ? NaN : Number(raw)) : raw;
+      if (typeof n !== 'number' || !Number.isInteger(n) || n < 1) {
+        return res.status(400).json({ success: false, message: 'Rental days must be whole numbers of at least 1' });
+      }
+      req.body[key] = n;
+    }
     if ((req.body.minRentalDays ?? equipment.minRentalDays) > (req.body.maxRentalDays ?? equipment.maxRentalDays)) return res.status(400).json({ success: false, message: 'Maximum must be at least minimum rental days' });
     sanitizeEquipmentPayload(req.body);
 

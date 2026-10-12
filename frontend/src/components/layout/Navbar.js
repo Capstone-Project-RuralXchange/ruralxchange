@@ -64,9 +64,9 @@ const Navbar = () => {
     <nav style={navStyle}>
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
         {/* Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
+        <Link to="/" className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none', minWidth: 0 }}>
           <div style={{
-            width: 36, height: 36,
+            width: 36, height: 36, flexShrink: 0,
             background: 'linear-gradient(135deg, var(--terracotta), var(--harvest))',
             borderRadius: '10px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -78,7 +78,7 @@ const Navbar = () => {
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.15rem', color: 'var(--soil)', letterSpacing: '-0.5px' }}>
               RuralX<span style={{ color: 'var(--terracotta)' }}>change</span>
             </div>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '-2px' }}>{t("Rural Service Marketplace")}</div>
+            <div className="nav-tagline" style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '-2px' }}>{t("Rural Service Marketplace")}</div>
           </div>
         </Link>
 
@@ -101,7 +101,7 @@ const Navbar = () => {
         </div>
 
         {/* Auth section */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           
           {/* Language Switcher */}
           <div style={{ position: 'relative' }}>
@@ -114,7 +114,7 @@ const Navbar = () => {
                 cursor: 'pointer', color: 'var(--soil)', fontSize: '0.85rem', fontWeight: 600
               }}
             >
-              <FiGlobe /> {i18n.language.toUpperCase()}
+              <FiGlobe /> <span className="nav-lang-code">{i18n.language.toUpperCase()}</span>
             </button>
             {langDropdownOpen && (
               <div style={{
@@ -148,6 +148,7 @@ const Navbar = () => {
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="nav-user-btn"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   background: 'linear-gradient(135deg, #FFF5EC, #FFE8D0)',
@@ -167,7 +168,7 @@ const Navbar = () => {
                 }}>
                   {(user?.name || 'U').charAt(0).toUpperCase()}
                 </div>
-                <span style={{ fontWeight: 600, color: 'var(--soil)', fontSize: '0.875rem' }}>
+                <span className="nav-username" style={{ fontWeight: 600, color: 'var(--soil)', fontSize: '0.875rem' }}>
                   {(user?.name || 'User').split(' ')[0]}
                 </span>
               </button>
@@ -221,8 +222,8 @@ const Navbar = () => {
             </div>
           ) : (
             <>
-              <Link to="/login" className="btn btn-outline btn-sm">{t('Sign In')}</Link>
-              <Link to="/register" className="btn btn-primary btn-sm">{t('Join Free')}</Link>
+              <Link to="/login" className="btn btn-outline btn-sm nav-auth-btn">{t('Sign In')}</Link>
+              <Link to="/register" className="btn btn-primary btn-sm nav-auth-btn">{t('Join Free')}</Link>
             </>
           )}
 
@@ -259,6 +260,12 @@ const Navbar = () => {
               {item.label}
             </Link>
           ))}
+          {!user && (
+            <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '1rem' }}>
+              <Link to="/login" className="btn btn-outline" style={{ flex: 1, justifyContent: 'center' }}>{t('Sign In')}</Link>
+              <Link to="/register" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>{t('Join Free')}</Link>
+            </div>
+          )}
         </div>
       )}
 
@@ -266,6 +273,21 @@ const Navbar = () => {
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
           .hamburger { display: flex !important; }
+        }
+        .hamburger { flex-shrink: 0; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; padding: 0; cursor: pointer; }
+        @media (max-width: 560px) {
+          .nav-auth-btn { display: none !important; }
+          .nav-tagline { display: none; }
+          .nav-actions { gap: 0.5rem !important; }
+          .nav-username { display: none; }
+          .nav-brand { gap: 0.4rem !important; }
+        }
+        @media (max-width: 360px) {
+          .nav-brand > div:last-child > div:first-child { font-size: 0.9rem !important; white-space: nowrap; letter-spacing: -0.7px !important; }
+          .nav-user-btn { padding: 0.25rem !important; }
+          .nav-brand > div:first-child { width: 32px !important; height: 32px !important; }
+          .nav-lang-code { display: none; }
+          .nav-actions { gap: 0.35rem !important; }
         }
       `}</style>
     </nav>

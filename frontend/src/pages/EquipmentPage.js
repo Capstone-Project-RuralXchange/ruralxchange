@@ -2,6 +2,7 @@ import toast from 'react-hot-toast';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import LoadError from '../components/LoadError';
 import { equipmentAPI } from '../utils/api';
 import { EQUIPMENT_CATEGORIES, KARNATAKA_DISTRICTS, formatCurrency, getEquipmentCategory } from '../utils/constants';
 import { FiFilter, FiSearch, FiRefreshCw, FiNavigation, FiMapPin, FiCrosshair, FiCheckCircle } from 'react-icons/fi';
@@ -98,6 +99,7 @@ const EquipmentPage = () => {
   const { t } = useTranslation();
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -200,6 +202,7 @@ const EquipmentPage = () => {
 
   const fetchEquipment = useCallback(async () => {
     try {
+      setLoadError(null);
       if (page === 1) setLoading(true);
       const params = { ...filters, page, limit: 12 };
       // Pass coordinates for real road distance calculation & sorting
@@ -219,6 +222,8 @@ const EquipmentPage = () => {
       setHasMore(page < totalPages);
       setTotal(totalItems);
     } catch (err) {
+      setLoadError(err.response?.data?.message || t('Could not load equipment. Please retry.'));
+      if (page === 1) setEquipment([]);
       toast.error(err.response?.data?.message || t('Could not load equipment. Please retry.'));
       console.error(err);
     } finally {
@@ -377,6 +382,8 @@ const EquipmentPage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '1.5rem' }}>
             {[...Array(12)].map((_, i) => <div key={i} className="skeleton" style={{ height: 300, borderRadius: 'var(--radius-lg)' }} />)}
           </div>
+        ) : loadError && equipment.length === 0 ? (
+          <LoadError message={loadError} onRetry={fetchEquipment} />
         ) : equipment.length > 0 ? (
           <>
             <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
@@ -385,6 +392,7 @@ const EquipmentPage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '1.5rem' }}>
               {equipment.map(item => <EquipmentCard key={item._id} item={item} />)}
             </div>
+            {loadError && <div role="alert" style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--terracotta)' }}>{loadError} <button type="button" className="btn btn-outline btn-sm" onClick={fetchEquipment}>{t('Retry')}</button></div>}
             {hasMore && (
               <div style={{ textAlign: 'center', marginTop: '2rem' }}>
                 <button

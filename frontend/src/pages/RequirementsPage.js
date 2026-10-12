@@ -5,6 +5,7 @@ import { GiWheat } from 'react-icons/gi';
 import Select from 'react-select';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import LoadError from '../components/LoadError';
 import { requirementAPI } from '../utils/api';
 import { KARNATAKA_DISTRICTS, EQUIPMENT_CATEGORIES, formatDate, getEquipmentCategory } from '../utils/constants';
 import toast from 'react-hot-toast';
@@ -152,6 +153,7 @@ export default function RequirementsPage() {
   const { user } = useAuth();
   const [requirements, setRequirements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -234,6 +236,7 @@ export default function RequirementsPage() {
   }, [userLocation, locationStatus]);
 
   const load = async () => {
+    setLoadError(null);
     if (page === 1) setLoading(true);
     try {
       const params = { limit: 12, page };
@@ -254,6 +257,8 @@ export default function RequirementsPage() {
       setHasMore(page < totalPages);
     } catch (err) {
       console.error(err);
+      setLoadError(err.response?.data?.message || t('Please check your connection and try again.'));
+      if (page === 1) setRequirements([]);
     } finally {
       setLoading(false);
     }
@@ -469,6 +474,8 @@ export default function RequirementsPage() {
             Array(4).fill(0).map((_, i) => (
               <div key={i} className="card skeleton" style={{ height: 120, borderRadius: 12 }} />
             ))
+          ) : loadError && requirements.length === 0 ? (
+            <LoadError message={loadError} onRetry={load} />
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--clay)' }}>
               <GiWheat size={48} style={{ marginBottom: 12, opacity: 0.3 }} />

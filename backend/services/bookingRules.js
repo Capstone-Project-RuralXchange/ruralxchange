@@ -5,11 +5,31 @@ const compatibleTypes = {
   welding_machine: ['welder'], concrete_mixer: ['mason'], lighting: ['electrician'],
   rotavator: ['tractor_driver'], tiller: ['tractor_driver'], thresher: ['harvester_operator']
 };
+const ISO = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2}))?$/;
+const invalidDate = () => Object.assign(new Error('Please select valid dates (2020-2100)'), { statusCode: 400 });
 function businessDate(value) {
-  const date = new Date(value);
-  if (!value || !Number.isFinite(date.getTime()) || date.getUTCFullYear() < 2020 || date.getUTCFullYear() > 2100) {
-    throw Object.assign(new Error('Please select valid dates (2020-2100)'), { statusCode: 400 });
+  let date;
+  if (value instanceof Date) {
+    date = value;
+  } else if (typeof value === 'string') {
+    const m = ISO.exec(value.trim());
+    if (!m) throw invalidDate();
+    const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    const check = new Date(Date.UTC(y, mo - 1, d));
+    if (mo < 1 || mo > 12 || check.getUTCFullYear() !== y || check.getUTCMonth() !== mo - 1 || check.getUTCDate() !== d) throw invalidDate();
+    if (m[4] === undefined) {
+      // Date-only values are already India calendar days.
+      if (y < 2020 || y > 2100) throw invalidDate();
+      return check;
+    }
+    const [hh, mi, ss] = [Number(m[4]), Number(m[5]), Number(m[6] || 0)];
+    if (hh > 23 || mi > 59 || ss > 59) throw invalidDate();
+    if (m[7] !== 'Z') { const oh = Number(m[7].slice(1, 3)), om = Number(m[7].slice(4, 6)); if (oh > 23 || om > 59) throw invalidDate(); }
+    date = new Date(value.trim());
+  } else {
+    throw invalidDate();
   }
+  if (!Number.isFinite(date.getTime()) || date.getUTCFullYear() < 2020 || date.getUTCFullYear() > 2100) throw invalidDate();
   // The marketplace uses India calendar days, regardless of the browser timezone.
   return new Date(new Date(date.getTime() + 330 * 60000).toISOString().slice(0, 10) + 'T00:00:00Z');
 }

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Rating = require('../models/Rating');
 const Equipment = require('../models/Equipment');
@@ -9,17 +10,25 @@ const { protect } = require('../middleware/auth');
 // @POST /api/ratings
 router.post('/', protect, async (req, res) => {
   try {
-    const { bookingId, ratingType, targetId, score, review, comment } = req.body;
+    const { bookingId, targetId, score, review, comment } = req.body;
+    const ratingType = typeof req.body.ratingType === 'string' ? req.body.ratingType.trim().toLowerCase() : req.body.ratingType;
 
-    if (!bookingId || !ratingType || !targetId || !score) {
+    if (!bookingId || !ratingType || !targetId || score === undefined || score === null || score === '') {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+    if (!['equipment', 'specialist'].includes(ratingType) || !mongoose.isValidObjectId(bookingId) || !mongoose.isValidObjectId(targetId)) {
+      return res.status(400).json({ success: false, message: 'Please check required fields and valid values' });
+    }
+    const numericScore = Number(score);
+    if (!Number.isInteger(numericScore) || numericScore < 1 || numericScore > 5) {
+      return res.status(400).json({ success: false, message: 'Score must be a whole number from 1 to 5' });
     }
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
-    
+
     if (booking.seeker.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Not authorized to rate this booking' });
     }
@@ -28,63 +37,47 @@ router.post('/', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Can only rate completed bookings' });
     }
 
-    // Check for duplicate rating
-    const existing = await Rating.findOne({ booking: bookingId, ratedBy: req.user.id, ratingType });
-    if (existing) {
-      return res.status(409).json({ success: false, message: 'You have already submitted a rating for this booking' });
+    // The target must be the exact resource this booking was for.
+    const bookedTarget = ratingType === 'equipment' ? booking.equipment : booking.specialist;
+    if (!bookedTarget || bookedTarget.toString() !== String(targetId)) {
+      return res.status(403).json({ success: false, message: 'This booking does not include the item you are trying to rate' });
     }
 
-    const rating = await Rating.create({
-      booking: bookingId,
-      ratedBy: req.user.id,
-      ratingType,
-      targetEquipment: ratingType === 'equipment' ? targetId : undefined,
-      equipment: ratingType === 'equipment' ? targetId : undefined,
-      targetSpecialist: ratingType === 'specialist' ? targetId : undefined,
-      specialist: ratingType === 'specialist' ? targetId : undefined,
-      score: Number(score),
-      review: review || comment,
-      comment: comment || review
-    });
-
-    // Update rating flags on Booking document if bookingId provided
-    if (bookingId) {
-      if (ratingType === 'equipment') {
-        await Booking.findByIdAndUpdate(bookingId, {
-          'ratings.equipmentRating.submitted': true,
-          'ratings.equipmentRating.ratingId': rating._id
-        });
-      } else if (ratingType === 'specialist') {
-        await Booking.findByIdAndUpdate(bookingId, {
-          'ratings.specialistRating.submitted': true,
-          'ratings.specialistRating.ratingId': rating._id
-        });
+    // Uniqueness is enforced by a unique index; a concurrent duplicate fails with 11000.
+    let rating;
+    try {
+      rating = await Rating.create({
+        booking: bookingId,
+        ratedBy: req.user.id,
+        ratingType,
+        targetEquipment: ratingType === 'equipment' ? targetId : undefined,
+        equipment: ratingType === 'equipment' ? targetId : undefined,
+        targetSpecialist: ratingType === 'specialist' ? targetId : undefined,
+        specialist: ratingType === 'specialist' ? targetId : undefined,
+        score: numericScore,
+        review: review || comment,
+        comment: comment || review
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(409).json({ success: false, message: 'You have already submitted a rating for this booking' });
       }
+      throw err;
     }
 
-    if (ratingType === 'equipment') {
-      const eq = await Equipment.findById(targetId).select('rating');
-      if (eq) {
-        const count = (eq.rating.count || 0) + 1;
-        const currentAvg = eq.rating.average || 0;
-        const newAvg = currentAvg + (Number(score) - currentAvg) / count;
-        await Equipment.findByIdAndUpdate(targetId, {
-          'rating.average': Number(newAvg.toFixed(1)),
-          'rating.count': count
-        });
-      }
-    } else if (ratingType === 'specialist') {
-      const sp = await Specialist.findById(targetId).select('rating');
-      if (sp) {
-        const count = (sp.rating.count || 0) + 1;
-        const currentAvg = sp.rating.average || 0;
-        const newAvg = currentAvg + (Number(score) - currentAvg) / count;
-        await Specialist.findByIdAndUpdate(targetId, {
-          'rating.average': Number(newAvg.toFixed(1)),
-          'rating.count': count
-        });
-      }
-    }
+    const flag = ratingType === 'equipment' ? 'ratings.equipmentRating' : 'ratings.specialistRating';
+    await Booking.findByIdAndUpdate(bookingId, { [`${flag}.submitted`]: true, [`${flag}.ratingId`]: rating._id });
+
+    // Atomic running-average update (single pipeline update, no read-modify-write race).
+    const Target = ratingType === 'equipment' ? Equipment : Specialist;
+    await Target.updateOne({ _id: targetId }, [
+      { $set: { _newCount: { $add: [{ $ifNull: ['$rating.count', 0] }, 1] } } },
+      { $set: {
+        'rating.average': { $round: [{ $add: [{ $ifNull: ['$rating.average', 0] }, { $divide: [{ $subtract: [numericScore, { $ifNull: ['$rating.average', 0] }] }, '$_newCount'] }] }, 1] },
+        'rating.count': '$_newCount'
+      } },
+      { $unset: '_newCount' }
+    ]);
 
     res.status(201).json({ success: true, data: rating });
   } catch (err) {

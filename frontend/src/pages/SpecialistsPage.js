@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { specialistAPI } from '../utils/api';
 import { SPECIALIST_TYPES, KARNATAKA_DISTRICTS, formatCurrency } from '../utils/constants';
 import { useTranslation } from 'react-i18next';
+import LoadError from '../components/LoadError';
 import { FiCheckCircle, FiRefreshCw, FiNavigation, FiCrosshair } from 'react-icons/fi';
 
 const SpecialistCard = ({ item }) => {
@@ -82,6 +83,7 @@ export default function SpecialistsPage() {
   
   const [specialists, setSpecialists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -165,6 +167,7 @@ export default function SpecialistsPage() {
   }, [userLocation, locationStatus]);
 
   const fetchSpecialists = useCallback(async () => {
+    setLoadError(null);
     if (page === 1) setLoading(true);
     try {
       const params = { limit: 12, page, ...filters };
@@ -188,6 +191,8 @@ export default function SpecialistsPage() {
       setTotal(totalItems);
     } catch (err) {
       console.error(err);
+      setLoadError(err.response?.data?.message || t('Please check your connection and try again.'));
+      if (page === 1) setSpecialists([]);
     } finally {
       setLoading(false);
     }
@@ -299,7 +304,6 @@ export default function SpecialistsPage() {
             value={filters.status} onChange={e => handleFilter('status', e.target.value)}>
             <option value="">{t("Any Status")}</option>
             <option value="available">{t("available")}</option>
-            <option value="booked">{t("booked")}</option>
           </select>
 
           {(filters.specialization || filters.district || filters.tier) && (
@@ -335,6 +339,8 @@ export default function SpecialistsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
             {[...Array(9)].map((_, i) => <div key={i} className="skeleton" style={{ height: 220 }} />)}
           </div>
+        ) : loadError && specialists.length === 0 ? (
+          <LoadError message={loadError} onRetry={fetchSpecialists} />
         ) : specialists.length > 0 ? (
           <>
             <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -348,6 +354,7 @@ export default function SpecialistsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
               {specialists.map(item => <SpecialistCard key={item._id} item={item} />)}
             </div>
+            {loadError && <div role="alert" style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--terracotta)' }}>{loadError} <button type="button" className="btn btn-outline btn-sm" onClick={fetchSpecialists}>{t('Retry')}</button></div>}
             {hasMore && (
               <div style={{ textAlign: 'center', marginTop: '2rem' }}>
                 <button

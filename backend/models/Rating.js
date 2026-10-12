@@ -67,6 +67,8 @@ const ratingSchema = new mongoose.Schema({
   isAnonymous: { type: Boolean, default: false }
 }, { timestamps: true });
 
+ratingSchema.index({ booking: 1, ratedBy: 1, ratingType: 1 }, { unique: true });
+
 // Pre-validate hook to synchronize alias fields
 ratingSchema.pre('validate', function(next) {
   if (this.ratingType && typeof this.ratingType === 'string') {

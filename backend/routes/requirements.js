@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
 
       if (!isNaN(seekerLat) && !isNaN(seekerLng)) {
         const matchStage = { status };
+        if (status === 'open') matchStage.$or = [{ expiresAt: { $exists: false } }, { expiresAt: null }, { expiresAt: { $gt: new Date() } }];
         if (district) matchStage.district = district;
         if (type) matchStage.requirementType = type;
 
@@ -60,6 +61,7 @@ router.get('/', async (req, res) => {
 
     // Standard query
     const query = { status };
+    if (status === 'open') query.$or = [{ expiresAt: { $exists: false } }, { expiresAt: null }, { expiresAt: { $gt: new Date() } }];
     if (district) query.district = district;
     if (type) query.requirementType = type;
 
@@ -121,13 +123,30 @@ router.post('/', protect, async (req, res) => {
 router.post('/:id/respond', protect, async (req, res) => {
   try {
     const { message, offeredPrice } = req.body;
-    const requirement = await Requirement.findByIdAndUpdate(
-      req.params.id,
-      { $push: { responses: { respondent: req.user.id, message, offeredPrice: offeredPrice ? Number(offeredPrice) : undefined } } },
+    let price;
+    if (offeredPrice !== undefined && offeredPrice !== null && offeredPrice !== '') {
+      price = Number(offeredPrice);
+      if (typeof offeredPrice === 'boolean' || !Number.isFinite(price) || price < 0) {
+        return res.status(400).json({ success: false, message: 'Offered price must be zero or a positive number' });
+      }
+    }
+    if (message !== undefined && typeof message !== 'string') {
+      return res.status(400).json({ success: false, message: 'Please check required fields and valid values' });
+    }
+    // Atomic guard: only an open, unexpired post by someone else accepts a response.
+    const requirement = await Requirement.findOneAndUpdate(
+      { _id: req.params.id, status: 'open', postedBy: { $ne: req.user.id }, $or: [{ expiresAt: { $exists: false } }, { expiresAt: null }, { expiresAt: { $gt: new Date() } }] },
+      { $push: { responses: { respondent: req.user.id, message, offeredPrice: price } } },
       { new: true }
     )
       .populate('postedBy', 'name district')
       .populate({ path: 'responses.respondent', select: 'name district rating avatar' });
+    if (!requirement) {
+      const existing = await Requirement.findById(req.params.id).select('postedBy status expiresAt');
+      if (!existing) return res.status(404).json({ success: false, message: 'Requirement not found' });
+      if (existing.postedBy.toString() === req.user.id) return res.status(403).json({ success: false, message: 'You cannot respond to your own post' });
+      return res.status(409).json({ success: false, message: 'This notice is no longer open for responses' });
+    }
     res.json({ success: true, data: requirement });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
