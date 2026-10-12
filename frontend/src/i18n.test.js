@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import HomePage from './pages/HomePage';
 import { BrowserRouter } from 'react-router-dom';
+import { authAPI, equipmentAPI, specialistAPI, seasonalAPI } from './utils/api';
 import { AuthProvider } from './context/AuthContext';
 import { EQUIPMENT_CATEGORIES, SPECIALIST_TYPES, KARNATAKA_DISTRICTS } from './utils/constants';
 
@@ -13,6 +14,7 @@ jest.mock('./components/layout/Navbar', () => () => <div data-testid="navbar" />
 jest.mock('./components/layout/Footer', () => () => <div data-testid="footer" />);
 
 jest.mock('./utils/api', () => ({
+  authAPI: { getMe: jest.fn(() => Promise.reject(new Error('Signed out'))) },
   equipmentAPI: { getAll: jest.fn(() => Promise.resolve({ data: { data: [] } })) },
   specialistAPI: { getAll: jest.fn(() => Promise.resolve({ data: { data: [] } })) },
   seasonalAPI: { getCurrent: jest.fn(() => Promise.resolve({ data: { data: {} } })) },
@@ -20,6 +22,11 @@ jest.mock('./utils/api', () => ({
 
 describe('i18n Translations & Completeness', () => {
   beforeEach(() => {
+    authAPI.getMe.mockRejectedValue(new Error('Signed out'));
+    equipmentAPI.getAll.mockResolvedValue({ data: { data: [] } });
+    specialistAPI.getAll.mockResolvedValue({ data: { data: [] } });
+    seasonalAPI.getCurrent.mockResolvedValue({ data: { data: {} } });
+    // Reset language to English before each test
     act(() => {
       i18n.changeLanguage('en');
     });

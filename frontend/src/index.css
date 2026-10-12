@@ -414,3 +414,12 @@ input, select, textarea { font-family: var(--font-body); }
   border-color: var(--clay) !important;
 }
 
+.booking-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1.5rem; align-items: start; }
+@media (max-width: 760px) { .booking-layout { grid-template-columns: minmax(0, 1fr); } .booking-layout > div { min-width: 0; position: static !important; } }
+
+.booking-date-grid { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:1rem; }
+.booking-date-grid > div { min-width:0; }
+.booking-date-grid .react-datepicker-wrapper, .booking-date-grid .react-datepicker__input-container, .booking-date-grid input { width:100%; min-width:0; }
+.equipment-edit-dialog label { display:block; margin-bottom:12px; font-size:14px; font-weight:600; }
+.equipment-edit-dialog .form-input { display:block; width:100%; margin-top:6px; }
+@media(max-width:460px) { .booking-date-grid { grid-template-columns:minmax(0,1fr); } }

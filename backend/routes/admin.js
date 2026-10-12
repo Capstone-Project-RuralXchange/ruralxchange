@@ -46,7 +46,7 @@ router.get('/stats', async (req, res) => {
 
     // Calculate total platform booking revenue/volume
     const completedBookingsList = await Booking.find({ status: 'completed' }).select('pricing');
-    const totalVolume = completedBookingsList.reduce((sum, b) => sum + (b.pricing?.totalAmount || b.pricing?.totalPrice || 0), 0);
+    const totalVolume = completedBookingsList.reduce((sum, b) => sum + (b.pricing?.totalAmount || 0), 0);
 
     // District breakdown of users
     const districtStats = await User.aggregate([
@@ -83,7 +83,7 @@ router.get('/stats', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -150,7 +150,7 @@ router.get('/users', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -182,7 +182,7 @@ router.get('/users/:id', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -225,7 +225,7 @@ router.post('/users', async (req, res) => {
     const sanitized = await User.findById(user._id).select('-password');
     res.status(201).json({ success: true, data: sanitized, message: 'User created successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -280,7 +280,7 @@ router.put('/users/:id', async (req, res) => {
     const updated = await User.findById(user._id).select('-password');
     res.json({ success: true, data: updated, message: 'User updated successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -304,7 +304,7 @@ router.patch('/users/:id/status', async (req, res) => {
     const updated = await User.findById(user._id).select('-password');
     res.json({ success: true, data: updated, message: 'Status updated successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -331,7 +331,7 @@ router.patch('/users/:id/role', async (req, res) => {
     const updated = await User.findById(user._id).select('-password');
     res.json({ success: true, data: updated, message: `Role changed to ${role}` });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -351,7 +351,7 @@ router.delete('/users/:id', async (req, res) => {
     await user.save();
     res.json({ success: true, message: 'User deactivated successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 

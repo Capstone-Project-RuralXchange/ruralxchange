@@ -74,7 +74,7 @@ router.get('/', async (req, res) => {
     ]);
     res.json({ success: true, total, pages: Math.ceil(total / limit), data: requirements });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -113,7 +113,7 @@ router.post('/', protect, async (req, res) => {
     const requirement = await Requirement.create(req.body);
     res.status(201).json({ success: true, data: requirement });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
@@ -130,7 +130,7 @@ router.post('/:id/respond', protect, async (req, res) => {
       .populate({ path: 'responses.respondent', select: 'name district rating avatar' });
     res.json({ success: true, data: requirement });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
@@ -145,7 +145,7 @@ router.delete('/:id', protect, async (req, res) => {
     await Requirement.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Requirement deleted successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 

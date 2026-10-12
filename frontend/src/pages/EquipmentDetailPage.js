@@ -179,7 +179,7 @@ const EquipmentDetailPage = () => {
               <span className={`badge badge-${equipment.availabilityStatus}`} style={{
                 position: 'absolute', top: '1rem', right: '1rem', fontSize: '0.85rem',
               }}>
-                {equipment.availabilityStatus === 'available' ? `✓ ${t("Available")}` : t(equipment.availabilityStatus)}
+                {equipment.availabilityStatus !== 'maintenance' ? `✓ ${t("Available")}` : t(equipment.availabilityStatus)}
               </span>
             </div>
 
@@ -405,7 +405,7 @@ const EquipmentDetailPage = () => {
                 {formatCurrency(equipment.pricePerDay)}/{t("day")} + {t("platform fee")}
               </div>
 
-              {equipment.availabilityStatus === 'available' ? (
+              {equipment.availabilityStatus !== 'maintenance' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {user ? (
                     <>

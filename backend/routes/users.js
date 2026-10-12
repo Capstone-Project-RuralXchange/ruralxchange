@@ -15,7 +15,7 @@ router.get('/dashboard', protect, async (req, res) => {
     const [seekerBookings, providerBookings, equipment, specialistProfile] = await Promise.all([
       Booking.find({ seeker: userId }).sort({ createdAt: -1 }).limit(5)
         .populate('equipment', 'title category'),
-      Booking.find({ equipmentOwner: userId }).sort({ createdAt: -1 }).limit(5)
+      Booking.find({ $or: [{ equipmentOwner: userId }, { specialistOwner: userId }] }).sort({ createdAt: -1 }).limit(5)
         .populate('seeker', 'name phone'),
       Equipment.find({ owner: userId, isActive: true }),
       Specialist.findOne({ user: userId })
@@ -34,14 +34,15 @@ router.get('/dashboard', protect, async (req, res) => {
       specialistEarnings = specialistBookings.reduce((sum, b) => sum + (b.pricing?.specialistCost || 0), 0);
     }
 
+    const bookingQuery = ['provider', 'specialist'].includes(req.user.role) ? { $or: [{ equipmentOwner: userId }, { specialistOwner: userId }] } : { seeker: userId };
     res.json({
       success: true,
       data: {
         user,
         stats: {
-          totalBookingsMade: await Booking.countDocuments({ seeker: userId }),
-          pendingBookings: await Booking.countDocuments({ seeker: userId, status: 'pending' }),
-          completedBookings: await Booking.countDocuments({ seeker: userId, status: 'completed' }),
+          totalBookingsMade: await Booking.countDocuments(bookingQuery),
+          pendingBookings: await Booking.countDocuments({ ...bookingQuery, status: 'pending' }),
+          completedBookings: await Booking.countDocuments({ ...bookingQuery, status: 'completed' }),
           totalEquipmentListings: equipment.length,
           totalEarnings: equipmentEarnings + specialistEarnings
         },
@@ -52,7 +53,7 @@ router.get('/dashboard', protect, async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -63,7 +64,7 @@ router.get('/:id', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     res.json({ success: true, data: user });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 

@@ -10,20 +10,24 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const app = express();
 
+// Render has one trusted reverse-proxy hop. Never trust arbitrary forwarded hops.
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: true,
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP'
-});
-app.use('/api/', limiter);
+// Isolate client IPs and keep health probes outside the application budget.
+app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'RuralXchange API Running' }));
+const rateMessage = (req, res) => res.status(429).json({ success: false,
+  message: 'Too many requests. Please try again after the Retry-After interval.' });
+app.use('/api/', rateLimit({ windowMs: 15 * 60 * 1000, limit: 300,
+  standardHeaders: 'draft-7', legacyHeaders: false, handler: rateMessage }));
+app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, limit: 30,
+  skip: req => req.method === 'GET', standardHeaders: 'draft-7', legacyHeaders: false, handler: rateMessage }));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -45,28 +49,12 @@ app.use('/api/ratings', require('./routes/ratings'));
 app.use('/api/seasonal', require('./routes/seasonal'));
 app.use('/api/admin', require('./routes/admin'));
 
-// Global Daemon: Auto-expire pending bookings to free resource locks
-setInterval(async () => {
-  try {
-    if (typeof bookingsRoute.checkAndExpirePendingBookings === 'function') {
-      await bookingsRoute.checkAndExpirePendingBookings();
-    }
-  } catch (err) {
-    console.error('Daemon Error:', err.message);
-  }
-}, 5 * 60 * 1000);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'RuralXchange API Running', timestamp: new Date() });
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(err.statusCode || 500).json({
+  res.status(err.statusCode || (['ValidationError', 'CastError'].includes(err.name) ? 400 : 500)).json({
     success: false,
-    message: err.message || 'Server Error',
+    message: err.statusCode ? err.message : (err.name === 'ValidationError' ? 'Please check the required fields and valid values' : err.name === 'CastError' ? 'Invalid identifier or value' : 'Server error. Please try again.'),
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
@@ -78,9 +66,12 @@ app.use('*', (req, res) => {
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5001;
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ruralxchange')
+if (require.main === module) mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ruralxchange')
   .then(() => {
     console.log('✅ MongoDB Connected');
+    const { expirePending } = require('./services/bookings');
+    expirePending().catch(err => console.error('Booking expiry failed:', err.message));
+    setInterval(() => expirePending().catch(err => console.error('Booking expiry failed:', err.message)), 60000).unref();
     app.listen(PORT, () => {
       console.log(`🚀 RuralXchange Server running on port ${PORT}`);
       console.log(`📌 Environment: ${process.env.NODE_ENV}`);

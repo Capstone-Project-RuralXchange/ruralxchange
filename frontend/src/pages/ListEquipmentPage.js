@@ -80,7 +80,7 @@ export default function ListEquipmentPage() {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.pricePerDay) return toast.error(t('Please fill required fields'));
+    if (!form.title || form.pricePerDay === '' || Number(form.pricePerDay) < 0) return toast.error(t('Please fill required fields'));
     setSubmitting(true);
     try {
       const payload = {
@@ -94,8 +94,8 @@ export default function ListEquipmentPage() {
         yearOfManufacture: form.yearOfManufacture ? Number(form.yearOfManufacture) : undefined,
         pricePerDay: Number(form.pricePerDay),
         pricePerHour: form.pricePerHour ? Number(form.pricePerHour) : undefined,
-        minimumRentalDays: form.minimumRentalDays ? Number(form.minimumRentalDays) : undefined,
-        maximumRentalDays: form.maximumRentalDays ? Number(form.maximumRentalDays) : undefined,
+        minRentalDays: form.minimumRentalDays ? Number(form.minimumRentalDays) : undefined,
+        maxRentalDays: form.maximumRentalDays ? Number(form.maximumRentalDays) : undefined,
         specifications: {
           brand: form.brand || undefined,
           model: form.model || undefined,

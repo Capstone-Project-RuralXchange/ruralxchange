@@ -106,15 +106,19 @@ export default function DashboardPage() {
   }, [user]);
 
   const handleStatusUpdate = async (bookingId, status) => {
+    let cancellationReason;
+    if (status === 'cancelled') {
+      if (!window.confirm('Cancel this booking request? If a provider has accepted, cancelling releases their reserved dates. Please contact them about any arrangements already made.')) return;
+      cancellationReason = window.prompt('Cancellation reason (optional)', '') || undefined;
+    }
     try {
-      const res = await bookingAPI.updateStatus(bookingId, status);
-      const updated = res?.data?.data;
-      const updateList = (list) => list.map(b => b._id === bookingId ? (updated || { ...b, status }) : b);
+      const response = await bookingAPI.updateStatus(bookingId, status, cancellationReason);
+      // Update both lists
+      const updateList = (list) => list.map(b => b._id === bookingId ? { ...b, ...response.data.data } : b);
       setBookings(updateList);
       setIncomingBookings(updateList);
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Failed to update booking status';
-      toast.error(msg);
+      toast.error(err.response?.data?.message || 'Could not update booking');
       console.error(err);
     }
   };
@@ -204,8 +208,9 @@ export default function DashboardPage() {
     setEditModalEquipment(equipment);
     setEditFormData({
       title: equipment.title || '',
-      pricePerDay: equipment.pricePerDay || '',
-      pricePerHour: equipment.pricePerHour || '',
+      pricePerDay: equipment.pricePerDay ?? '',
+      pricePerHour: equipment.pricePerHour ?? '',
+      minRentalDays: equipment.minRentalDays ?? 1, maxRentalDays: equipment.maxRentalDays ?? 365,
       district: equipment.district || '',
       description: equipment.description || ''
     });
@@ -213,10 +218,11 @@ export default function DashboardPage() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (!editModalEquipment) return;
+    if (!editModalEquipment || submittingEdit) return;
     try {
       setSubmittingEdit(true);
-      const res = await equipmentAPI.update(editModalEquipment._id, editFormData);
+      if (Number(editFormData.minRentalDays) > Number(editFormData.maxRentalDays)) return toast.error(t('Maximum must be at least minimum rental days'));
+      const res = await equipmentAPI.update(editModalEquipment._id, { ...editFormData, pricePerDay: Number(editFormData.pricePerDay), pricePerHour: editFormData.pricePerHour === '' ? undefined : Number(editFormData.pricePerHour), minRentalDays: Number(editFormData.minRentalDays), maxRentalDays: Number(editFormData.maxRentalDays) });
       toast.success(t('Equipment updated successfully!'));
       setMyEquipment(prev => prev.map(item => item._id === editModalEquipment._id ? res.data.data : item));
       setEditModalEquipment(null);
@@ -420,9 +426,9 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <StatCard icon={FiCalendar} label={t("Total Bookings")} value={stats?.stats?.totalBookingsMade || 0} sub={t("All time")} color="var(--terracotta)" />
-          <StatCard icon={FiCheckCircle} label={t("Completed")} value={stats?.stats?.completedBookings || 0} sub={t("Successfully done")} color="var(--leaf)" />
-          <StatCard icon={FiDollarSign} label={t("Total Earnings")} value={formatCurrency(stats?.stats?.totalEarnings || 0)} sub={t("Net amount")} color="#7c3aed" />
+          <StatCard icon={FiCalendar} label={t("Total Bookings")} value={isProviderOrSpecialist ? incomingBookings.length : bookings.length} sub={t("All time")} color="var(--terracotta)" />
+          <StatCard icon={FiCheckCircle} label={t("Completed")} value={(isProviderOrSpecialist ? incomingBookings : bookings).filter(b => b.status === 'completed').length} sub={t("Successfully done")} color="var(--leaf)" />
+          {isProviderOrSpecialist && <StatCard icon={FiDollarSign} label={t("Total Earnings")} value={formatCurrency(stats?.stats?.totalEarnings || 0)} sub={t("Completed work")} color="#7c3aed" />}
           {isProviderOrSpecialist && (
             <StatCard icon={FiInbox} label={t("Pending Requests")} value={pendingIncoming} sub={t("Awaiting your response")} color="#E8A020" />
           )}
@@ -1120,7 +1126,7 @@ export default function DashboardPage() {
                   value={editFormData.title}
                   onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
                   required
-                  className="form-control"
+                  className="form-input"
                   style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
                 />
               </div>
@@ -1133,7 +1139,7 @@ export default function DashboardPage() {
                     value={editFormData.pricePerDay}
                     onChange={(e) => setEditFormData({...editFormData, pricePerDay: e.target.value})}
                     required
-                    className="form-control"
+                    className="form-input"
                     style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
                   />
                 </div>
@@ -1143,7 +1149,7 @@ export default function DashboardPage() {
                     type="number"
                     value={editFormData.pricePerHour}
                     onChange={(e) => setEditFormData({...editFormData, pricePerHour: e.target.value})}
-                    className="form-control"
+                    className="form-input"
                     style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
                   />
                 </div>
@@ -1155,11 +1161,15 @@ export default function DashboardPage() {
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
                   rows={3}
-                  className="form-control"
+                  className="form-input"
                   style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--sand)' }}
                 />
               </div>
 
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <label style={{ flex: 1 }}>Minimum rental days<input aria-label="Minimum rental days" className="form-input" type="number" min="1" required value={editFormData.minRentalDays} onChange={e => setEditFormData({...editFormData, minRentalDays: e.target.value})} /></label>
+                <label style={{ flex: 1 }}>Maximum rental days<input aria-label="Maximum rental days" className="form-input" type="number" min="1" required value={editFormData.maxRentalDays} onChange={e => setEditFormData({...editFormData, maxRentalDays: e.target.value})} /></label>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
                 <button 
                   type="button"

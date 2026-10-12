@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiCalendar, FiInfo, FiCheckCircle, FiUser, FiPackage, FiClock } from 'react-icons/fi';
@@ -7,6 +7,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useAuth } from '../context/AuthContext';
 import { equipmentAPI, specialistAPI, bookingAPI } from '../utils/api';
+import { format } from 'date-fns';
 import { formatCurrency, getDurationDays, SPECIALIST_TYPES } from '../utils/constants';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -18,14 +19,7 @@ export default function BookingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-    }
-  }, [user, navigate]);
-
-  if (!user) return null;
-
+  const submitLock = useRef(false);
   const [equipment, setEquipment] = useState(null);
   const [specialist, setSpecialist] = useState(null);
   const [availableSpecialists, setAvailableSpecialists] = useState([]);
@@ -54,8 +48,10 @@ export default function BookingPage() {
           const res = await equipmentAPI.getById(id);
           setEquipment(res.data.data);
           if (isBundle) {
-            const spRes = await specialistAPI.getAll({ limit: 20 });
-            setAvailableSpecialists(spRes.data.data || []);
+            const spRes = await specialistAPI.getAll({ limit: 100 });
+            const defaults = { tractor: ['tractor_driver'], harvester: ['harvester_operator'], water_pump: ['pump_mechanic'], generator: ['electrician', 'electrical_engineer'], welding_machine: ['welder'], concrete_mixer: ['mason'], lighting: ['electrician'], rotavator: ['tractor_driver'], tiller: ['tractor_driver'], thresher: ['harvester_operator'] };
+            const allowed = res.data.data.compatibleSpecialistTypes?.length ? res.data.data.compatibleSpecialistTypes : (defaults[res.data.data.category] || []);
+            setAvailableSpecialists((spRes.data.data || []).filter(sp => allowed.includes(sp.specialization) && sp.availabilityStatus !== 'unavailable'));
           }
         }
       } catch (err) {
@@ -69,8 +65,8 @@ export default function BookingPage() {
 
   const equipmentCost = equipment && days > 0 ? equipment.pricePerDay * days : 0;
   const specialistCost = (isBundle && selectedSpecialist && availableSpecialists.find(s => s._id === selectedSpecialist))
-    ? (availableSpecialists.find(s => s._id === selectedSpecialist)?.pricePerDay || 800) * days
-    : isSpecialistOnly && specialist && days > 0 ? (specialist.pricePerDay || 800) * days : 0;
+    ? (availableSpecialists.find(s => s._id === selectedSpecialist)?.pricePerDay ?? 0) * days
+    : isSpecialistOnly && specialist && days > 0 ? (specialist.pricePerDay ?? 0) * days : 0;
   const totalBeforeFee = equipmentCost + specialistCost;
   const platformFee = Math.round(totalBeforeFee * 0.05);
   const totalCost = totalBeforeFee + platformFee;
@@ -83,18 +79,22 @@ export default function BookingPage() {
   };
 
   const handleSubmit = async () => {
+    if (submitLock.current) return;
     if (!startDate || !endDate) return toast.error(t('Please select booking dates'));
     if (days < 1) return toast.error(t('End date must be after start date'));
+    if (isBundle && !availableSpecialists.some(sp => sp._id === selectedSpecialist)) return toast.error(t('Select a compatible specialist'));
     if (isBundle && !selectedSpecialist) return toast.error(t('Please select a specialist for bundle booking'));
 
     const winHours = calculateAcceptanceHours(windowValue, windowUnit);
+    if (winHours < 1 || winHours > 168) return toast.error(t('Response window must be 1-168 hours'));
 
+    submitLock.current = true;
     setSubmitting(true);
     try {
       const payload = {
         bookingType: isBundle ? 'bundle' : isSpecialistOnly ? 'specialist_only' : 'equipment_only',
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate: format(startDate, 'yyyy-MM-dd') + 'T00:00:00+05:30',
+        endDate: format(endDate, 'yyyy-MM-dd') + 'T00:00:00+05:30',
         specialRequirements: notes,
         purpose: notes || 'General agricultural work',
         acceptanceWindowHours: winHours,
@@ -108,11 +108,12 @@ export default function BookingPage() {
         ...(isBundle && selectedSpecialist ? { specialistId: selectedSpecialist } : {}),
       };
       await bookingAPI.create(payload);
-      toast.success(t('Booking confirmed! 🎉'));
+      toast.success(t('Request sent. Waiting for the provider to accept.'), { id: 'booking-request' });
       navigate('/dashboard');
     } catch (err) {
       toast.error(err.response?.data?.message || t('Booking failed'));
     } finally {
+      submitLock.current = false;
       setSubmitting(false);
     }
   };
@@ -141,7 +142,7 @@ export default function BookingPage() {
             {isBundle && <p style={{ color: 'var(--clay)', marginTop: 4 }}>{t("Equipment + Specialist in one seamless transaction")}</p>}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '1.5rem', alignItems: 'start' }}>
+          <div className="booking-layout">
             {/* Left: Form */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               
@@ -161,7 +162,7 @@ export default function BookingPage() {
                   </div>
                   <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
                     <p style={{ fontWeight: 800, color: 'var(--terracotta)', fontSize: '1.1rem' }}>
-                      {formatCurrency(isSpecialistOnly ? specialist.pricePerDay || 800 : equipment.pricePerDay)}/{t("day")}
+                      {formatCurrency(isSpecialistOnly ? specialist.pricePerDay ?? 0 : equipment.pricePerDay)}/{t("day")}
                     </p>
                   </div>
                 </div>
@@ -172,13 +173,13 @@ export default function BookingPage() {
                 <h3 style={{ fontWeight: 700, color: 'var(--soil)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <FiCalendar color="var(--terracotta)" /> {t("Select Dates")}
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="booking-date-grid">
                   <div>
                     <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Start Date")}</label>
                     <DatePicker
                       selected={startDate}
                       onChange={(date) => { setStartDate(date); setEndDate(null); }}
-                      minDate={new Date()}
+                      minDate={new Date()} maxDate={new Date(2100, 11, 31)} onChangeRaw={e => e.preventDefault()} excludeDateIntervals={(subject.bookedDates || []).map(d => ({ start: new Date(d.start), end: new Date(d.end) }))}
                       placeholderText={t("Pick start date")}
                       dateFormat="dd MMM yyyy"
                       className="form-input"
@@ -192,7 +193,7 @@ export default function BookingPage() {
                     <DatePicker
                       selected={endDate}
                       onChange={setEndDate}
-                      minDate={startDate || new Date()}
+                      minDate={startDate || new Date()} maxDate={new Date(2100, 11, 31)} onChangeRaw={e => e.preventDefault()} excludeDateIntervals={(subject.bookedDates || []).map(d => ({ start: new Date(d.start), end: new Date(d.end) }))}
                       placeholderText={t("Pick end date")}
                       dateFormat="dd MMM yyyy"
                       className="form-input"
@@ -222,7 +223,7 @@ export default function BookingPage() {
                   <input
                     type="number"
                     min="1"
-                    max={windowUnit === 'weeks' ? 4 : windowUnit === 'days' ? 30 : 168}
+                    max={windowUnit === 'weeks' ? 1 : windowUnit === 'days' ? 7 : 168}
                     value={windowValue}
                     onChange={e => {
                       const v = e.target.value;
@@ -268,7 +269,7 @@ export default function BookingPage() {
                   </h3>
                   <p style={{ fontSize: '0.85rem', color: 'var(--clay)', marginBottom: '1rem' }}>{t("Choose someone to operate this equipment")}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {availableSpecialists.slice(0, 6).map(sp => (
+                    {availableSpecialists.map(sp => (
                       <div key={sp._id} onClick={() => setSelectedSpecialist(sp._id)}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem', borderRadius: 10, border: `2px solid ${selectedSpecialist === sp._id ? 'var(--leaf)' : 'var(--sand)'}`, cursor: 'pointer', background: selectedSpecialist === sp._id ? 'rgba(45,106,45,0.08)' : 'white', transition: 'all 0.2s' }}>
                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, var(--leaf), var(--harvest))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -278,7 +279,7 @@ export default function BookingPage() {
                           <p style={{ fontWeight: 700, color: 'var(--soil)', fontSize: '0.9rem' }}>{sp.user?.name}</p>
                           <p style={{ fontSize: '0.78rem', color: 'var(--clay)' }}>{t(sp.specialization)} · ⭐ {sp.rating?.average?.toFixed(1) || t('New')}</p>
                         </div>
-                        <p style={{ fontWeight: 700, color: 'var(--terracotta)', fontSize: '0.9rem' }}>{formatCurrency(sp.pricePerDay || 800)}/{t("day")}</p>
+                        <p style={{ fontWeight: 700, color: 'var(--terracotta)', fontSize: '0.9rem' }}>{formatCurrency(sp.pricePerDay ?? 0)}/{t("day")}</p>
                         {selectedSpecialist === sp._id && <FiCheckCircle color="var(--leaf)" size={20} />}
                       </div>
                     ))}
@@ -296,7 +297,7 @@ export default function BookingPage() {
                 </h3>
                 <textarea className="form-input" rows={3} placeholder={t("Any specific requirements, delivery instructions, or special requests...")}
                   value={notes} onChange={e => setNotes(e.target.value)}
-                  style={{ resize: 'vertical', fontFamily: 'inherit' }} />
+                  style={{ resize: 'vertical', fontFamily: 'inherit', minHeight: 110, width: '100%' }} />
               </div>
             </div>
 

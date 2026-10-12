@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Specialist = require('../models/Specialist');
 const { protect, authorize } = require('../middleware/auth');
+const { pick, specialistFields } = require('../middleware/listingFields');
 const { geocodeWithFallback } = require('../utils/geocode');
 
 // @GET /api/specialists - Get all with filters + distance sorting
@@ -93,7 +94,7 @@ router.get('/', async (req, res) => {
     ]);
     res.json({ success: true, count: specialists.length, total, pages: Math.ceil(total / limit), data: specialists });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -104,7 +105,7 @@ router.get('/me/profile', protect, async (req, res) => {
     if (!specialist) return res.status(404).json({ success: false, message: 'No specialist profile found' });
     res.json({ success: true, data: specialist });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -116,7 +117,7 @@ router.get('/:id', async (req, res) => {
     if (!specialist) return res.status(404).json({ success: false, message: 'Specialist not found' });
     res.json({ success: true, data: specialist });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -143,6 +144,8 @@ function sanitizeSpecialistPayload(body) {
 // @POST /api/specialists - Create specialist profile (auto-geocode)
 router.post('/', protect, async (req, res) => {
   try {
+    req.body = pick(req.body, specialistFields);
+    if (req.body.availabilityStatus && !['available', 'unavailable'].includes(req.body.availabilityStatus)) return res.status(400).json({ success: false, message: 'Invalid operational availability status' });
     const existingProfile = await Specialist.findOne({ user: req.user.id });
     if (existingProfile) {
       return res.status(400).json({ success: false, message: 'Specialist profile already exists' });
@@ -165,7 +168,7 @@ router.post('/', protect, async (req, res) => {
     await require('../models/User').findByIdAndUpdate(req.user.id, { role: 'specialist' });
     res.status(201).json({ success: true, data: specialist });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
@@ -179,6 +182,8 @@ router.put('/:id', protect, async (req, res) => {
     }
     sanitizeSpecialistPayload(req.body);
 
+    req.body = pick(req.body, specialistFields);
+    if (req.body.availabilityStatus && !['available', 'unavailable'].includes(req.body.availabilityStatus)) return res.status(400).json({ success: false, message: 'Invalid operational availability status' });
     // Re-geocode if address changed
     if (req.body.address && req.body.address !== specialist.address) {
       const coords = await geocodeWithFallback(req.body.address, req.body.district || specialist.district);
@@ -207,7 +212,7 @@ router.put('/:id', protect, async (req, res) => {
     specialist = await Specialist.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     res.json({ success: true, data: specialist });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 

@@ -88,7 +88,7 @@ router.post('/', protect, async (req, res) => {
 
     res.status(201).json({ success: true, data: rating });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
@@ -104,7 +104,7 @@ router.get('/equipment/:id', async (req, res) => {
       .limit(20);
     res.json({ success: true, count: ratings.length, data: ratings });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -120,7 +120,7 @@ router.get('/specialist/:id', async (req, res) => {
       .limit(20);
     res.json({ success: true, count: ratings.length, data: ratings });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 

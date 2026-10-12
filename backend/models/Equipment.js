@@ -35,6 +35,8 @@ const equipmentSchema = new mongoose.Schema({
     required: [true, 'Price per day required'],
     min: [0, 'Price cannot be negative']
   },
+  minRentalDays: { type: Number, min: 1, default: 1 },
+  maxRentalDays: { type: Number, min: 1, default: 365 },
   pricePerHour: Number,
   district: {
     type: String,
@@ -114,5 +116,10 @@ equipmentSchema.pre('validate', function(next) {
 });
 
 equipmentSchema.index({ 'rating.average': -1, createdAt: -1 });
+
+equipmentSchema.pre('validate', function(next) {
+  if (this.minRentalDays > this.maxRentalDays) this.invalidate('maxRentalDays', 'Maximum must be at least minimum rental days');
+  next();
+});
 
 module.exports = mongoose.model('Equipment', equipmentSchema);

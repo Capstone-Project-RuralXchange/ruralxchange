@@ -38,6 +38,9 @@ const bookingSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  responseWindowHours: { type: Number, min: 1, max: 168, default: 24 },
+  responseDeadline: Date,
+  cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   startTime: String,
   endTime: String,
   location: {

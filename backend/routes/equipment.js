@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Equipment = require('../models/Equipment');
 const { protect, authorize } = require('../middleware/auth');
+const { pick, equipmentFields } = require('../middleware/listingFields');
 const { geocodeWithFallback } = require('../utils/geocode');
 const { getRoadDistance, enrichItemsWithRoadDistance } = require('../utils/routing');
 
@@ -171,7 +172,7 @@ router.get('/', async (req, res) => {
     ]);
     res.json({ success: true, count: equipment.length, total, pages: Math.ceil(total / limit), data: equipment });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -182,7 +183,7 @@ router.get('/owner/listings', protect, async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ success: true, count: equipment.length, data: equipment });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -196,7 +197,7 @@ router.get('/meta/categories', async (req, res) => {
     ]);
     res.json({ success: true, data: summary });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -241,7 +242,7 @@ router.get('/:id/route', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -254,7 +255,7 @@ router.get('/:id', async (req, res) => {
     await Equipment.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
     res.json({ success: true, data: equipment });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -300,7 +301,7 @@ function sanitizeEquipmentPayload(body) {
   if (body.availabilityStatus && typeof body.availabilityStatus === 'string') {
     body.availabilityStatus = body.availabilityStatus.trim().toLowerCase();
   }
-  
+
   // Map specifications from root or nested
   if (!body.specifications) body.specifications = {};
   if (body.brand) body.specifications.brand = body.brand;
@@ -320,6 +321,8 @@ function sanitizeEquipmentPayload(body) {
 // @POST /api/equipment - Create equipment listing (live GPS or auto-geocode address)
 router.post('/', protect, authorize('provider', 'admin'), async (req, res) => {
   try {
+    req.body = pick(req.body, [...equipmentFields, 'coordinates', 'latitude', 'longitude', 'location']);
+    if (req.body.availabilityStatus && !['available', 'maintenance'].includes(req.body.availabilityStatus)) return res.status(400).json({ success: false, message: 'Invalid operational availability status' });
     req.body.owner = req.user.id;
     req.body.district = req.body.district || req.user.district;
     req.body.state = req.body.state || req.user.state;
@@ -346,7 +349,7 @@ router.post('/', protect, authorize('provider', 'admin'), async (req, res) => {
     const equipment = await Equipment.create(req.body);
     res.status(201).json({ success: true, data: equipment });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
@@ -359,6 +362,9 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
+    req.body = pick(req.body, [...equipmentFields, 'coordinates', 'latitude', 'longitude', 'location']);
+    if (req.body.availabilityStatus && !['available', 'maintenance'].includes(req.body.availabilityStatus)) return res.status(400).json({ success: false, message: 'Invalid operational availability status' });
+    if ((req.body.minRentalDays ?? equipment.minRentalDays) > (req.body.maxRentalDays ?? equipment.maxRentalDays)) return res.status(400).json({ success: false, message: 'Maximum must be at least minimum rental days' });
     sanitizeEquipmentPayload(req.body);
 
     // Direct GPS coordinates provided
@@ -381,9 +387,9 @@ router.put('/:id', protect, async (req, res) => {
 
     // Prevent mass assignment by whitelisting editable fields
     const allowedFields = [
-      'title', 'description', 'category', 'brand', 'model', 
-      'yearOfManufacture', 'condition', 'pricePerDay', 'minimumRentalDays', 
-      'maximumRentalDays', 'district', 'state', 'village', 'address', 
+      'title', 'description', 'category', 'brand', 'model',
+      'yearOfManufacture', 'condition', 'pricePerDay', 'minimumRentalDays',
+      'maximumRentalDays', 'minRentalDays', 'maxRentalDays', 'compatibleSpecialistTypes', 'requiresSpecialist', 'pricePerHour', 'district', 'state', 'village', 'address',
       'location', 'specifications', 'images', 'availabilityStatus'
     ];
     const updateData = {};
@@ -396,7 +402,7 @@ router.put('/:id', protect, async (req, res) => {
     equipment = await Equipment.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     res.json({ success: true, data: equipment });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
@@ -411,7 +417,7 @@ router.delete('/:id', protect, async (req, res) => {
     await Equipment.findByIdAndUpdate(req.params.id, { isActive: false });
     res.json({ success: true, message: 'Equipment removed' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 

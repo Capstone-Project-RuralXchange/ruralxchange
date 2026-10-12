@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiPhone, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { GiWheat } from 'react-icons/gi';
@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
@@ -29,6 +29,9 @@ export default function LoginPage() {
       setError(result.error || t('Login failed. Check your credentials.'));
     }
   };
+
+  if (authLoading) return null;
+  if (user) return <Navigate to="/dashboard" replace />;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
@@ -90,17 +93,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Demo creds */}
-        <div style={{ marginTop: '1.5rem', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.3)', borderRadius: 12, padding: '1rem 1.25rem' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--soil)', marginBottom: 6 }}>🧪 {t("Demo Credentials")}</p>
-          <div style={{ fontSize: '0.8rem', color: 'var(--clay)', lineHeight: 1.8 }}>
-            <div>{t("Seeker")}: <code>9845011111</code> / <code>password123</code> (Ramesh Gowda)</div>
-            <div>{t("Provider")}: <code>9845022222</code> / <code>password123</code> (Suresh Patel)</div>
-            <div>{t("Specialist")}: <code>9845033333</code> / <code>password123</code> (Dr. Ananya Rao)</div>
-            <div>{t("Skilled Operator")}: <code>9845044444</code> / <code>password123</code> (Manjunath K)</div>
-            <div>{t("Admin")}: <code>admin@ruralxchange.in</code> / <code>admin123</code></div>
-          </div>
-        </div>
       </motion.div>
     </div>
   );

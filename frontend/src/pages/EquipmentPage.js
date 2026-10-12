@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -83,7 +84,7 @@ const EquipmentCard = ({ item }) => {
           </div>
           <div style={{ marginTop: '0.75rem' }}>
             <div className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.875rem', padding: '0.6rem' }}>
-              {t("Book Now")}
+              {item.availabilityStatus === 'maintenance' ? t('Unavailable') : t('Choose dates')}
             </div>
           </div>
         </div>
@@ -218,6 +219,7 @@ const EquipmentPage = () => {
       setHasMore(page < totalPages);
       setTotal(totalItems);
     } catch (err) {
+      toast.error(err.response?.data?.message || t('Could not load equipment. Please retry.'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -334,7 +336,6 @@ const EquipmentPage = () => {
             value={filters.status} onChange={e => handleFilterChange('status', e.target.value)}>
             <option value="">{t("Any Status")}</option>
             <option value="available">{t("available")}</option>
-            <option value="booked">{t("booked")}</option>
           </select>
 
           <input type="number" className="form-input" placeholder={t("Min ₹")} style={{ flex: '0 1 100px', minWidth: 80 }}
