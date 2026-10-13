@@ -27,7 +27,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
 
   const errorRef = useRef(null);
-  useEffect(() => { if (error) { errorRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }); errorRef.current?.focus({ preventScroll: true }); } }, [error]);
+  useEffect(() => { if (error) { errorRef.current?.scrollIntoView({ block: 'center', behavior: 'auto' }); errorRef.current?.focus({ preventScroll: true }); } }, [error]);
   useEffect(() => { window.scrollTo(0, 0); }, [step]);
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));

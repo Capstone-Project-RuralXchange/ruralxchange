@@ -15,6 +15,9 @@ exports.query = (req, res, next) => {
       if (key === 'limit') req.query[key] = String(Math.min(n, 100));
     }
   }
+  for (const key of ['minPrice', 'maxPrice']) {
+    if (req.query[key] !== undefined && !req.query[key].trim()) delete req.query[key];
+  }
   for (const key of ['minPrice', 'maxPrice', 'lat', 'lng']) {
     if (req.query[key] !== undefined && (!req.query[key].trim() || !Number.isFinite(Number(req.query[key])))) return bad(res, 'Invalid numeric query value: ' + key);
   }

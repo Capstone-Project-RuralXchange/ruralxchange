@@ -100,7 +100,7 @@ const Footer = () => {
             <h4 style={{ color: 'white', fontWeight: 700, marginBottom: '1rem', fontSize: '0.95rem' }}>{t("Contact")}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {[
-                
+
                 { icon: <FiMail />, text: 'support@ruralxchange.in' },
                 { icon: <FiMapPin />, text: 'Bengaluru, Karnataka' },
               ].map((item, i) => (

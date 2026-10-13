@@ -35,6 +35,7 @@ test('invalid identifiers and query values return 400; limit is capped on standa
   for (const route of ['equipment', 'specialists', 'requirements']) {
     for (const query of ['page=0','page=-1','limit=0','page=1.5','page=1000001','limit=Infinity','search=%00','search[$ne]=x','lat=abc','lng=200']) assert.equal((await request(app).get('/api/' + route + '?' + query)).status, 400, route + query);
   }
+  assert.equal((await request(app).get('/api/equipment?minPrice=&maxPrice=')).status, 200);
   for (const q of ['minPrice=abc','minPrice=-1']) assert.equal((await request(app).get('/api/equipment?' + q)).status, 400);
   await Equipment.insertMany(Array.from({length:105}, (_, i) => ({ owner:provider.id, title:'Cap '+i, category:'tractor', district:'Mysuru', pricePerDay:0, location:{type:'Point',coordinates:[76.64,12.29]} })));
   for (const query of ['limit=100000','limit=100000&lat=12.29&lng=76.64']) {
