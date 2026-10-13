@@ -1,0 +1,2073 @@
+{
+  "usersData": [
+    {
+      "name": "Admin Console",
+      "phone": "9845000000",
+      "email": "admin@ruralxchange.in",
+      "role": "admin",
+      "district": "Bengaluru Urban",
+      "village": "Hebbal",
+      "isVerified": true,
+      "preferredLanguage": "en"
+    },
+    {
+      "name": "Ramesh Gowda",
+      "phone": "9845011111",
+      "role": "seeker",
+      "district": "Mandya",
+      "village": "Shivapura",
+      "isVerified": true,
+      "preferredLanguage": "kn"
+    },
+    {
+      "name": "Suresh Patel",
+      "phone": "9845022222",
+      "role": "provider",
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "isVerified": true,
+      "preferredLanguage": "kn"
+    },
+    {
+      "name": "Dr. Ananya Rao",
+      "phone": "9845033333",
+      "role": "specialist",
+      "district": "Bengaluru Urban",
+      "village": "GKVK Campus, Yelahanka",
+      "isVerified": true,
+      "preferredLanguage": "en"
+    },
+    {
+      "name": "Manjunath K",
+      "phone": "9845044444",
+      "role": "specialist",
+      "district": "Mysuru",
+      "village": "Nanjangud",
+      "isVerified": true,
+      "preferredLanguage": "kn"
+    },
+    {
+      "name": "Basavarajappa K.",
+      "phone": "9845022223",
+      "role": "seeker",
+      "district": "Dharwad",
+      "village": "Navalgund",
+      "isVerified": true,
+      "preferredLanguage": "kn"
+    },
+    {
+      "name": "Ningappa Biradar",
+      "phone": "9845022224",
+      "role": "seeker",
+      "district": "Vijayapura",
+      "village": "Indi",
+      "isVerified": true,
+      "preferredLanguage": "kn"
+    },
+    {
+      "name": "Chennamma Patil",
+      "phone": "9845022225",
+      "role": "seeker",
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "isVerified": true,
+      "preferredLanguage": "kn"
+    },
+    {
+      "name": "Revanna Siddappa",
+      "phone": "9845022226",
+      "role": "seeker",
+      "district": "Tumakuru",
+      "village": "Tiptur",
+      "isVerified": true,
+      "preferredLanguage": "kn"
+    },
+    {
+      "name": "Manjunath H.K.",
+      "phone": "9845033334",
+      "role": "provider",
+      "district": "Mandya",
+      "village": "Maddur",
+      "isVerified": true
+    },
+    {
+      "name": "Basavaraj Patil",
+      "phone": "9845044445",
+      "role": "provider",
+      "district": "Dharwad",
+      "village": "Hubballi Rural",
+      "isVerified": true
+    },
+    {
+      "name": "Mahadeva Swamy",
+      "phone": "9845044446",
+      "role": "provider",
+      "district": "Mysuru",
+      "village": "Nanjangud",
+      "isVerified": true
+    },
+    {
+      "name": "Kalleshappa Nayak",
+      "phone": "9845044447",
+      "role": "provider",
+      "district": "Davangere",
+      "village": "Harihara",
+      "isVerified": true
+    },
+    {
+      "name": "Mallikarjun Reddy",
+      "phone": "9845044448",
+      "role": "provider",
+      "district": "Ballari",
+      "village": "Siruguppa",
+      "isVerified": true
+    },
+    {
+      "name": "Chandrashekhar Hegde",
+      "phone": "9845044449",
+      "role": "provider",
+      "district": "Uttara Kannada",
+      "village": "Sirsi",
+      "isVerified": true
+    },
+    {
+      "name": "Gowdappa Desai",
+      "phone": "9845044450",
+      "role": "provider",
+      "district": "Kalaburagi",
+      "village": "Aland",
+      "isVerified": true
+    },
+    {
+      "name": "Shashidhar Shetty",
+      "phone": "9845044451",
+      "role": "provider",
+      "district": "Udupi",
+      "village": "Kundapura",
+      "isVerified": true
+    },
+    {
+      "name": "Prasad Reddy",
+      "phone": "9845044452",
+      "role": "provider",
+      "district": "Kolar",
+      "village": "Mulbagal",
+      "isVerified": true
+    },
+    {
+      "name": "Veeranna Gowda",
+      "phone": "9845044453",
+      "role": "provider",
+      "district": "Hassan",
+      "village": "Channarayapatna",
+      "isVerified": true
+    },
+    {
+      "name": "Venkatesh Kumar",
+      "phone": "9845055555",
+      "role": "specialist",
+      "district": "Mandya",
+      "village": "Pandavapura",
+      "isVerified": true
+    },
+    {
+      "name": "Dr. Anand Kulkarni",
+      "phone": "9845066666",
+      "role": "specialist",
+      "district": "Mysuru",
+      "village": "Varuna",
+      "isVerified": true
+    },
+    {
+      "name": "Naveen Acharya",
+      "phone": "9845077777",
+      "role": "specialist",
+      "district": "Tumakuru",
+      "village": "Sira",
+      "isVerified": true
+    },
+    {
+      "name": "Shivaraj Gowda",
+      "phone": "9845088881",
+      "role": "specialist",
+      "district": "Hassan",
+      "village": "Channarayapatna",
+      "isVerified": true
+    },
+    {
+      "name": "Er. Girish Murthy",
+      "phone": "9845088882",
+      "role": "specialist",
+      "district": "Bengaluru Rural",
+      "village": "Doddaballapura",
+      "isVerified": true
+    },
+    {
+      "name": "Dr. Preeti Hebbar",
+      "phone": "9845088883",
+      "role": "specialist",
+      "district": "Shivamogga",
+      "village": "Bhadravati",
+      "isVerified": true
+    },
+    {
+      "name": "Subhash Pujari",
+      "phone": "9845088884",
+      "role": "specialist",
+      "district": "Belagavi",
+      "village": "Gokak",
+      "isVerified": true
+    },
+    {
+      "name": "Muniswamy Mason",
+      "phone": "9845088885",
+      "role": "specialist",
+      "district": "Kolar",
+      "village": "Bangarapet",
+      "isVerified": true
+    },
+    {
+      "name": "Kiran Kumar Welder",
+      "phone": "9845088886",
+      "role": "specialist",
+      "district": "Davangere",
+      "village": "Harihara",
+      "isVerified": true
+    },
+    {
+      "name": "Lokesh Gowda Plumber",
+      "phone": "9845088887",
+      "role": "specialist",
+      "district": "Chamarajanagar",
+      "village": "Gundlupet",
+      "isVerified": true
+    },
+    {
+      "name": "Ranganath Woodcraft",
+      "phone": "9845088888",
+      "role": "specialist",
+      "district": "Chikkamagaluru",
+      "village": "Mudigere",
+      "isVerified": true
+    },
+    {
+      "name": "Govindappa Field Hand",
+      "phone": "9845088889",
+      "role": "specialist",
+      "district": "Raichur",
+      "village": "Manvi",
+      "isVerified": true
+    }
+  ],
+  "equipmentData": [
+    {
+      "providerIdx": 1,
+      "title": "Mahindra 575 DI Sarpanch 45HP Tractor",
+      "category": "tractor",
+      "description": "45 HP 4-cylinder engine, power steering, dual clutch with rotavator attachment. Excellent condition for ploughing and wet land tilling.",
+      "condition": "excellent",
+      "pricePerDay": 1800,
+      "pricePerHour": 250,
+      "district": "Mandya",
+      "village": "Maddur",
+      "address": "Near Old Bus Stand, Shivapura Post, Maddur Taluk",
+      "lat": 12.5844,
+      "lng": 77.045,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Mahindra",
+        "model": "575 DI",
+        "year": 2022,
+        "horsePower": 45,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "tractor_driver"
+      ]
+    },
+    {
+      "providerIdx": 0,
+      "title": "John Deere 5050D 50HP Heavy Duty 4WD Tractor",
+      "category": "tractor",
+      "description": "Top condition 50HP John Deere tractor with power steering and heavy disc plough. Ideal for black cotton soil cultivation in Belagavi & Dharwad.",
+      "condition": "excellent",
+      "pricePerDay": 2400,
+      "pricePerHour": 320,
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "address": "APMC Yard, Bailhongal",
+      "lat": 15.8167,
+      "lng": 74.8667,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "John Deere",
+        "model": "5050D",
+        "year": 2023,
+        "horsePower": 50,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "tractor_driver"
+      ]
+    },
+    {
+      "providerIdx": 4,
+      "title": "Swaraj 744 FE 48HP Multi-Speed Tractor",
+      "category": "tractor",
+      "description": "48 HP high torque tractor with reverse PTO. Best for sugarcane haulage, thresher operation, and deep tillage.",
+      "condition": "good",
+      "pricePerDay": 1900,
+      "pricePerHour": 260,
+      "district": "Davangere",
+      "village": "Harihara",
+      "address": "APMC Market Yard, Harihara",
+      "lat": 14.5126,
+      "lng": 75.8042,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Swaraj",
+        "model": "744 FE",
+        "year": 2021,
+        "horsePower": 48,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "tractor_driver"
+      ]
+    },
+    {
+      "providerIdx": 1,
+      "title": "Kubota DC-68G Multi-Crop Combine Harvester",
+      "category": "harvester",
+      "description": "Track-type combine harvester ideal for waterlogged paddy fields and sugarcane harvesting. High output 2.5 acres/hour with minimal grain loss.",
+      "condition": "excellent",
+      "pricePerDay": 5500,
+      "pricePerHour": 800,
+      "district": "Mandya",
+      "village": "Pandavapura",
+      "address": "Sugar Mill Road, Pandavapura",
+      "lat": 12.4984,
+      "lng": 76.6717,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1589923188900-85dae523342b?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Kubota",
+        "model": "DC-68G",
+        "year": 2023,
+        "horsePower": 68,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "harvester_operator"
+      ]
+    },
+    {
+      "providerIdx": 5,
+      "title": "Preet 987 Self Propelled Combine Harvester with AC Cabin",
+      "category": "harvester",
+      "description": "101 HP heavy duty straw combine harvester for Paddy, Wheat, and Sunflower across Tungabhadra river basin.",
+      "condition": "excellent",
+      "pricePerDay": 6200,
+      "pricePerHour": 900,
+      "district": "Ballari",
+      "village": "Siruguppa",
+      "address": "Kavital Road, Siruguppa",
+      "lat": 15.6331,
+      "lng": 76.8947,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1589923188900-85dae523342b?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Preet",
+        "model": "987",
+        "year": 2022,
+        "horsePower": 101,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "harvester_operator"
+      ]
+    },
+    {
+      "providerIdx": 0,
+      "title": "Sonalika 42-Blade Rotary Tiller (Rotavator)",
+      "category": "rotavator",
+      "description": "Heavy duty 6-feet rotavator with boron steel L-blades. Perfect for sugarcane and maize seedbed preparation in single pass.",
+      "condition": "good",
+      "pricePerDay": 1200,
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "address": "Old Toll Gate Road, Bailhongal",
+      "lat": 15.8167,
+      "lng": 74.8667,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Sonalika",
+        "model": "Rotamax 6ft",
+        "year": 2022,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 10,
+      "title": "Shaktiman Semi-Champion 5-ft Rotavator",
+      "category": "rotavator",
+      "description": "Multi-speed gearbox rotavator designed for wet paddy puddling and secondary tillage in coconut groves.",
+      "condition": "excellent",
+      "pricePerDay": 1100,
+      "district": "Hassan",
+      "village": "Channarayapatna",
+      "address": "BM Road, Channarayapatna",
+      "lat": 12.9062,
+      "lng": 76.3888,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Shaktiman",
+        "model": "SC-160",
+        "year": 2023,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 7,
+      "title": "Khedut 9-Tyne Spring Loaded Heavy Cultivator",
+      "category": "cultivator",
+      "description": "Heavy duty spring loaded tiller for breaking hard pan, deep aeration, and root removal in dryland cotton/pulses.",
+      "condition": "excellent",
+      "pricePerDay": 750,
+      "district": "Vijayapura",
+      "village": "Indi",
+      "address": "Station Road, Indi",
+      "lat": 17.177,
+      "lng": 75.9592,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Khedut",
+        "model": "9-Tyne Spring",
+        "year": 2022,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 0,
+      "title": "Lemken 2-Bottom Hydraulic Reversible MB Plough",
+      "category": "cultivator",
+      "description": "High precision reversible mouldboard plough for complete soil inversion and weed burial.",
+      "condition": "good",
+      "pricePerDay": 1400,
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "address": "Near Old Toll Gate, Bailhongal",
+      "lat": 15.8167,
+      "lng": 74.8667,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Lemken",
+        "model": "Opal 090",
+        "year": 2021,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 7,
+      "title": "National Zero Till Multi-Crop Seed Cum Fertilizer Drill",
+      "category": "seed_drill",
+      "description": "9-row automatic seed drill with fluted roller metering mechanism for Ragi, Gram, Jowar, and Safflower.",
+      "condition": "excellent",
+      "pricePerDay": 1300,
+      "district": "Kalaburagi",
+      "village": "Aland",
+      "address": "Gulbarga-Aland Road, Aland",
+      "lat": 17.5647,
+      "lng": 76.5714,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "National",
+        "model": "ZT-9 Row",
+        "year": 2022,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 2,
+      "title": "Pneumatic Precision Maize & Cotton Planter",
+      "category": "seed_drill",
+      "description": "Vacuum disc precision planter ensuring uniform seed spacing and fertilizer placement for maximum yield.",
+      "condition": "excellent",
+      "pricePerDay": 2000,
+      "district": "Dharwad",
+      "village": "Navalgund",
+      "address": "APMC Market Yard, Navalgund",
+      "lat": 15.5647,
+      "lng": 75.3647,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Dasmesh",
+        "model": "Pneumatic 4-Row",
+        "year": 2023,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "New Holland BC5060 Heavy Rectangular Straw Baler",
+      "category": "baler",
+      "description": "High capacity square baler for paddy straw, sugarcane trash, and maize stalks. Compresses straw into 25kg tight transport bales.",
+      "condition": "excellent",
+      "pricePerDay": 4800,
+      "pricePerHour": 700,
+      "district": "Mandya",
+      "village": "Srirangapatna",
+      "address": "Bangalore-Mysore Highway, Srirangapatna",
+      "lat": 12.4224,
+      "lng": 76.6946,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "New Holland",
+        "model": "BC5060",
+        "year": 2023,
+        "horsePower": 55,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "tractor_driver"
+      ]
+    },
+    {
+      "providerIdx": 0,
+      "title": "Shaktiman Round Straw Baler with Auto Binding",
+      "category": "baler",
+      "description": "Tractor PTO operated round baler with automatic twine tie system. Picks 15-20 bales per hour directly from sugarcane and paddy swath.",
+      "condition": "good",
+      "pricePerDay": 3800,
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "address": "Near Rice Mill Colony, Bailhongal",
+      "lat": 15.8167,
+      "lng": 74.8667,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Shaktiman",
+        "model": "SRB-60",
+        "year": 2022,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 7,
+      "title": "Kalsi 3HP Commercial Automatic Chaff Cutter / Grass Shredder",
+      "category": "chaff_cutter",
+      "description": "Heavy duty dairy fodder cutter. Chops green grass, maize stalks, and dry fodder into digestible 0.5-inch pieces.",
+      "condition": "excellent",
+      "pricePerDay": 500,
+      "district": "Shivamogga",
+      "village": "Bhadravati",
+      "address": "Paper Town Road, Bhadravati",
+      "lat": 13.8409,
+      "lng": 75.7032,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Kalsi",
+        "model": "CC-3HP",
+        "year": 2023,
+        "horsePower": 3,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 2,
+      "title": "Fieldking Tractor PTO Heavy Silage Chaff Cutter",
+      "category": "chaff_cutter",
+      "description": "High throughput silage maker with blower chute for direct trolley loading. Chops up to 4 tonnes/hour.",
+      "condition": "good",
+      "pricePerDay": 1200,
+      "district": "Chamarajanagar",
+      "village": "Gundlupet",
+      "address": "Ooty Road, Gundlupet",
+      "lat": 11.8083,
+      "lng": 76.6897,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Fieldking",
+        "model": "Silage King",
+        "year": 2022,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 6,
+      "title": "Honda FJ500 5.5HP Petrol Inter-Cultivator & Power Weeder",
+      "category": "power_weeder",
+      "description": "Compact petrol power weeder with adjustable tilling width for arecanut, coffee estates, vegetables, and ginger fields.",
+      "condition": "excellent",
+      "pricePerDay": 850,
+      "district": "Chikkamagaluru",
+      "village": "Mudigere",
+      "address": "Kottigehara Cross, Mudigere",
+      "lat": 13.1362,
+      "lng": 75.6414,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Honda",
+        "model": "FJ500",
+        "year": 2023,
+        "horsePower": 5.5,
+        "fuelType": "petrol"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "VST Shakti 7HP Rotary Power Weeder",
+      "category": "power_weeder",
+      "description": "Diesel power weeder with rear rotary blades for sugarcane inter-row de-weeding and soil earthing up.",
+      "condition": "good",
+      "pricePerDay": 950,
+      "district": "Mandya",
+      "village": "Nagamangala",
+      "address": "Bellur Cross, Nagamangala",
+      "lat": 12.8188,
+      "lng": 76.757,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "VST Shakti",
+        "model": "FT 70",
+        "year": 2022,
+        "horsePower": 7,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "STIHL SR 450 14L Power Mistblower & Sprayer",
+      "category": "sprayer",
+      "description": "Backpack 2-stroke petrol mistblower for pesticide spraying in arecanut, paddy, and horticultural crops. 12m vertical reach.",
+      "condition": "excellent",
+      "pricePerDay": 450,
+      "district": "Mandya",
+      "village": "Nagamangala",
+      "address": "Bellur Cross, Nagamangala",
+      "lat": 12.8188,
+      "lng": 76.757,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1584467735815-f778f274e296?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "STIHL",
+        "model": "SR 450",
+        "year": 2023,
+        "fuelType": "petrol"
+      }
+    },
+    {
+      "providerIdx": 9,
+      "title": "ASPEE HTP 3-Piston Tractor Mounted High Pressure Sprayer",
+      "category": "sprayer",
+      "description": "600L tank capacity tractor mounted boom & gun sprayer for mango orchards, tomato crops, and sericulture mulberry.",
+      "condition": "excellent",
+      "pricePerDay": 1100,
+      "district": "Kolar",
+      "village": "Mulbagal",
+      "address": "National Highway 75, Mulbagal",
+      "lat": 13.1644,
+      "lng": 78.3957,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1584467735815-f778f274e296?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "ASPEE",
+        "model": "HTP-600",
+        "year": 2022,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "DJI Agras T40 40L Precision Spraying Drone with RTK",
+      "category": "drone",
+      "description": "Commercial 40-liter agricultural spraying & spreading drone. Can cover 40 acres/day with pinpoint centimetre-level GPS accuracy.",
+      "condition": "excellent",
+      "pricePerDay": 4500,
+      "pricePerHour": 750,
+      "district": "Bengaluru Rural",
+      "village": "Doddaballapura",
+      "address": "Industrial Area Phase 1, Doddaballapura",
+      "lat": 13.2929,
+      "lng": 77.5427,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "DJI Agras",
+        "model": "T40",
+        "year": 2024,
+        "fuelType": "electric"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "agronomist",
+        "other"
+      ]
+    },
+    {
+      "providerIdx": 2,
+      "title": "Garuda Kisan Drone 16L Spraying System",
+      "category": "drone",
+      "description": "DGCA type certified 16-liter agri drone for rapid foliar spraying in cotton, chilli, and sugarcane fields.",
+      "condition": "excellent",
+      "pricePerDay": 3200,
+      "district": "Dharwad",
+      "village": "Hubballi",
+      "address": "Airport Road, Hubballi",
+      "lat": 15.3647,
+      "lng": 75.124,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Garuda",
+        "model": "Kisan-16",
+        "year": 2023,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "Kirloskar 5HP Diesel Water Pump Set",
+      "category": "water_pump",
+      "description": "High discharge 5HP portable irrigation pump with 100ft suction hose and 200ft delivery pipe included. Consumes 0.9L diesel/hour.",
+      "condition": "good",
+      "pricePerDay": 600,
+      "district": "Mandya",
+      "village": "Srirangapatna",
+      "address": "Ganjam Post, Srirangapatna",
+      "lat": 12.4224,
+      "lng": 76.6946,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Kirloskar",
+        "model": "DM-10",
+        "year": 2022,
+        "horsePower": 5,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 6,
+      "title": "Honda WB30XD 3-Inch Portable Petrol Irrigation Pump",
+      "category": "water_pump",
+      "description": "Ultra-lightweight self-priming 4-stroke petrol pump for river water draw, estate sprinklers, and emergency de-watering.",
+      "condition": "excellent",
+      "pricePerDay": 500,
+      "district": "Uttara Kannada",
+      "village": "Sirsi",
+      "address": "Yellapur Road, Sirsi",
+      "lat": 14.6195,
+      "lng": 74.8354,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Honda",
+        "model": "WB30XD",
+        "year": 2023,
+        "horsePower": 4,
+        "fuelType": "petrol"
+      }
+    },
+    {
+      "providerIdx": 3,
+      "title": "Amar Multi-Crop Sugarcane & Paddy PTO Thresher",
+      "category": "thresher",
+      "description": "Tractor PTO driven multi-crop thresher for Ragi, Paddy, and Soybean with high purity cleaning blower.",
+      "condition": "good",
+      "pricePerDay": 2200,
+      "district": "Mysuru",
+      "village": "T. Narasipura",
+      "address": "Kaveri Basin Road, T. Narasipura",
+      "lat": 12.2131,
+      "lng": 76.9048,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Amar Thresher",
+        "model": "PTO-750",
+        "year": 2021,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 7,
+      "title": "Bharat Standard Multi-Crop Soybean & Gram Thresher",
+      "category": "thresher",
+      "description": "High recovery pulse thresher with double screening sieve. Zero grain breakage for Bengal gram and Tur dal.",
+      "condition": "excellent",
+      "pricePerDay": 2400,
+      "district": "Kalaburagi",
+      "village": "Sedam",
+      "address": "Sedam Industrial Belt, Sedam",
+      "lat": 17.1812,
+      "lng": 77.2882,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Bharat",
+        "model": "MegaThresh 2022",
+        "year": 2022,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 8,
+      "title": "VST Shakti 130DI 13HP Power Tiller with Rotavator & Seat",
+      "category": "tiller",
+      "description": "13 HP multi-utility walking tractor with rotavator attachment, cage wheels, and sulky seat for wet wetland paddy cultivation.",
+      "condition": "excellent",
+      "pricePerDay": 1100,
+      "district": "Udupi",
+      "village": "Kundapura",
+      "address": "Main Market Road, Kundapura",
+      "lat": 13.6288,
+      "lng": 74.6917,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "VST Shakti",
+        "model": "130DI",
+        "year": 2023,
+        "horsePower": 13,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 6,
+      "title": "Kubota PEM140DI 14HP Walking Tractor",
+      "category": "tiller",
+      "description": "Direct injection diesel engine power tiller with heavy duty transmission for hillside terrace farming and areca tilling.",
+      "condition": "good",
+      "pricePerDay": 1250,
+      "district": "Dakshina Kannada",
+      "village": "Puttur",
+      "address": "Bolwar Main Road, Puttur",
+      "lat": 12.7667,
+      "lng": 75.2,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Kubota",
+        "model": "PEM140DI",
+        "year": 2022,
+        "horsePower": 14,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 5,
+      "title": "Trimble Spectra Laser Land Leveler with 7ft Bucket",
+      "category": "laser_leveler",
+      "description": "Dual-grade transmitter, laser receiver with computerized hydraulic control box. Cuts irrigation water requirement by 30% and boosts crop uniformity.",
+      "condition": "excellent",
+      "pricePerDay": 3500,
+      "pricePerHour": 500,
+      "district": "Ballari",
+      "village": "Siruguppa",
+      "address": "Tungabhadra Canal Road, Siruguppa",
+      "lat": 15.6331,
+      "lng": 76.8947,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Trimble",
+        "model": "Spectra GL722",
+        "year": 2023,
+        "fuelType": "electric"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "tractor_driver"
+      ]
+    },
+    {
+      "providerIdx": 7,
+      "title": "Fieldking Hydraulic Laser Guided Land Leveler",
+      "category": "laser_leveler",
+      "description": "Heavy duty 8-feet high tensile steel scraper blade with European imported mast and hydraulic proportional valve.",
+      "condition": "excellent",
+      "pricePerDay": 3200,
+      "district": "Raichur",
+      "village": "Sindhanur",
+      "address": "Paddy Complex Road, Sindhanur",
+      "lat": 15.7667,
+      "lng": 76.7667,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Fieldking",
+        "model": "LaserPro 8ft",
+        "year": 2023,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 6,
+      "title": "Stihl BT 131 Professional Earth Auger (8\" & 12\" Bits)",
+      "category": "earth_auger",
+      "description": "4-MIX petrol engine hole digger with QuickStop drill brake. Perfect for fencing poles, banana plantation, tree saplings, and foundation piling.",
+      "condition": "excellent",
+      "pricePerDay": 800,
+      "district": "Chikkamagaluru",
+      "village": "Tarikere",
+      "address": "Railway Feeder Road, Tarikere",
+      "lat": 13.7117,
+      "lng": 75.8142,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "STIHL",
+        "model": "BT 131",
+        "year": 2023,
+        "horsePower": 1.9,
+        "fuelType": "petrol"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "Tractor PTO Driven 3-Point Heavy Post Hole Digger",
+      "category": "earth_auger",
+      "description": "Heavy gearbox tractor post hole digger for digging 3ft deep holes in rocky red soil within 30 seconds.",
+      "condition": "good",
+      "pricePerDay": 1500,
+      "district": "Ramanagara",
+      "village": "Channapatna",
+      "address": "Toy City Ring Road, Channapatna",
+      "lat": 12.6517,
+      "lng": 77.2089,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Fieldking",
+        "model": "PHD-30",
+        "year": 2022,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "Royal 5-Tonne Hydraulic Tipping Tractor Trailer",
+      "category": "tractor_trolley",
+      "description": "Hydraulic double-jack tipper trolley with reinforced chassis, heavy leaf springs, and high wooden sideboards for sugarcane & grain.",
+      "condition": "excellent",
+      "pricePerDay": 900,
+      "district": "Mandya",
+      "village": "Maddur",
+      "address": "Near Old Bus Stand, Maddur",
+      "lat": 12.5844,
+      "lng": 77.045,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Royal Trailers",
+        "model": "Hydraulic 5T",
+        "year": 2022,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 0,
+      "title": "Heavy 7-Tonne Double Axle Sugarcane Haulage Trailer",
+      "category": "tractor_trolley",
+      "description": "Heavy duty high capacity trailer with dual axle air brakes for sugarcane transport to sugar mills in Belagavi region.",
+      "condition": "good",
+      "pricePerDay": 1200,
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "address": "Sugar Mill Road, Bailhongal",
+      "lat": 15.8167,
+      "lng": 74.8667,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Standard",
+        "model": "Double Axle 7T",
+        "year": 2021,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 2,
+      "title": "Ashoka 15kVA Silent Diesel Canopy Generator",
+      "category": "generator",
+      "description": "Three phase silent acoustic canopy generator with electric start. Ideal for rural weddings, temple festivals, and backup tube-well power.",
+      "condition": "excellent",
+      "pricePerDay": 1400,
+      "district": "Dharwad",
+      "village": "Navalgund",
+      "address": "APMC Yard Gate, Navalgund",
+      "lat": 15.3647,
+      "lng": 75.124,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Ashoka Generators",
+        "model": "KG-15",
+        "year": 2022,
+        "horsePower": 20,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 3,
+      "title": "Kirloskar 25kVA Soundproof Green Generator",
+      "category": "generator",
+      "description": "Heavy duty silent diesel generator for village conventions, agricultural processing units, and continuous backup.",
+      "condition": "excellent",
+      "pricePerDay": 2200,
+      "district": "Mysuru",
+      "village": "Hunsur",
+      "address": "Bypass Circle, Hunsur",
+      "lat": 12.3089,
+      "lng": 76.2928,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Kirloskar",
+        "model": "KG1-25WS",
+        "year": 2023,
+        "horsePower": 32,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 2,
+      "title": "Schwing Stetter 10/7 CFT Hydraulic Concrete Mixer",
+      "category": "concrete_mixer",
+      "description": "Diesel engine concrete mixer with mechanical hopper for cattle shed construction, house foundation, and rural RCC works.",
+      "condition": "good",
+      "pricePerDay": 1500,
+      "district": "Dharwad",
+      "village": "Kalghatgi",
+      "address": "Forest Checkpost Road, Kalghatgi",
+      "lat": 15.1789,
+      "lng": 74.974,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1541888946425-d0fbb180c5f5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Schwing Stetter",
+        "model": "CP-10",
+        "year": 2021,
+        "horsePower": 8,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "general_laborer",
+        "mason"
+      ]
+    },
+    {
+      "providerIdx": 4,
+      "title": "Safari 1-Bag Diesel Mechanical Hopper Concrete Mixer",
+      "category": "concrete_mixer",
+      "description": "Reliable 1-bag batch concrete mixer with water dosing tank and towing bar for easy field transit.",
+      "condition": "excellent",
+      "pricePerDay": 1350,
+      "district": "Davangere",
+      "village": "Channagiri",
+      "address": "Fort Road, Channagiri",
+      "lat": 14.0264,
+      "lng": 75.9264,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1541888946425-d0fbb180c5f5?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Safari",
+        "model": "10/7 Hopper",
+        "year": 2022,
+        "horsePower": 6.5,
+        "fuelType": "diesel"
+      }
+    },
+    {
+      "providerIdx": 2,
+      "title": "Grand Shamiana Waterproof Tent Structure (60x40 ft)",
+      "category": "tent_structure",
+      "description": "Waterproof decorative tent structure with steel pipes, side cloth, and carpet flooring for 300+ seating.",
+      "condition": "good",
+      "pricePerDay": 3500,
+      "district": "Dharwad",
+      "village": "Kundgol",
+      "address": "Cotton Market Road, Kundgol",
+      "lat": 15.257,
+      "lng": 75.253,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Standard Shamiana",
+        "model": "60x40 Custom",
+        "year": 2022,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 3,
+      "title": "German Hanger Style Waterproof Pandal (80x50 ft)",
+      "category": "tent_structure",
+      "description": "Heavy duty aluminium truss waterproof event pandal structure for weddings, village fairs, and public gatherings.",
+      "condition": "excellent",
+      "pricePerDay": 7500,
+      "district": "Mysuru",
+      "village": "Nanjangud",
+      "address": "Temple Road, Nanjangud",
+      "lat": 12.1194,
+      "lng": 76.68,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "German Truss",
+        "model": "80x50 Alum",
+        "year": 2023,
+        "fuelType": "manual"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "Ahuja 2000W Professional Rural PA Sound System",
+      "category": "sound_system",
+      "description": "Ahuja amplifier, 4 column speakers, 2 reflex horn trumpets, cordless microphones, and stabilizer for village announcements & events.",
+      "condition": "excellent",
+      "pricePerDay": 1200,
+      "district": "Mandya",
+      "village": "Maddur",
+      "address": "Main Market Road, Maddur",
+      "lat": 12.5844,
+      "lng": 77.045,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Ahuja",
+        "model": "SSA-250M Rig",
+        "year": 2023,
+        "horsePower": 2,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 10,
+      "title": "JBL 1500W High Fidelity Sound Setup with Dual Bass",
+      "category": "sound_system",
+      "description": "High power sound system with dual 18-inch subwoofers, DJ mixing console, and digital echo processor for celebrations.",
+      "condition": "excellent",
+      "pricePerDay": 2500,
+      "district": "Hassan",
+      "village": "Holenarasipura",
+      "address": "Hemavathi River Road, Holenarasipura",
+      "lat": 12.7878,
+      "lng": 76.2417,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "JBL",
+        "model": "EON 615 Pro",
+        "year": 2023,
+        "horsePower": 2,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "Event Halogen & LED Focus Flood Lighting Rig (20 Units)",
+      "category": "lighting",
+      "description": "20 high-output 100W waterproof LED flood lights with distribution boards, 500m insulated wire, and telescopic stands.",
+      "condition": "excellent",
+      "pricePerDay": 1000,
+      "district": "Mandya",
+      "village": "Pandavapura",
+      "address": "Sugar Mill Road, Pandavapura",
+      "lat": 12.4984,
+      "lng": 76.6717,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Havells",
+        "model": "FloodPro 100",
+        "year": 2023,
+        "horsePower": 1,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 4,
+      "title": "Solar Portable High-Mast LED Mobile Light Tower",
+      "category": "lighting",
+      "description": "Trailer mounted 4x250W LED mobile tower with auto mast lifting up to 6 meters. Ideal for nighttime harvesting and field construction.",
+      "condition": "excellent",
+      "pricePerDay": 2200,
+      "district": "Davangere",
+      "village": "Harihara",
+      "address": "Tungabhadra Bridge Road, Harihara",
+      "lat": 14.5126,
+      "lng": 75.8042,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Tata Solar",
+        "model": "SolarTower 1kW",
+        "year": 2023,
+        "horsePower": 1,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 4,
+      "title": "ESAB Heavy Inverter Arc & TIG Welding Machine (400 Amp)",
+      "category": "welding_machine",
+      "description": "Heavy duty portable IGBT inverter welding machine. Capable of continuous welding on tractor trolleys, cultivator shanks, and steel sheds.",
+      "condition": "excellent",
+      "pricePerDay": 600,
+      "district": "Davangere",
+      "village": "Harihara",
+      "address": "Industrial Estate, Harihara",
+      "lat": 14.5126,
+      "lng": 75.8042,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "ESAB",
+        "model": "Arc 400i",
+        "year": 2022,
+        "horsePower": 5,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 9,
+      "title": "Bosch Heavy MMA Arc Welder with Portable Inverter",
+      "category": "welding_machine",
+      "description": "Compact 250A welding machine for quick field repairs of gates, borewell pipes, and implement frames.",
+      "condition": "good",
+      "pricePerDay": 450,
+      "district": "Kolar",
+      "village": "Bangarapet",
+      "address": "Robertsonpet Main Road, KGF",
+      "lat": 12.9833,
+      "lng": 78.2667,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Bosch",
+        "model": "MMA 250",
+        "year": 2023,
+        "horsePower": 4,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 1,
+      "title": "Bosch GBH 8-45 DV SDS-Max Rotary Hammer Drill",
+      "category": "drill",
+      "description": "1500W heavy rotary hammer drill with 12.5 Joules impact energy for rock drilling, RCC slab breaking, and borewell anchor bolts.",
+      "condition": "excellent",
+      "pricePerDay": 550,
+      "district": "Bengaluru Rural",
+      "village": "Nelamangala",
+      "address": "Tumkur Road, Nelamangala",
+      "lat": 13.097,
+      "lng": 77.3917,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Bosch",
+        "model": "GBH 8-45 DV",
+        "year": 2023,
+        "horsePower": 2,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 3,
+      "title": "Dewalt 32mm Heavy Magnetic Core Drill Machine",
+      "category": "drill",
+      "description": "Industrial electromagnetic base drill machine for precision hole drilling in steel purlins, tractor frames, and pump bases.",
+      "condition": "good",
+      "pricePerDay": 700,
+      "district": "Mysuru",
+      "village": "Nanjangud",
+      "address": "Industrial Area, Nanjangud",
+      "lat": 12.1194,
+      "lng": 76.68,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Dewalt",
+        "model": "DWE1622K",
+        "year": 2022,
+        "horsePower": 2,
+        "fuelType": "electric"
+      }
+    },
+    {
+      "providerIdx": 3,
+      "title": "JCB 3DX Super EcoXcellence Backhoe Loader Excavator",
+      "category": "other",
+      "description": "Heavy duty excavator and backhoe loader for farm land leveling, bund formation, farm pond excavation, and trenching.",
+      "condition": "excellent",
+      "pricePerDay": 6500,
+      "pricePerHour": 900,
+      "district": "Mysuru",
+      "village": "Nanjangud",
+      "address": "Industrial Area Phase 2, Nanjangud",
+      "lat": 12.1194,
+      "lng": 76.68,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "JCB",
+        "model": "3DX Super",
+        "year": 2022,
+        "horsePower": 76,
+        "fuelType": "diesel"
+      },
+      "requiresSpecialist": true,
+      "compatibleSpecialistTypes": [
+        "other"
+      ]
+    },
+    {
+      "providerIdx": 9,
+      "title": "Bobcat S450 Skid Steer Loader with Hydraulic Bucket",
+      "category": "other",
+      "description": "Compact skid steer loader ideal for cleaning deep-litter poultry sheds, cattle manure scraping, and narrow barn alleyways.",
+      "condition": "excellent",
+      "pricePerDay": 4200,
+      "district": "Chikkaballapur",
+      "village": "Sidlaghatta",
+      "address": "Silk Cocoon Market Road, Sidlaghatta",
+      "lat": 13.39,
+      "lng": 77.86,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600"
+        }
+      ],
+      "specifications": {
+        "brand": "Bobcat",
+        "model": "S450",
+        "year": 2023,
+        "horsePower": 49,
+        "fuelType": "diesel"
+      }
+    }
+  ],
+  "specialistProfilesData": [
+    {
+      "specUserIdx": 0,
+      "specialization": "agronomist",
+      "displayTitle": "Senior Certified Agronomist & Crop Health Consultant",
+      "skills": [
+        "Soil Testing & Nutrient Management",
+        "Pest Identification",
+        "Organic Farming Advisory",
+        "Drip Irrigation Planning",
+        "Drone Scouting"
+      ],
+      "experience": 8,
+      "pricePerDay": 1200,
+      "pricePerHour": 200,
+      "languages": [
+        "English",
+        "Kannada",
+        "Hindi"
+      ],
+      "qualifications": [
+        {
+          "degree": "M.Sc Agriculture (Agronomy)",
+          "institution": "UAS Bangalore (GKVK)",
+          "year": 2016
+        },
+        {
+          "degree": "ICAR Plant Protection Certification",
+          "institution": "ICAR - Indian Agricultural Research Institute",
+          "year": 2018
+        }
+      ],
+      "rating": {
+        "average": 5,
+        "count": 18
+      },
+      "completedJobs": 24,
+      "totalEarnings": 28800
+    },
+    {
+      "specUserIdx": 1,
+      "specialization": "tractor_driver",
+      "displayTitle": "Certified Heavy Tractor & Farm Machinery Operator",
+      "skills": [
+        "Tractor Driving",
+        "Laser Land Leveling",
+        "Rotavator Puddling",
+        "Multi-crop Deep Ploughing",
+        "Sugarcane Trailer Haulage"
+      ],
+      "experience": 7,
+      "pricePerDay": 800,
+      "pricePerHour": 120,
+      "languages": [
+        "Kannada"
+      ],
+      "qualifications": [
+        {
+          "degree": "Heavy Commercial Vehicle License",
+          "institution": "RTO Mysuru",
+          "year": 2017
+        }
+      ],
+      "rating": {
+        "average": 4.9,
+        "count": 22
+      },
+      "completedJobs": 30,
+      "totalEarnings": 24000
+    },
+    {
+      "specUserIdx": 2,
+      "specialization": "harvester_operator",
+      "displayTitle": "Certified Combine Harvester Operator",
+      "skills": [
+        "Combine Harvester Operation",
+        "Track Harvester Maintenance",
+        "Paddy Harvesting",
+        "Field Level Adjustment"
+      ],
+      "experience": 8,
+      "pricePerDay": 900,
+      "pricePerHour": 150,
+      "languages": [
+        "Kannada",
+        "Telugu"
+      ],
+      "qualifications": [
+        {
+          "degree": "Kubota Machine Operator Certificate",
+          "institution": "Kubota India Training Institute",
+          "year": 2020
+        }
+      ],
+      "rating": {
+        "average": 4.9,
+        "count": 18
+      },
+      "completedJobs": 24,
+      "totalEarnings": 32400
+    },
+    {
+      "specUserIdx": 3,
+      "specialization": "agronomist",
+      "displayTitle": "Senior Agro-Climatic & Crop Health Specialist",
+      "skills": [
+        "Soil Testing & Nutrient Management",
+        "Pest Identification",
+        "Organic Farming Advisory",
+        "Drip Irrigation Planning",
+        "Drone Scouting"
+      ],
+      "experience": 12,
+      "pricePerDay": 1500,
+      "pricePerHour": 300,
+      "languages": [
+        "Kannada",
+        "English",
+        "Hindi"
+      ],
+      "qualifications": [
+        {
+          "degree": "M.Sc Agriculture",
+          "institution": "UAS Bangalore (GKVK)",
+          "year": 2012
+        }
+      ],
+      "rating": {
+        "average": 5,
+        "count": 14
+      },
+      "completedJobs": 19,
+      "totalEarnings": 28500
+    },
+    {
+      "specUserIdx": 4,
+      "specialization": "electrician",
+      "displayTitle": "Licensed Rural Electrician & Borewell Specialist",
+      "skills": [
+        "Borewell Starter Wiring",
+        "Submersible Motor Rewiring",
+        "Farm Shed Electrification",
+        "Solar Pump Inverter Repair"
+      ],
+      "experience": 6,
+      "pricePerDay": 700,
+      "pricePerHour": 120,
+      "languages": [
+        "Kannada",
+        "Hindi"
+      ],
+      "qualifications": [
+        {
+          "degree": "ITI Electrical Wireman Grade A",
+          "institution": "Govt ITI Tumakuru",
+          "year": 2018
+        }
+      ],
+      "rating": {
+        "average": 4.8,
+        "count": 22
+      },
+      "completedJobs": 31,
+      "totalEarnings": 24800
+    },
+    {
+      "specUserIdx": 5,
+      "specialization": "tractor_driver",
+      "displayTitle": "Professional Heavy Tractor & Implement Driver",
+      "skills": [
+        "Laser Land Leveling",
+        "Rotavator Puddling",
+        "Multi-crop Deep Ploughing",
+        "Sugarcane Trailer Haulage"
+      ],
+      "experience": 10,
+      "pricePerDay": 750,
+      "pricePerHour": 130,
+      "languages": [
+        "Kannada"
+      ],
+      "qualifications": [
+        {
+          "degree": "Heavy Commercial Vehicle License",
+          "institution": "RTO Hassan",
+          "year": 2014
+        }
+      ],
+      "rating": {
+        "average": 4.9,
+        "count": 26
+      },
+      "completedJobs": 38,
+      "totalEarnings": 34200
+    },
+    {
+      "specUserIdx": 6,
+      "specialization": "civil_engineer",
+      "displayTitle": "Rural Infrastructure & Farm Building Engineer",
+      "skills": [
+        "RCC Slab Supervision",
+        "Farm Pond Design & Lining",
+        "Cattle Shed Structural Layout",
+        "Grain Warehouse Estimation"
+      ],
+      "experience": 9,
+      "pricePerDay": 1800,
+      "pricePerHour": 350,
+      "languages": [
+        "Kannada",
+        "English"
+      ],
+      "qualifications": [
+        {
+          "degree": "B.E. Civil Engineering",
+          "institution": "BMS College of Engineering",
+          "year": 2015
+        }
+      ],
+      "rating": {
+        "average": 4.9,
+        "count": 11
+      },
+      "completedJobs": 15,
+      "totalEarnings": 27000
+    },
+    {
+      "specUserIdx": 7,
+      "specialization": "animal_health_worker",
+      "displayTitle": "Livestock Care & Dairy Advisory Consultant",
+      "skills": [
+        "Cattle Deworming & Vaccination",
+        "Dairy Nutrition Formulations",
+        "Mastitis Treatment",
+        "Poultry Disease Advisory"
+      ],
+      "experience": 7,
+      "pricePerDay": 1200,
+      "pricePerHour": 250,
+      "languages": [
+        "Kannada",
+        "English",
+        "Hindi"
+      ],
+      "qualifications": [
+        {
+          "degree": "B.V.Sc & A.H.",
+          "institution": "KVAFSU Shivamogga",
+          "year": 2017
+        }
+      ],
+      "rating": {
+        "average": 5,
+        "count": 16
+      },
+      "completedJobs": 21,
+      "totalEarnings": 25200
+    },
+    {
+      "specUserIdx": 8,
+      "specialization": "pump_mechanic",
+      "displayTitle": "Agricultural Borewell & Submersible Pump Specialist",
+      "skills": [
+        "Submersible Pump Retrieval",
+        "Impeller Balancing",
+        "Borewell Casing Flushing",
+        "Diesel Engine Overhaul"
+      ],
+      "experience": 11,
+      "pricePerDay": 800,
+      "pricePerHour": 150,
+      "languages": [
+        "Kannada",
+        "Marathi"
+      ],
+      "qualifications": [
+        {
+          "degree": "ITI Diesel Mechanic",
+          "institution": "Govt ITI Belagavi",
+          "year": 2013
+        }
+      ],
+      "rating": {
+        "average": 4.7,
+        "count": 19
+      },
+      "completedJobs": 28,
+      "totalEarnings": 22400
+    },
+    {
+      "specUserIdx": 9,
+      "specialization": "mason",
+      "displayTitle": "Master Mason & Concrete Structure Specialist",
+      "skills": [
+        "Granite Foundation Dressing",
+        "Water Tank Plastering",
+        "RCC Column Casting",
+        "Interlock Paver Laying"
+      ],
+      "experience": 14,
+      "pricePerDay": 850,
+      "languages": [
+        "Kannada",
+        "Telugu",
+        "Tamil"
+      ],
+      "qualifications": [
+        {
+          "degree": "Master Mason Certificate",
+          "institution": "Karnataka Building Guild",
+          "year": 2010
+        }
+      ],
+      "rating": {
+        "average": 4.8,
+        "count": 25
+      },
+      "completedJobs": 33,
+      "totalEarnings": 28050
+    },
+    {
+      "specUserIdx": 10,
+      "specialization": "welder",
+      "displayTitle": "Farm Implement & Heavy Truss Welder",
+      "skills": [
+        "Tractor Trolley Chassis Welding",
+        "Plough Tyne Hardfacing",
+        "Polyhouse Truss Assembly",
+        "Borewell Casing Jointing"
+      ],
+      "experience": 8,
+      "pricePerDay": 750,
+      "languages": [
+        "Kannada",
+        "Hindi"
+      ],
+      "qualifications": [
+        {
+          "degree": "Certified Arc & TIG Welder",
+          "institution": "ITI Davangere",
+          "year": 2016
+        }
+      ],
+      "rating": {
+        "average": 4.9,
+        "count": 17
+      },
+      "completedJobs": 22,
+      "totalEarnings": 16500
+    },
+    {
+      "specUserIdx": 11,
+      "specialization": "plumber",
+      "displayTitle": "Drip Irrigation & Farm Pipeline Technician",
+      "skills": [
+        "Drip Venturi Installation",
+        "PVC & HDPE Butt Fusion Welding",
+        "Sand Filter Backwash Setup",
+        "Sprinkler System Calibration"
+      ],
+      "experience": 7,
+      "pricePerDay": 650,
+      "languages": [
+        "Kannada"
+      ],
+      "qualifications": [
+        {
+          "degree": "Micro-Irrigation Plumber Certificate",
+          "institution": "Jain Irrigation Training Center",
+          "year": 2017
+        }
+      ],
+      "rating": {
+        "average": 4.7,
+        "count": 15
+      },
+      "completedJobs": 20,
+      "totalEarnings": 13000
+    },
+    {
+      "specUserIdx": 12,
+      "specialization": "carpenter",
+      "displayTitle": "Farm Shed & Heavy Timber Carpenter",
+      "skills": [
+        "Wood Roof Trussing",
+        "Livestock Feeder Fabrication",
+        "Wooden Cart Restoration",
+        "Plywood Shuttering Setup"
+      ],
+      "experience": 15,
+      "pricePerDay": 800,
+      "languages": [
+        "Kannada"
+      ],
+      "qualifications": [
+        {
+          "degree": "Master Craftsman Guild",
+          "institution": "Malnad Wood Guild",
+          "year": 2009
+        }
+      ],
+      "rating": {
+        "average": 4.9,
+        "count": 18
+      },
+      "completedJobs": 24,
+      "totalEarnings": 19200
+    },
+    {
+      "specUserIdx": 13,
+      "specialization": "general_laborer",
+      "displayTitle": "Experienced Field Team Leader & Harvester Hand",
+      "skills": [
+        "Paddy Bundle Stacking",
+        "Cotton Picking",
+        "Sugarcane Cutting",
+        "Fertilizer & Manure Spreading"
+      ],
+      "experience": 12,
+      "pricePerDay": 500,
+      "languages": [
+        "Kannada",
+        "Telugu"
+      ],
+      "qualifications": [],
+      "rating": {
+        "average": 4.8,
+        "count": 30
+      },
+      "completedJobs": 42,
+      "totalEarnings": 21000
+    }
+  ],
+  "requirementsData": [
+    {
+      "seekerIdx": 0,
+      "title": "Urgent: Need 50HP Tractor with Rotavator for Sugarcane Planting",
+      "requirementType": "equipment",
+      "category": "tractor",
+      "district": "Mandya",
+      "village": "Shivapura",
+      "description": "Need tractor for 2 days to prepare 4 acres of field before sugarcane setts planting. Required this weekend.",
+      "isUrgent": true,
+      "daysAgo": 3,
+      "responses": [
+        {
+          "providerIdx": 1,
+          "message": "Mahindra 575 DI available with 6-ft rotavator. Can deliver to Shivapura on Saturday morning.",
+          "offeredPrice": 1800,
+          "daysAgo": 2
+        }
+      ]
+    },
+    {
+      "seekerIdx": 1,
+      "title": "Seeking Soil Scientist / Agronomist for Cotton Pest Infestation",
+      "requirementType": "specialist",
+      "category": "agronomist",
+      "district": "Dharwad",
+      "village": "Navalgund",
+      "description": "Cotton crop showing leaf curl and pink bollworm symptoms. Need field visit and organic chemical prescription.",
+      "isUrgent": false,
+      "daysAgo": 14,
+      "responses": [
+        {
+          "specUserIdx": 0,
+          "message": "Available for field inspection on Tuesday. Will bring soil EC and pH meter.",
+          "offeredPrice": 1200,
+          "daysAgo": 13
+        }
+      ]
+    },
+    {
+      "seekerIdx": 2,
+      "title": "Need Agri Spraying Drone for 15 Acres Pomegranate Orchard",
+      "requirementType": "equipment",
+      "category": "drone",
+      "district": "Vijayapura",
+      "village": "Indi",
+      "description": "Bacterial blight preventive spray needed across pomegranate trees. Need precision drone operator.",
+      "isUrgent": true,
+      "daysAgo": 5,
+      "responses": [
+        {
+          "providerIdx": 2,
+          "message": "Garuda Kisan Drone with pilot can arrive tomorrow morning 6:00 AM for early spray.",
+          "offeredPrice": 3200,
+          "daysAgo": 4
+        }
+      ]
+    },
+    {
+      "seekerIdx": 3,
+      "title": "Looking for Heavy Straw Baler for Sugarcane Trash",
+      "requirementType": "equipment",
+      "category": "baler",
+      "district": "Belagavi",
+      "village": "Bailhongal",
+      "description": "10 acres of sugarcane trash needs baling to prevent open burning and sell to bio-energy plant.",
+      "isUrgent": false,
+      "daysAgo": 11,
+      "responses": [
+        {
+          "providerIdx": 0,
+          "message": "Shaktiman round baler ready. We can bale 10 acres in 2 working days.",
+          "offeredPrice": 3800,
+          "daysAgo": 10
+        }
+      ]
+    },
+    {
+      "seekerIdx": 4,
+      "title": "Require 15kVA Diesel Generator & Shamiana for Village Temple Fair",
+      "requirementType": "bundle",
+      "category": "generator",
+      "district": "Tumakuru",
+      "village": "Tiptur",
+      "description": "Annual Sri Ranganatha Jatra. Need continuous 3-phase power backup and 60x40ft pandal for 3 days.",
+      "isUrgent": false,
+      "daysAgo": 18,
+      "responses": [
+        {
+          "providerIdx": 2,
+          "message": "Ashoka 15kVA silent generator and 60x40ft waterproof tent structure available. Full package delivery included.",
+          "offeredPrice": 4500,
+          "daysAgo": 17
+        }
+      ]
+    },
+    {
+      "seekerIdx": 0,
+      "title": "Need 5HP Water Pump for 3 Days Irrigation",
+      "requirementType": "equipment",
+      "category": "water_pump",
+      "district": "Mandya",
+      "village": "Shivapura",
+      "description": "Canal water release scheduled. Need diesel water pump with 200ft delivery pipe.",
+      "isUrgent": false,
+      "daysAgo": 22,
+      "responses": []
+    },
+    {
+      "seekerIdx": 1,
+      "title": "Need Concrete Mixer for Farm House Construction",
+      "requirementType": "equipment",
+      "category": "concrete_mixer",
+      "district": "Mysuru",
+      "village": "Nanjangud",
+      "description": "Starting foundation work for cattle shed and grain storage unit.",
+      "isUrgent": false,
+      "daysAgo": 26,
+      "responses": []
+    }
+  ]
+}

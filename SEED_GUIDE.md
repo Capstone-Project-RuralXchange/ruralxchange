@@ -1,114 +1,98 @@
-# 🌾 RuralXchange — Comprehensive Seed Data & Admin Guide
+# RuralXchange sample data
 
-This guide explains all sample data included in `backend/seed.js`, all test accounts across roles, and how to use the **Admin RBAC User Management Console**.
+Updated 13 October 2026. The seed is separate from server startup and never runs on deploy.
 
----
+## Important
 
-## How to Seed the Database
+This resets **all documents** in the six application collections: users, equipment, specialists, bookings, requirements and ratings. Existing accounts, QA TEST records and booking history in those collections are removed. Other collections, indexes and externally stored Cloudinary assets are not removed. Anyone signed in before a reset should sign out and log in again.
+
+All personas, requests, prices, bookings and reviews are fictional demo data, not actual customers or transactions. The phone identifiers exist only for login demos: do not call, text or send OTPs to them. Coordinates use the application's district-level Karnataka map, not exact equipment/village locations. Existing catalog imagery is illustrative.
+
+No password is stored in this guide or in the seed source. Choose fresh passwords; old published demo passwords are not reused. Shared non-admin demo credentials are suitable for a demonstration database, not a real marketplace. Never expose admin credentials in the login UI.
+
+## Dataset
+
+| Collection | Count | Coverage |
+| --- | ---: | --- |
+| Users | 31 | 1 admin, 5 seekers, 11 providers, 14 specialists |
+| Equipment | 49 | All 24 current categories, 1 maintenance listing |
+| Specialist profiles | 14 | Operators, agronomists, electrician, engineer, animal-health worker, pump mechanic, mason, welder, plumber, carpenter, labourer; 1 unavailable profile |
+| Bookings | 17 | 2 pending, 4 confirmed, 1 in progress, 8 completed, 2 cancelled |
+| Notice requirements | 7 | 3 open, 1 filled, 2 expired, 1 cancelled; community responses |
+| Reviews | 10 | 6 equipment, 4 specialist; scores 3-5 |
+
+Dates are relative to the run's India calendar day. Tractor reservations are day +2 to +3, +4 to +5, and +9 to +10. The adjacent blocks do not overlap; +6 to +8 stays free. Equipment-only, specialist-only, compatible bundle and professional-service flows all have examples. One completed seed-drill booking is unrated so the review form can be demonstrated. A cancelled timeout example shows the expiry alert. Pending requests use 24-hour acceptance windows and will expire normally after the reset.
+
+Each booking points at its listing's actual owner. Prices count both start and end days and apply the app's 5% fee. Only active bookings reserve dates. Rating counts/averages, specialist completed jobs and listing earnings are computed from seeded records, not invented totals. All cash-paid flags are fictional history; no payment is processed.
+
+## Demo login identifiers
+
+| Role | Name | Phone login | District |
+| --- | --- | --- | --- |
+| Admin | Admin Console | `9845000000` | Bengaluru Urban |
+| Seeker | Ramesh Gowda | `9845011111` | Mandya |
+| Provider | Suresh Patel | `9845022222` | Belagavi |
+| Provider | Manjunath H.K. | `9845033334` | Mandya |
+| Specialist | Dr. Ananya Rao | `9845033333` | Bengaluru Urban |
+| Specialist | Manjunath K | `9845044444` | Mysuru |
+
+Admin also has the legacy email identifier `admin@ruralxchange.in`, but use the phone login supported by the app. The person running the reset supplies the admin password through `SEED_ADMIN_PASSWORD`; non-admin accounts use `SEED_DEMO_PASSWORD`. Each must be at least 12 characters and the two must differ. Transfer credentials privately through a secure password store, not a repository, document or chat.
+
+## Validate without touching a database
 
 ```bash
-# From the project root or backend folder:
-npm run seed
-# or
-node backend/seed.js
+cd backend
+npm ci
+npm run seed -- --dry-run
 ```
 
-### Expected Output:
-```text
-🌱 Connecting to MongoDB Atlas...
-✅ Connected to MongoDB Atlas
-🗑️  Cleared all existing collections
-👥 Creating 38 users...
-✅ Created 38 users (10 Seekers · 10 Providers · 16 Specialists · 2 Admins)
-🚜 Created 22 equipment listings across all 15 categories
-👷 Created 16 specialist profiles across all 16 skills
-📋 Created 12 notice board requirements
-📅 Created 7 bookings
-⭐ Created 3 ratings & reviews
-═════════════════════════════════════════════════════════════════
-  🌾  RuralXchange Database Seeded Successfully with Full Coverage
-═════════════════════════════════════════════════════════════════
+Dry-run connects to no database and uses temporary random passwords in memory when none are configured. It validates all documents against current schemas and checks bundle compatibility and reservation overlaps.
+
+## Reset a local demonstration database
+
+Use a MongoDB **replica set**, because the reset is transactional. An isolated test replica set is created automatically by `npm test`.
+
+In your protected environment or ignored `backend/.env`, configure:
+
+- `MONGODB_URI`: URI of the intended database, with an explicit database path.
+- `SEED_EXPECTED_DB`: that exact database name.
+- `SEED_DEMO_PASSWORD`: fresh non-admin demo password.
+- `SEED_ADMIN_PASSWORD`: fresh, different admin password.
+
+Then, only after approving deletion:
+
+```bash
+npm run seed -- --confirm-reset
 ```
 
----
+A bare `npm run seed` refuses to reset. Password validation and dataset schema checks run before the database connection. The six-collection delete/insert runs in one transaction. If insertion or count checks fail, the old data remains. Existing indexes are retained. The seed does not change authentication, dependencies, migrations or startup commands.
 
-## 🔐 Test Accounts by Role
+## Live Atlas reset: separate approval and access required
 
-All accounts use the following standard passwords:
-- **Seeker / Provider / Specialist Accounts**: `password123`
-- **Admin Accounts**: `admin123`
+Do not assume the local connection URI targets the production database. Verify the exact database name in the deployed backend's `MONGODB_URI`. Obtain explicit wipe approval before execution. Take a snapshot/export first if rollback after a successful commit may be needed. Quiesce traffic during the reset so nobody writes a new record while the old dataset is being replaced.
 
----
+The executor needs the Atlas URI with database write privileges and network access (allow the executor's exact IP, not unrestricted global access). Supply it through a secure password store or the existing hosting environment, never chat or Git. Supply both new seed passwords and `SEED_EXPECTED_DB` privately too.
 
-### 1. 👑 Admin Accounts (RBAC User Management)
+For a remote URI, also set this non-secret acknowledgment:
 
-| Name | Phone / Login | Password | Role | District / Note |
-|------|---------------|----------|------|-----------------|
-| **Admin Console** | `admin@ruralxchange.in` / `9845000000` | `admin123` | `admin` | Bengaluru Urban (Full RBAC Console at `/admin/users`) |
+```bash
+export SEED_ALLOW_REMOTE=I_UNDERSTAND_DATA_WILL_BE_DELETED
+npm run seed -- --confirm-reset
+```
 
-> 💡 **Admin Console Access**: Log in with `admin@ruralxchange.in` / `admin123` to access the **"👑 Admin RBAC"** console in the navigation bar or visit [`/admin/users`](http://localhost:3000/admin/users).
+Run from `backend/` on the updated feature branch. The connected database name must match `SEED_EXPECTED_DB`, and MongoDB transactions must be supported. Success reports collection counts without printing secrets or the URI. A generic failure message deliberately avoids exposing credentials.
 
----
+Execution options:
 
-### 2. 🔍 Key Test Scenario Personas
+1. Run locally with the protected Atlas connection and IP allowance. This avoids hosting plan changes.
+2. Run in an existing paid Render backend shell using its existing database environment and the fresh seed password variables. The backend's working directory normally already contains `package.json`; verify it before running the command.
 
-| Role | Name | Phone / Login | District | Key Scenario to Test |
-|------|------|---------------|----------|----------------------|
-| **Seeker (Alert Banner & Ratings)** | Ramesh Gowda | `9845011111` | Mandya | **Seeker Alert Popup**: Log in and visit Dashboard to see the auto-cancelled booking alert with "Search Alternatives" button, unaccepted pending warning, and rate completed bookings. |
-| **Equipment Provider** | Suresh Patel | `9845022222` | Belagavi | **Incoming Bookings**: Log in to view 3 listed tractors/rotavators, incoming seeker requests, and acceptance deadlines. |
-| **Professional Specialist** | Dr. Ananya Rao | `9845033333` | Bengaluru Urban | **Professional Tier**: Certified Agronomist profile with degree certificates, ₹1,200/day advisory booking flow. |
-| **Skilled Operator** | Manjunath K | `9845044444` | Mysuru | **Bundle Booking Operator**: Tractor driver available for standalone hire or bundled with tractors. |
+Render free web services do not provide dashboard/SSH shells or one-off jobs. Do not change the production start command to reseed on boot. Do not add a public reseed route. Do not upgrade hosting or launch a billable one-off job without separate cost approval.
 
----
+Official references: https://render.com/docs/ssh, https://render.com/docs/free, https://render.com/docs/one-off-jobs
 
-### 3. 🔍 Additional Seekers (Farmers & Hirers)
+## After a reset
 
-| Name | Phone | Password | District | Village | Speciality / Bio |
-|------|-------|----------|----------|---------|------------------|
-| Basavarajappa K. | `9845022223` | `password123` | Dharwad | Navalgund | Cotton & Chili grower |
-| Ningappa Biradar | `9845022224` | `password123` | Vijayapura | Indi | Pomegranate & Lime orchard |
-| Chennamma Patil | `9845022225` | `password123` | Belagavi | Bailhongal | Sugarcane farmer (6 acres) |
-| Revanna Siddappa | `9845022226` | `password123` | Tumakuru | Tiptur | Coconut & Arecanut farmer |
+Verify all six counts, log in with a new admin and each demo role, browse equipment/specialists, check the tractor's adjacent blocks/free gap, notice statuses, dashboards and review history. Run one labelled test booking in a free slot, check overlap rejection, then cancel it and verify the slot is released. Keep the seeded demonstration bookings intact. Credentials supplied for a demonstration database should be rotated again before any real-user rollout.
 
----
-
-### 4. 🚜 Additional Equipment Providers
-
-| Name | Phone | Password | District | Village | Primary Equipment Owned |
-|------|-------|----------|----------|---------|-------------------------|
-| Manjunath H.K. | `9845033334` | `password123` | Mandya | Maddur | Kubota Combine Harvester, Mahindra 575 DI, Water Pump |
-| Basavaraj Patil | `9845044445` | `password123` | Dharwad | Hubballi Rural | Power Weeder, Concrete Mixer, Generator |
-| Mahadeva Swamy | `9845044446` | `password123` | Mysuru | Nanjangud | John Deere Tractor, Boom Sprayer |
-| Kalleshappa Nayak | `9845044447` | `password123` | Davangere | Harihara | Seed Drill, Rotavator |
-| Mallikarjun Reddy | `9845044448` | `password123` | Ballari | Siruguppa | Laser Leveler, Multi-Crop Thresher |
-
----
-
-### 5. 👷 Specialists (Covering All 16 Specializations)
-
-| Name | Phone | Password | District | Specialization | Daily Rate |
-|------|-------|----------|----------|----------------|------------|
-| Basavaraj M. | `9845055551` | `password123` | Mandya | Harvester Operator | ₹1,200/day |
-| Prakash Naik | `9845055552` | `password123` | Belagavi | Agri Drone Pilot | ₹2,500/day |
-| Chandru N. | `9845055553` | `password123` | Tumakuru | Pump Mechanic | ₹900/day |
-| Kumar Swamy | `9845055554` | `password123` | Hassan | Farm Electrician | ₹900/day |
-| Er. Rajesh Murthy | `9845055555` | `password123` | Mysuru | Civil Engineer | ₹2,500/day |
-| Dr. Shivaraj Patil | `9845055556` | `password123` | Kalaburagi | Vet Assistant | ₹900/day |
-| Siddaramaiah | `9845055557` | `password123` | Vijayapura | Construction Mason | ₹950/day |
-| Venkatesh Rao | `9845055558` | `password123` | Bengaluru Rural | Solar Agri Technician | ₹2,200/day |
-| Somasekhar | `9845055559` | `password123` | Kolar | Drip Irrigation Plumber | ₹800/day |
-| Parashuram | `9845055560` | `password123` | Bagalkot | Implement Welder | ₹850/day |
-| Gangadhar | `9845055561` | `password123` | Haveri | Chaff & Silage Tech | ₹800/day |
-| Manjula Bai | `9845055562` | `password123` | Chikkamagaluru | Nursery Specialist | ₹900/day |
-| Guruswamy | `9845055563` | `password123` | Chamarajanagar | Timber Carpenter | ₹900/day |
-| Nagarajappa | `9845055564` | `password123` | Chitradurga | General Labour Lead | ₹650/day |
-
----
-
-## 🛠️ Admin RBAC Features
-
-1. **KPI Dashboard**: View real-time user breakdown by role (`Seekers`, `Providers`, `Specialists`, `Admins`), verification rate, active/suspended count, and regional distribution across Karnataka.
-2. **Instant Role Promotion & Demotion**: Switch any user's role on the fly with automatic RBAC permission adjustment.
-3. **Account Suspension & Verification**: 1-click toggle to suspend/reactivate accounts or verify identity badges.
-4. **Detailed User Inspection**: View all equipment listed, specialist profiles, active/historical bookings, and requirements posted by any user.
-5. **Add User Modal**: Create new verified users directly with custom roles and credentials.
+The reset does not erase old credentials from Git history. Revoke/rotate credentials exposed in prior revisions rather than relying on their removal from the latest files.
