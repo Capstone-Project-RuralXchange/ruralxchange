@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+router.param('id', require('../middleware/requestValidation').identifier);
+router.use(require('../middleware/requestValidation').query);
 const User = require('../models/User');
 const Booking = require('../models/Booking');
 const Equipment = require('../models/Equipment');
@@ -40,7 +42,8 @@ router.get('/dashboard', protect, async (req, res) => {
       data: {
         user,
         stats: {
-          totalBookingsMade: await Booking.countDocuments(bookingQuery),
+          totalBookingsMade: await Booking.countDocuments({ seeker: userId }),
+          totalBookingsReceived: await Booking.countDocuments({ $or: [{ equipmentOwner: userId }, { specialistOwner: userId }] }),
           pendingBookings: await Booking.countDocuments({ ...bookingQuery, status: 'pending' }),
           completedBookings: await Booking.countDocuments({ ...bookingQuery, status: 'completed' }),
           totalEquipmentListings: equipment.length,

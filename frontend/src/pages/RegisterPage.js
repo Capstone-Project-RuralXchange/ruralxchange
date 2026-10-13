@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiPhone, FiLock, FiUser, FiMapPin, FiEye, FiEyeOff, FiPackage } from 'react-icons/fi';
@@ -26,14 +26,18 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const errorRef = useRef(null);
+  useEffect(() => { if (error) { errorRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }); errorRef.current?.focus({ preventScroll: true }); } }, [error]);
+  useEffect(() => { window.scrollTo(0, 0); }, [step]);
+
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
   const handleNext = () => {
     if (step === 1) {
-      if (!form.name || !form.phone || !form.password || !form.confirmPassword) return setError(t('Please fill all fields'));
+      if (!form.name.trim() || !form.phone.trim() || !form.password || !form.confirmPassword) return setError(t('Please fill all fields'));
       if (form.password !== form.confirmPassword) return setError(t('Passwords do not match'));
       if (form.password.length < 6) return setError(t('Password must be at least 6 characters'));
-      if (form.phone.length !== 10) return setError(t('Enter a valid 10-digit phone number'));
+      if (!/^[6-9]\d{9}$/.test(form.phone.trim())) return setError(t('Enter a valid 10-digit phone number'));
     }
     if (step === 2 && !form.role) return setError(t('Please select your role'));
     setError('');
@@ -84,9 +88,9 @@ export default function RegisterPage() {
           ))}
         </div>
 
-        <div className="card" style={{ padding: '2rem' }}>
+        <div className="card register-card" style={{ padding: '2rem' }}>
           {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.25rem', color: '#dc2626', fontSize: '0.9rem' }}>
+            <div ref={errorRef} role="alert" tabIndex={-1} style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.25rem', color: '#dc2626', fontSize: '0.9rem' }}>
               {error}
             </div>
           )}
@@ -111,7 +115,7 @@ export default function RegisterPage() {
                   <div style={{ position: 'relative' }}>
                     <FiPhone style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--clay)' }} />
                     <input className="form-input" type="tel" placeholder="9876543210" value={form.phone}
-                      onChange={e => set('phone', e.target.value)} style={{ paddingLeft: '2.75rem' }} maxLength={10} />
+                      onChange={e => set('phone', e.target.value)} style={{ paddingLeft: '2.75rem' }} maxLength={14} />
                   </div>
                 </div>
 
@@ -187,7 +191,7 @@ export default function RegisterPage() {
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Village / Town (optional)")}</label>
                   <div style={{ position: 'relative' }}>
                     <FiMapPin style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--clay)' }} />
-                    <input className="form-input" placeholder={t("e.g. Hosur")} value={form.village}
+                    <input className="form-input" placeholder={t("e.g. Mandya")} value={form.village}
                       onChange={e => set('village', e.target.value)} style={{ paddingLeft: '2.75rem' }} />
                   </div>
                 </div>

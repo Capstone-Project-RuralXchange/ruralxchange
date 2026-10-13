@@ -52,6 +52,7 @@ app.use('/api/admin', require('./routes/admin'));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ success: false, message: 'Invalid JSON body' });
   res.status(err.statusCode || (['ValidationError', 'CastError'].includes(err.name) ? 400 : 500)).json({
     success: false,
     message: err.statusCode ? err.message : (err.name === 'ValidationError' ? 'Please check the required fields and valid values' : err.name === 'CastError' ? 'Invalid identifier or value' : 'Server error. Please try again.'),

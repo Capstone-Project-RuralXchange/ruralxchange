@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+router.param('id', require('../middleware/requestValidation').identifier);
+router.use(require('../middleware/requestValidation').query);
 const Specialist = require('../models/Specialist');
 const { protect, authorize } = require('../middleware/auth');
 const { pick, specialistFields } = require('../middleware/listingFields');
@@ -177,8 +179,8 @@ router.post('/', protect, async (req, res) => {
     }
 
     const specialist = await Specialist.create(req.body);
-    // Update user role
-    await require('../models/User').findByIdAndUpdate(req.user.id, { role: 'specialist' });
+    // Preserve equipment providers and admins; only upgrade seeker onboarding.
+    await require('../models/User').updateOne({ _id: req.user.id, role: 'seeker' }, { role: 'specialist' });
     res.status(201).json({ success: true, data: specialist });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });

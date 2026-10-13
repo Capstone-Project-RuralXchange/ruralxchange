@@ -279,7 +279,7 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <h1 style={{ color: 'white', fontSize: '1.75rem', fontWeight: 800, marginBottom: 4 }}>
-                {t("Welcome back")}, {user?.name?.split(' ')[0]}! 👋
+                {t("Welcome")}, {user?.name?.split(' ')[0]}! 👋
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, textTransform: 'capitalize' }}>
@@ -427,8 +427,8 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <StatCard icon={FiCalendar} label={t("Total Bookings")} value={isProviderOrSpecialist ? incomingBookings.length : bookings.length} sub={t("All time")} color="var(--terracotta)" />
-          <StatCard icon={FiCheckCircle} label={t("Completed")} value={(isProviderOrSpecialist ? incomingBookings : bookings).filter(b => b.status === 'completed').length} sub={t("Successfully done")} color="var(--leaf)" />
+          <StatCard icon={FiCalendar} label={t(isProviderOrSpecialist ? "Bookings Received" : "Bookings Made")} value={(isProviderOrSpecialist ? stats?.stats?.totalBookingsReceived : stats?.stats?.totalBookingsMade) || 0} sub={t("All time")} color="var(--terracotta)" />
+          <StatCard icon={FiCheckCircle} label={t("Completed")} value={stats?.stats?.completedBookings || 0} sub={t("Successfully done")} color="var(--leaf)" />
           {isProviderOrSpecialist && <StatCard icon={FiDollarSign} label={t("Total Earnings")} value={formatCurrency(stats?.stats?.totalEarnings || 0)} sub={t("Completed work")} color="#7c3aed" />}
           {isProviderOrSpecialist && (
             <StatCard icon={FiInbox} label={t("Pending Requests")} value={pendingIncoming} sub={t("Awaiting your response")} color="#E8A020" />

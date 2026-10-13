@@ -10,6 +10,7 @@ import { equipmentAPI, specialistAPI, bookingAPI } from '../utils/api';
 import { format } from 'date-fns';
 import { formatCurrency, getDurationDays, SPECIALIST_TYPES } from '../utils/constants';
 import toast from 'react-hot-toast';
+import { bookingIntervals, nextBookingStart, rangeConflict } from '../utils/bookingDates';
 import { useTranslation } from 'react-i18next';
 
 export default function BookingPage() {
@@ -78,9 +79,16 @@ export default function BookingPage() {
     return num;
   };
 
+  const reservedSubject = equipment || specialist;
+  const bundleSpecialist = isBundle ? availableSpecialists.find(sp => sp._id === selectedSpecialist) : null;
+  const excludedIntervals = bookingIntervals([...(reservedSubject?.bookedDates || []), ...(bundleSpecialist?.bookedDates || [])]);
+  const nextReservedDay = nextBookingStart(startDate, excludedIntervals);
+  const maxEndDate = nextReservedDay ? new Date(nextReservedDay.getFullYear(), nextReservedDay.getMonth(), nextReservedDay.getDate() - 1) : new Date(2100, 11, 31);
+
   const handleSubmit = async () => {
     if (submitLock.current) return;
     if (!startDate || !endDate) return toast.error(t('Please select booking dates'));
+    if (rangeConflict(startDate, endDate, excludedIntervals)) return toast.error(t('Selected dates overlap an existing reservation. Choose a different range.'));
     if (days < 1) return toast.error(t('End date must be after start date'));
     if (isBundle && !availableSpecialists.some(sp => sp._id === selectedSpecialist)) return toast.error(t('Select a compatible specialist'));
     if (isBundle && !selectedSpecialist) return toast.error(t('Please select a specialist for bundle booking'));
@@ -111,7 +119,7 @@ export default function BookingPage() {
       toast.success(t('Request sent. Waiting for the provider to accept.'), { id: 'booking-request' });
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || t('Booking failed'));
+      toast.error(err.response?.status === 409 ? t('Selected dates overlap an existing reservation. Choose a different range.') : t(err.response?.data?.message || 'Booking failed'));
     } finally {
       submitLock.current = false;
       setSubmitting(false);
@@ -179,7 +187,7 @@ export default function BookingPage() {
                     <DatePicker
                       selected={startDate}
                       onChange={(date) => { setStartDate(date); setEndDate(null); }}
-                      minDate={new Date()} maxDate={new Date(2100, 11, 31)} onChangeRaw={e => e.preventDefault()} excludeDateIntervals={(subject.bookedDates || []).map(d => ({ start: new Date(d.start), end: new Date(d.end) }))}
+                      minDate={new Date()} maxDate={new Date(2100, 11, 31)} onChangeRaw={e => e.preventDefault()} excludeDateIntervals={excludedIntervals}
                       placeholderText={t("Pick start date")}
                       dateFormat="dd MMM yyyy"
                       className="form-input"
@@ -193,7 +201,7 @@ export default function BookingPage() {
                     <DatePicker
                       selected={endDate}
                       onChange={setEndDate}
-                      minDate={startDate || new Date()} maxDate={new Date(2100, 11, 31)} onChangeRaw={e => e.preventDefault()} excludeDateIntervals={(subject.bookedDates || []).map(d => ({ start: new Date(d.start), end: new Date(d.end) }))}
+                      minDate={startDate || new Date()} maxDate={maxEndDate} onChangeRaw={e => e.preventDefault()} excludeDateIntervals={excludedIntervals}
                       placeholderText={t("Pick end date")}
                       dateFormat="dd MMM yyyy"
                       className="form-input"
@@ -237,7 +245,7 @@ export default function BookingPage() {
                     value={windowUnit}
                     onChange={e => setWindowUnit(e.target.value)}
                     className="form-input"
-                    style={{ width: 130, height: 42, fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', background: 'white' }}>
+                    style={{ minWidth: 170, width: 'auto', maxWidth: '100%', height: 42, fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', background: 'white' }}>
                     <option value="hours">{t("Hours")}</option>
                     <option value="days">{t("Days")}</option>
                     <option value="weeks">{t("Weeks")}</option>
@@ -270,7 +278,7 @@ export default function BookingPage() {
                   <p style={{ fontSize: '0.85rem', color: 'var(--clay)', marginBottom: '1rem' }}>{t("Choose someone to operate this equipment")}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {availableSpecialists.map(sp => (
-                      <div key={sp._id} onClick={() => setSelectedSpecialist(sp._id)}
+                      <div key={sp._id} onClick={() => { setSelectedSpecialist(sp._id); setStartDate(null); setEndDate(null); }}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem', borderRadius: 10, border: `2px solid ${selectedSpecialist === sp._id ? 'var(--leaf)' : 'var(--sand)'}`, cursor: 'pointer', background: selectedSpecialist === sp._id ? 'rgba(45,106,45,0.08)' : 'white', transition: 'all 0.2s' }}>
                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, var(--leaf), var(--harvest))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <FiUser color="white" />
@@ -309,19 +317,19 @@ export default function BookingPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
                   {equipment && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--clay)' }}>
-                      <span>{t("Equipment")} ({days || '?'} {t("days")})</span>
+                      <span>{t("Equipment")} ({days || 0} {t("days")})</span>
                       <span style={{ fontWeight: 600, color: 'var(--soil)' }}>{formatCurrency(equipmentCost)}</span>
                     </div>
                   )}
                   {(isBundle && selectedSpecialist) && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--clay)' }}>
-                      <span>{t("Specialist")} ({days || '?'} {t("days")})</span>
+                      <span>{t("Specialist")} ({days || 0} {t("days")})</span>
                       <span style={{ fontWeight: 600, color: 'var(--soil)' }}>{formatCurrency(specialistCost)}</span>
                     </div>
                   )}
                   {isSpecialistOnly && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--clay)' }}>
-                      <span>{t("Service")} ({days || '?'} {t("days")})</span>
+                      <span>{t("Service")} ({days || 0} {t("days")})</span>
                       <span style={{ fontWeight: 600, color: 'var(--soil)' }}>{formatCurrency(specialistCost)}</span>
                     </div>
                   )}

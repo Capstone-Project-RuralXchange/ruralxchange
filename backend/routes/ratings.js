@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
+router.param('id', require('../middleware/requestValidation').identifier);
+router.use(require('../middleware/requestValidation').query);
 const Rating = require('../models/Rating');
 const Equipment = require('../models/Equipment');
 const Specialist = require('../models/Specialist');
@@ -73,7 +75,7 @@ router.post('/', protect, async (req, res) => {
     await Target.updateOne({ _id: targetId }, [
       { $set: { _newCount: { $add: [{ $ifNull: ['$rating.count', 0] }, 1] } } },
       { $set: {
-        'rating.average': { $round: [{ $add: [{ $ifNull: ['$rating.average', 0] }, { $divide: [{ $subtract: [numericScore, { $ifNull: ['$rating.average', 0] }] }, '$_newCount'] }] }, 1] },
+        'rating.average': { $add: [{ $ifNull: ['$rating.average', 0] }, { $divide: [{ $subtract: [numericScore, { $ifNull: ['$rating.average', 0] }] }, '$_newCount'] }] },
         'rating.count': '$_newCount'
       } },
       { $unset: '_newCount' }

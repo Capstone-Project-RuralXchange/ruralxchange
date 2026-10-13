@@ -127,7 +127,7 @@ const EquipmentDetailPage = () => {
           <FiArrowLeft /> {t("Back")}
         </button>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem' }}>
+        <div className="equipment-detail-layout">
           {/* Left - Details */}
           <div>
             {/* Owner Controls */}

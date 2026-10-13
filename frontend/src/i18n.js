@@ -1324,9 +1324,9 @@ const knTranslations = {
     "Set custom response time:": "ಕಸ್ಟಮ್ ಪ್ರತಿಕ್ರಿಯೆ ಸಮಯವನ್ನು ನಿಗದಿಪಡಿಸಿ:",
     "Hours (1 – 168 hrs)": "ಗಂಟೆಗಳು (1 – 168 ಗಂಟೆಗಳು)",
     "Please enter a valid response window of at least 1 hour": "ದಯವಿಟ್ಟು ಕನಿಷ್ಠ 1 ಗಂಟೆಯ ಮಾನ್ಯ ಪ್ರತಿಕ್ರಿಯೆ ಸಮಯವನ್ನು ನಮೂದಿಸಿ",
-    "Hours": "ಗಂಟೆಗಳು (Hours)",
-    "Days": "ದಿನಗಳು (Days)",
-    "Weeks": "ವಾರಗಳು (Weeks)",
+    "Hours": "ಗಂಟೆಗಳು",
+    "Days": "ದಿನಗಳು",
+    "Weeks": "ವಾರಗಳು",
     "Live Platform Demand Active": "ಲೈವ್ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಬೇಡಿಕೆ ಸಕ್ರಿಯವಾಗಿದೆ",
     "Book Now": "ಈಗಲೇ ಬುಕ್ ಮಾಡಿ",
     "Action Required": "ಕ್ರಮ ಅಗತ್ಯವಿದೆ",
@@ -2382,6 +2382,19 @@ const hiTranslations = {
     "Item": "वस्तु",
   }
 };
+
+Object.assign(enTranslations.translation, {
+  "maintenance": "Under maintenance", "unavailable": "Unavailable", "Welcome": "Welcome", "Completed work": "Completed work", "Bookings Received": "Bookings Received", "Bookings Made": "Bookings Made", "specialist": "Specialist", "e.g. Mandya": "e.g. Mandya",
+  "Selected dates overlap an existing reservation. Choose a different range.": "Selected dates overlap an existing reservation. Choose a different range."
+});
+Object.assign(knTranslations.translation, {
+  "maintenance": "ನಿರ್ವಹಣೆಯಲ್ಲಿದೆ", "unavailable": "ಲಭ್ಯವಿಲ್ಲ", "Welcome": "ಸ್ವಾಗತ", "Completed work": "ಪೂರ್ಣಗೊಂಡ ಕೆಲಸ", "Bookings Received": "ಸ್ವೀಕರಿಸಿದ ಬುಕಿಂಗ್‌ಗಳು", "Bookings Made": "ಮಾಡಿದ ಬುಕಿಂಗ್‌ಗಳು", "specialist": "ತಜ್ಞ", "e.g. Mandya": "ಉದಾ. ಮಂಡ್ಯ",
+  "Selected dates overlap an existing reservation. Choose a different range.": "ಆಯ್ದ ದಿನಾಂಕಗಳು ಈಗಾಗಲೇ ಕಾಯ್ದಿರಿಸಿದ ದಿನಾಂಕಗಳೊಂದಿಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತವೆ. ಬೇರೆ ದಿನಾಂಕಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ."
+});
+Object.assign(hiTranslations.translation, {
+  "maintenance": "रखरखाव में", "unavailable": "उपलब्ध नहीं", "Welcome": "स्वागत है", "Completed work": "पूरा हुआ काम", "Bookings Received": "प्राप्त बुकिंग", "Bookings Made": "की गई बुकिंग", "specialist": "विशेषज्ञ", "e.g. Mandya": "जैसे मंड्या",
+  "Selected dates overlap an existing reservation. Choose a different range.": "चुनी गई तारीखें पहले से आरक्षित हैं। दूसरी तारीखें चुनें।"
+});
 
 i18n
   .use(initReactI18next)

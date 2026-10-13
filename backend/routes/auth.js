@@ -37,7 +37,12 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @route POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, phone, email, password, role, district, state, village, preferredLanguage } = req.body;
+    const { name, email, password, role, district, state, village, preferredLanguage } = req.body;
+    if (typeof req.body.phone !== 'string' || typeof password !== 'string') return res.status(400).json({ success: false, message: 'Phone and password must be text' });
+    for (const field of ['name', 'email', 'role', 'district', 'state', 'village', 'preferredLanguage']) {
+      if (req.body[field] !== undefined && typeof req.body[field] !== 'string') return res.status(400).json({ success: false, message: field + ' must be text' });
+    }
+    const phone = req.body.phone.trim();
     if (!['seeker', 'provider', 'specialist'].includes(role || 'seeker')) return res.status(400).json({ success: false, message: 'Invalid registration role' });
     const existing = await User.findOne({ phone });
     if (existing) {
@@ -46,7 +51,7 @@ router.post('/register', async (req, res) => {
     const user = await User.create({ name, phone, email, password, role, district, state, village, preferredLanguage });
     sendTokenResponse(user, 201, res);
   } catch (err) {
-    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : err.name === 'ValidationError' ? Object.values(err.errors).map(e => e.message).join('; ') : 'Please check required fields and valid values' });
   }
 });
 
@@ -54,7 +59,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
-    if (!phone || !password) {
+    if (typeof phone !== 'string' || typeof password !== 'string' || !phone.trim() || !password) {
       return res.status(400).json({ success: false, message: 'Phone/Email and password required' });
     }
     const cleanIdentifier = phone.trim();
@@ -101,7 +106,7 @@ router.put('/updateprofile', protect, async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
     res.json({ success: true, data: user, user });
   } catch (err) {
-    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : err.name === 'ValidationError' ? Object.values(err.errors).map(e => e.message).join('; ') : 'Please check required fields and valid values' });
   }
 });
 

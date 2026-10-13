@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GiWheat } from 'react-icons/gi';
-import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
+import { FiMail, FiMapPin } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
@@ -100,7 +100,7 @@ const Footer = () => {
             <h4 style={{ color: 'white', fontWeight: 700, marginBottom: '1rem', fontSize: '0.95rem' }}>{t("Contact")}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {[
-                { icon: <FiPhone />, text: '+91 80000 00000' },
+                
                 { icon: <FiMail />, text: 'support@ruralxchange.in' },
                 { icon: <FiMapPin />, text: 'Bengaluru, Karnataka' },
               ].map((item, i) => (

@@ -3,6 +3,8 @@ const express = require('express');
 // Escape user input before using it in a MongoDB $regex
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const router = express.Router();
+router.param('id', require('../middleware/requestValidation').identifier);
+router.use(require('../middleware/requestValidation').query);
 const Equipment = require('../models/Equipment');
 const { protect, authorize } = require('../middleware/auth');
 const { pick, equipmentFields } = require('../middleware/listingFields');

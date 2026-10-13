@@ -65,13 +65,11 @@ const bookingSchema = new mongoose.Schema({
   // Per-participant sub-statuses for bundle bookings (track each side independently)
   equipmentOwnerStatus: {
     type: String,
-    enum: ['pending', 'confirmed', 'completed', 'cancelled'],
-    default: 'pending'
+    enum: ['pending', 'confirmed', 'completed', 'cancelled']
   },
   specialistStatus: {
     type: String,
-    enum: ['pending', 'confirmed', 'completed', 'cancelled'],
-    default: 'pending'
+    enum: ['pending', 'confirmed', 'completed', 'cancelled']
   },
   pricing: {
     equipmentCost: { type: Number, default: 0, min: 0 },

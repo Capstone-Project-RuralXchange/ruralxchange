@@ -132,7 +132,7 @@ test('booking detail denies a stranger; provider dashboard counts incoming booki
   const b=await createBooking(user,payload());const app=require('../server');
   assert.equal((await request(app).get('/api/bookings/'+b.id).set('Authorization','Bearer '+stranger.getSignedJwtToken())).status,403);
   const stats=await request(app).get('/api/users/dashboard').set('Authorization','Bearer '+owner.getSignedJwtToken());
-  assert.equal(stats.body.data.stats.totalBookingsMade,1);
+  assert.equal(stats.body.data.stats.totalBookingsReceived,1);
 });
 test('existing response-window API retained; no-auto-cancel requests expire when past-dated', async () => {
   const b=await createBooking(user,payload({acceptanceWindowHours:3,autoCancelOnExpiry:false}));

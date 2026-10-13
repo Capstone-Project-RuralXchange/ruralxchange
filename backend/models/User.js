@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema({
     default: 'en'
   },
   avatar: {
-    url: String,
+    url: { type: String, validate: { validator: v => !v || /^https?:\/\/[^\s]+$/i.test(v) && (() => { try { return Boolean(new URL(v).hostname); } catch { return false; } })(), message: 'Avatar URL must use http or https' } },
     publicId: String
   },
   isVerified: { type: Boolean, default: false },

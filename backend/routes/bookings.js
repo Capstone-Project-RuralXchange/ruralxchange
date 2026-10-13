@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+router.param('id', require('../middleware/requestValidation').identifier);
+router.use(require('../middleware/requestValidation').query);
 const Booking = require('../models/Booking');
 const Equipment = require('../models/Equipment');
 const Specialist = require('../models/Specialist');
