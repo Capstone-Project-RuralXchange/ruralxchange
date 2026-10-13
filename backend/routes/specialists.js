@@ -5,18 +5,29 @@ const { protect, authorize } = require('../middleware/auth');
 const { pick, specialistFields } = require('../middleware/listingFields');
 const { geocodeWithFallback } = require('../utils/geocode');
 
+// Escape user input before using it in a MongoDB $regex
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Skill-level tiers derived from specialization (mirrors frontend SPECIALIST_TYPES)
+const TIER_SPECIALIZATIONS = {
+  professional: ['agronomist', 'civil_engineer', 'electrical_engineer', 'animal_health_worker'],
+  skilled: ['tractor_driver', 'harvester_operator', 'electrician', 'mason', 'plumber', 'pump_mechanic', 'welder', 'carpenter', 'painter', 'refrigeration_technician'],
+  labour: ['general_laborer']
+};
+
 // @GET /api/specialists - Get all with filters + distance sorting
 router.get('/', async (req, res) => {
   try {
-    const { district, specialization, status, search, q, lat, lng, page = 1, limit = 12 } = req.query;
+    const { district, specialization, status, tier, search, q, lat, lng, page = 1, limit = 12 } = req.query;
     const searchTerm = (search || q || '').trim();
 
     const searchCondition = searchTerm ? {
       $or: [
-        { specialization: { $regex: searchTerm, $options: 'i' } },
-        { skills: { $regex: searchTerm, $options: 'i' } },
-        { bio: { $regex: searchTerm, $options: 'i' } },
-        { qualifications: { $regex: searchTerm, $options: 'i' } }
+        { specialization: { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { skills: { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { bio: { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { 'qualifications.degree': { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { 'qualifications.institution': { $regex: escapeRegex(searchTerm), $options: 'i' } }
       ]
     } : null;
 
@@ -29,6 +40,7 @@ router.get('/', async (req, res) => {
         const matchStage = { isActive: true };
         if (district) matchStage.district = district;
         if (specialization) matchStage.specialization = specialization;
+        else if (tier && TIER_SPECIALIZATIONS[tier]) matchStage.specialization = { $in: TIER_SPECIALIZATIONS[tier] };
         if (status) matchStage.availabilityStatus = status;
         if (searchCondition) {
           matchStage.$or = searchCondition.$or;
@@ -78,6 +90,7 @@ router.get('/', async (req, res) => {
     const query = { isActive: true };
     if (district) query.district = district;
     if (specialization) query.specialization = specialization;
+    else if (tier && TIER_SPECIALIZATIONS[tier]) query.specialization = { $in: TIER_SPECIALIZATIONS[tier] };
     if (status) query.availabilityStatus = status;
     if (searchCondition) {
       query.$or = searchCondition.$or;

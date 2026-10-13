@@ -130,8 +130,28 @@ const HomePage = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (searchQuery && searchQuery.trim()) params.set('search', searchQuery.trim());
+    const term = searchQuery.trim();
     if (district) params.set('district', district);
+    if (term) {
+      // Route specialist-looking searches (e.g. "electrician") to the Specialists page
+      const norm = (s) => s.toLowerCase().replace(/[_-]+/g, ' ').trim();
+      const lower = norm(term);
+      const matchesType = (t) => {
+        const label = norm(t.label), value = norm(t.value);
+        return lower === label || lower === value ||
+          (lower.length >= 3 && (label.includes(lower) || value.includes(lower) || lower.includes(label)));
+      };
+      const eqMatch = EQUIPMENT_CATEGORIES.find(matchesType);
+      if (!eqMatch) {
+        const spMatch = SPECIALIST_TYPES.find(matchesType);
+        if (spMatch) {
+          params.set('specialization', spMatch.value);
+          navigate(`/specialists?${params.toString()}`);
+          return;
+        }
+      }
+      params.set('search', term);
+    }
     navigate(`/equipment${params.toString() ? `?${params.toString()}` : ''}`);
   };
 

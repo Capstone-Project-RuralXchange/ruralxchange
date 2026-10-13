@@ -1,4 +1,7 @@
 const express = require('express');
+
+// Escape user input before using it in a MongoDB $regex
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const router = express.Router();
 const Equipment = require('../models/Equipment');
 const { protect, authorize } = require('../middleware/auth');
@@ -67,13 +70,16 @@ router.get('/', async (req, res) => {
       const uniqueTerms = Array.from(new Set(searchTerms));
 
       searchCondition = {
-        $or: uniqueTerms.flatMap(term => [
-          { title: { $regex: term, $options: 'i' } },
-          { category: { $regex: term, $options: 'i' } },
-          { description: { $regex: term, $options: 'i' } },
-          { brand: { $regex: term, $options: 'i' } },
-          { model: { $regex: term, $options: 'i' } }
-        ])
+        $or: uniqueTerms.flatMap(term => {
+          const safeTerm = escapeRegex(term);
+          return [
+            { title: { $regex: safeTerm, $options: 'i' } },
+            { category: { $regex: safeTerm, $options: 'i' } },
+            { description: { $regex: safeTerm, $options: 'i' } },
+            { 'specifications.brand': { $regex: safeTerm, $options: 'i' } },
+            { 'specifications.model': { $regex: safeTerm, $options: 'i' } }
+          ];
+        })
       };
     }
 
