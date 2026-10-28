@@ -307,7 +307,7 @@ export default function DashboardPage() {
                 </Link>
               )}
               <Link to="/requirements" className="btn" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
-                {t("Notice Board")}
+                {t("Community Board")}
               </Link>
             </div>
           </div>

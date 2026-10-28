@@ -46,7 +46,7 @@ const Footer = () => {
             {[
               { to: '/equipment', label: t('Browse Equipment') },
               { to: '/specialists', label: t('Find Specialists') },
-              { to: '/requirements', label: t('Notice Board') },
+              { to: '/requirements', label: t('Community Board') },
               { to: '/seasonal', label: t('Season Calendar') },
               { to: '/list-equipment', label: t('List Your Equipment') },
               { to: '/become-specialist', label: t('Register as Specialist') },

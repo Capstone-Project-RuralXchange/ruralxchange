@@ -86,7 +86,7 @@ const Navbar = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }} className="desktop-nav">
           <Link to="/equipment" style={linkStyle('/equipment')}>{t('Equipment')}</Link>
           <Link to="/specialists" style={linkStyle('/specialists')}>{t('Specialists')}</Link>
-          <Link to="/requirements" style={linkStyle('/requirements')}>{t('Notice Board')}</Link>
+          <Link to="/requirements" style={linkStyle('/requirements')}>{t('Community Board')}</Link>
           <Link to="/seasonal" style={linkStyle('/seasonal')}>🗓️ {t('Season')}</Link>
           {user?.role === 'admin' && (
             <Link to="/admin/users" style={{
@@ -247,7 +247,7 @@ const Navbar = () => {
           {[
             { to: '/equipment', label: `🚜 ${t('Equipment')}` },
             { to: '/specialists', label: `👷 ${t('Specialists')}` },
-            { to: '/requirements', label: `📋 ${t('Notice Board')}` },
+            { to: '/requirements', label: `📋 ${t('Community Board')}` },
             { to: '/seasonal', label: `🗓️ ${t('Season')}` },
             { to: '/dashboard', label: `📊 ${t('Dashboard')}`, auth: true },
             ...(user?.role === 'admin' ? [{ to: '/admin/users', label: `👑 ${t('Admin RBAC Console')}`, auth: true }] : []),

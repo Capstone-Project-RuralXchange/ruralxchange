@@ -313,7 +313,7 @@ export default function RequirementsPage() {
                 <GiWheat size={24} color="var(--harvest)" />
                 <span style={{ color: 'var(--harvest)', fontWeight: 700, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: 1 }}>{t("Community Board")}</span>
               </div>
-              <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{t("Public Requirement Board")}</h1>
+              <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{t("Community Board")}</h1>
               <p style={{ color: 'rgba(255,255,255,0.65)', maxWidth: 480 }}>
                 {t("Post what you need")}
               </p>
