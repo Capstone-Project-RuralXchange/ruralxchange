@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiMapPin, FiClock, FiMessageCircle, FiX, FiSearch, FiNavigation, FiPhone, FiChevronDown, FiChevronUp, FiDollarSign, FiCrosshair, FiCheckCircle } from 'react-icons/fi';
+import { FiPlus, FiMapPin, FiClock, FiMessageCircle, FiX, FiSearch, FiNavigation, FiPhone, FiChevronDown, FiChevronUp, FiCrosshair, FiCheckCircle } from 'react-icons/fi';
 import { GiWheat } from 'react-icons/gi';
+import { FaRupeeSign } from 'react-icons/fa';
 import Select from 'react-select';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -127,7 +128,7 @@ function RequirementCard({ req, onRespond, currentUser }) {
             <textarea rows={3} placeholder={t("I have this equipment available / I can provide this service...")} value={responseText} onChange={e => setResponseText(e.target.value)}
               style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: 8, border: '1.5px solid var(--sand)', fontFamily: 'inherit', fontSize: '0.85rem', resize: 'vertical', outline: 'none', marginBottom: '0.5rem' }} />
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <FiDollarSign color="var(--terracotta)" />
+              <FaRupeeSign color="var(--terracotta)" />
               <input type="number" placeholder={t("Offered price (₹) — optional")} value={offeredPrice} onChange={e => setOfferedPrice(e.target.value)}
                 style={{ flex: 1, maxWidth: 220, padding: '0.45rem 0.75rem', borderRadius: 8, border: '1.5px solid var(--sand)', fontSize: '0.85rem', outline: 'none' }} />
             </div>

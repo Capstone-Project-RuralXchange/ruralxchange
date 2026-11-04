@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiPackage, FiCalendar, FiStar, FiDollarSign, FiPlus, FiChevronRight, FiClock, FiCheckCircle, FiXCircle, FiTool, FiInbox, FiPhone, FiMapPin, FiAlertTriangle, FiSearch, FiX } from 'react-icons/fi';
+import { FiPackage, FiCalendar, FiStar, FiPlus, FiChevronRight, FiClock, FiCheckCircle, FiXCircle, FiTool, FiInbox, FiPhone, FiMapPin, FiAlertTriangle, FiSearch, FiX } from 'react-icons/fi';
 import { GiToolbox } from 'react-icons/gi';
+import { FaRupeeSign } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { dashboardAPI, bookingAPI, equipmentAPI, specialistAPI, ratingAPI } from '../utils/api';
@@ -429,7 +430,7 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
           <StatCard icon={FiCalendar} label={t(isProviderOrSpecialist ? "Bookings Received" : "Bookings Made")} value={(isProviderOrSpecialist ? stats?.stats?.totalBookingsReceived : stats?.stats?.totalBookingsMade) || 0} sub={t("All time")} color="var(--terracotta)" />
           <StatCard icon={FiCheckCircle} label={t("Completed")} value={stats?.stats?.completedBookings || 0} sub={t("Successfully done")} color="var(--leaf)" />
-          {isProviderOrSpecialist && <StatCard icon={FiDollarSign} label={t("Total Earnings")} value={formatCurrency(stats?.stats?.totalEarnings || 0)} sub={t("Completed work")} color="#7c3aed" />}
+          {isProviderOrSpecialist && <StatCard icon={FaRupeeSign} label={t("Total Earnings")} value={formatCurrency(stats?.stats?.totalEarnings || 0)} sub={t("Completed work")} color="#7c3aed" />}
           {isProviderOrSpecialist && (
             <StatCard icon={FiInbox} label={t("Pending Requests")} value={pendingIncoming} sub={t("Awaiting your response")} color="#E8A020" />
           )}
