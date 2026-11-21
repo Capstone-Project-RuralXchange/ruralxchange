@@ -1,18 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiCheck, FiAlertCircle } from 'react-icons/fi';
 import { GiToolbox } from 'react-icons/gi';
 import { specialistAPI } from '../utils/api';
-import { KARNATAKA_DISTRICTS, LANGUAGES } from '../utils/constants';
+import { KARNATAKA_DISTRICTS, LANGUAGES, SPECIALIST_TYPES } from '../utils/constants';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
-const SPECIALIZATIONS = [
-  'Tractor Operator','Harvester Operator','Irrigation Technician','Soil Analyst',
-  'Pest Control Expert','Veterinarian','Agricultural Engineer','Electrician',
-  'Plumber','Carpenter','Mason','Welder','General Labour','Driver','Mechanic','Other'
-];
 const TIERS = [
   { value: 'professional', label: 'Professional', desc: 'Certified/degree holder, 3+ yrs exp', color: '#7c3aed' },
   { value: 'skilled', label: 'Skilled Worker', desc: 'Experienced trades & technical work', color: 'var(--terracotta)' },
@@ -22,9 +18,19 @@ const TIERS = [
 export default function BecomeSpecialistPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  if (!user) return null;
+
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    specialization: 'Tractor Operator', tier: 'skilled',
+    specialization: 'tractor_driver', tier: 'skilled',
     experience: '', dailyRate: '', hourlyRate: '',
     district: 'Bengaluru Urban', village: '', address: '',
     bio: '', languages: ['en'],
@@ -43,11 +49,14 @@ export default function BecomeSpecialistPage() {
     try {
       const payload = {
         ...form,
+        specialization: form.specialization.trim().toLowerCase().replace(/[\s-]+/g, '_'),
+        pricePerDay: Number(form.dailyRate),
+        dailyRate: Number(form.dailyRate),
+        pricePerHour: form.hourlyRate ? Number(form.hourlyRate) : undefined,
+        hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
         bio: form.bio ? form.bio.trim() : undefined,
         experience: Number(form.experience),
-        dailyRate: Number(form.dailyRate),
-        hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
-        qualifications: form.qualifications ? form.qualifications.split(',').map(s => s.trim()).filter(Boolean) : [],
+        qualifications: form.qualifications ? form.qualifications.split(',').map(s => ({ degree: s.trim(), institution: 'Self-Reported', year: new Date().getFullYear() })) : [],
         skills: form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         address: form.address ? form.address.trim() : undefined,
       };
@@ -97,7 +106,7 @@ export default function BecomeSpecialistPage() {
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("Specialization *")}</label>
                 <select className="form-input" value={form.specialization} onChange={e => set('specialization', e.target.value)}>
-                  {SPECIALIZATIONS.map(s => <option key={s}>{t(s)}</option>)}
+                  {SPECIALIST_TYPES.map(s => <option key={s.value} value={s.value}>{s.icon} {t(s.label)}</option>)}
                 </select>
               </div>
               <div style={{ marginBottom: '1.5rem' }}>
@@ -182,7 +191,7 @@ export default function BecomeSpecialistPage() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, color: 'var(--soil)', marginBottom: 6, fontSize: '0.88rem' }}>{t("District *")}</label>
                   <select className="form-input" value={form.district} onChange={e => set('district', e.target.value)}>
-                    {KARNATAKA_DISTRICTS.map(d => <option key={d}>{d}</option>)}
+                    {KARNATAKA_DISTRICTS.map(d => <option key={d} value={d}>{t(d)}</option>)}
                   </select>
                 </div>
               </div>
@@ -209,14 +218,17 @@ export default function BecomeSpecialistPage() {
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginTop: '1.75rem' }}>
-            {step > 1 && <button className="btn btn-outline" onClick={() => setStep(s => s-1)}>← {t("Back")}</button>}
-            {step < 3 ? (
-              <button className="btn" onClick={() => setStep(s => s+1)} style={{ marginLeft: 'auto', background: 'var(--leaf)', color: 'white' }}>{t("Next")} →</button>
-            ) : (
-              <button className="btn" onClick={handleSubmit} disabled={submitting} style={{ marginLeft: 'auto', background: 'var(--leaf)', color: 'white', padding: '0.75rem 2rem' }}>
-                {submitting ? t('Creating...') : t('🔧 Create Profile')}
-              </button>
-            )}
+            <button className="btn btn-outline" style={{ color: 'var(--terracotta)', borderColor: 'var(--terracotta)' }} onClick={() => navigate('/dashboard')}>{t("Cancel")}</button>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              {step > 1 && <button className="btn btn-outline" onClick={() => setStep(s => s-1)}>← {t("Back")}</button>}
+              {step < 3 ? (
+                <button className="btn" onClick={() => setStep(s => s+1)} style={{ background: 'var(--leaf)', color: 'white' }}>{t("Next")} →</button>
+              ) : (
+                <button className="btn" onClick={handleSubmit} disabled={submitting} style={{ background: 'var(--leaf)', color: 'white', padding: '0.75rem 2rem' }}>
+                  {submitting ? t('Creating...') : t('🔧 Create Profile')}
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>

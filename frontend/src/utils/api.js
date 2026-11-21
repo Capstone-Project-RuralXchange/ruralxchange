@@ -1,26 +1,32 @@
 import axios from 'axios';
 
-const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
-  timeout: 15000,
-});
+const getBaseURL = () => {
+  let url = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  url = url.trim().replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
 
-// Attach JWT token
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-}, (error) => Promise.reject(error));
+const API = axios.create({
+  baseURL: getBaseURL(),
+  timeout: 30000,
+  withCredentials: true,
+});
 
 // Handle 401 globally
 API.interceptors.response.use(
   (response) => response,
   (error) => {
     // Only redirect if it's an unauthorized API call (not login/register itself)
-    if (error.response?.status === 401 && !error.config.url.includes('/auth/login')) {
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
+    }
+    if (error.response?.status === 429) {
+      error.response.data.message = `Too many requests. Try again in ${Math.ceil(Number(error.response.headers['retry-after'] || 60) / 60)} minute(s).`;
     }
     return Promise.reject(error);
   }
@@ -32,6 +38,7 @@ export default API;
 export const authAPI = {
   register: (data) => API.post('/auth/register', data),
   login: (data) => API.post('/auth/login', data),
+  logout: () => API.post('/auth/logout'),
   getMe: () => API.get('/auth/me'),
   updateProfile: (data) => API.put('/auth/updateprofile', data),
 };
@@ -40,6 +47,7 @@ export const authAPI = {
 export const equipmentAPI = {
   getAll: (params) => API.get('/equipment', { params }),
   getById: (id) => API.get(`/equipment/${id}`),
+  getRoute: (id, params) => API.get(`/equipment/${id}/route`, { params }),
   create: (data) => API.post('/equipment', data),
   update: (id, data) => API.put(`/equipment/${id}`, data),
   delete: (id) => API.delete(`/equipment/${id}`),
@@ -62,7 +70,8 @@ export const bookingAPI = {
   getMyBookings: (params) => API.get('/bookings/my', { params }),
   getProviderBookings: () => API.get('/bookings/provider'),
   getById: (id) => API.get(`/bookings/${id}`),
-  updateStatus: (id, status) => API.put(`/bookings/${id}/status`, { status }),
+  updateStatus: (id, status, extra = {}) => API.put(`/bookings/${id}/status`, { status, ...(typeof extra === 'string' ? { cancellationReason: extra } : extra) }),
+  dismissAlert: (id) => API.put(`/bookings/${id}/dismiss-alert`),
 };
 
 // Requirements

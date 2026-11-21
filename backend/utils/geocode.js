@@ -36,6 +36,7 @@ const KARNATAKA_DISTRICT_COORDS = {
   'Tumakuru':           { lat: 13.3379, lng: 77.1173 },
   'Udupi':              { lat: 13.3409, lng: 74.7421 },
   'Uttara Kannada':     { lat: 14.7937, lng: 74.4892 },
+  'Vijayanagara':       { lat: 15.2715, lng: 76.3888 },
   'Vijayapura':         { lat: 16.8302, lng: 75.7100 },
   'Yadgir':             { lat: 16.7606, lng: 77.1381 },
 };

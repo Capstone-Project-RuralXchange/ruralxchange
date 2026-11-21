@@ -9,33 +9,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (token) {
-      if (savedUser) setUser(JSON.parse(savedUser));
-      authAPI.getMe()
-        .then(res => {
-          const u = res.data?.user || res.data?.data || res.data;
-          setUser(u);
-          localStorage.setItem('user', JSON.stringify(u));
-        })
-        .catch(() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    // Remove legacy persistent tokens. Sessions now live in httpOnly cookies.
+    localStorage.removeItem('token'); localStorage.removeItem('user');
+    authAPI.getMe().then(res => setUser(res.data.user)).catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
   const login = async (phone, password) => {
     try {
       const res = await authAPI.login({ phone, password });
-      const { token, user: userData } = res.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
+      const { user: userData } = res.data;
       setUser(userData);
       toast.success(`Welcome back, ${userData?.name?.split(' ')[0] || 'User'}! 🌾`);
       return { success: true };
@@ -47,9 +30,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (formData) => {
     try {
       const res = await authAPI.register(formData);
-      const { token, user: userData } = res.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
+      const { user: userData } = res.data;
       setUser(userData);
       toast.success(`Welcome to RuralXchange, ${userData?.name?.split(' ')[0] || 'User'}! 🎉`);
       return { success: true };
@@ -58,7 +39,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await authAPI.logout();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
@@ -67,7 +49,6 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   return (

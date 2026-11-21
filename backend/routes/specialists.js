@@ -1,13 +1,37 @@
 const express = require('express');
 const router = express.Router();
+router.param('id', require('../middleware/requestValidation').identifier);
+router.use(require('../middleware/requestValidation').query);
 const Specialist = require('../models/Specialist');
 const { protect, authorize } = require('../middleware/auth');
+const { pick, specialistFields } = require('../middleware/listingFields');
 const { geocodeWithFallback } = require('../utils/geocode');
+
+// Escape user input before using it in a MongoDB $regex
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Skill-level tiers derived from specialization (mirrors frontend SPECIALIST_TYPES)
+const TIER_SPECIALIZATIONS = {
+  professional: ['agronomist', 'civil_engineer', 'electrical_engineer', 'animal_health_worker'],
+  skilled: ['tractor_driver', 'harvester_operator', 'electrician', 'mason', 'plumber', 'pump_mechanic', 'welder', 'carpenter', 'painter', 'refrigeration_technician'],
+  labour: ['general_laborer']
+};
 
 // @GET /api/specialists - Get all with filters + distance sorting
 router.get('/', async (req, res) => {
   try {
-    const { district, specialization, status, lat, lng, page = 1, limit = 12 } = req.query;
+    const { district, specialization, status, tier, search, q, lat, lng, page = 1, limit = 12 } = req.query;
+    const searchTerm = (search || q || '').trim();
+
+    const searchCondition = searchTerm ? {
+      $or: [
+        { specialization: { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { skills: { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { bio: { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { 'qualifications.degree': { $regex: escapeRegex(searchTerm), $options: 'i' } },
+        { 'qualifications.institution': { $regex: escapeRegex(searchTerm), $options: 'i' } }
+      ]
+    } : null;
 
     // If seeker provides coordinates, use $geoNear for distance-sorted results
     if (lat && lng) {
@@ -18,7 +42,11 @@ router.get('/', async (req, res) => {
         const matchStage = { isActive: true };
         if (district) matchStage.district = district;
         if (specialization) matchStage.specialization = specialization;
+        else if (tier && TIER_SPECIALIZATIONS[tier]) matchStage.specialization = { $in: TIER_SPECIALIZATIONS[tier] };
         if (status) matchStage.availabilityStatus = status;
+        if (searchCondition) {
+          matchStage.$or = searchCondition.$or;
+        }
 
         const skip = (page - 1) * limit;
         const pipeline = [
@@ -47,7 +75,7 @@ router.get('/', async (req, res) => {
 
         const populated = await Specialist.populate(data, {
           path: 'user',
-          select: 'name phone district rating isVerified avatar'
+          select: 'name district rating isVerified avatar'
         });
 
         return res.json({
@@ -64,12 +92,16 @@ router.get('/', async (req, res) => {
     const query = { isActive: true };
     if (district) query.district = district;
     if (specialization) query.specialization = specialization;
+    else if (tier && TIER_SPECIALIZATIONS[tier]) query.specialization = { $in: TIER_SPECIALIZATIONS[tier] };
     if (status) query.availabilityStatus = status;
+    if (searchCondition) {
+      query.$or = searchCondition.$or;
+    }
 
     const skip = (page - 1) * limit;
     const [specialists, total] = await Promise.all([
       Specialist.find(query)
-        .populate('user', 'name phone district rating isVerified avatar')
+        .populate('user', 'name district rating isVerified avatar')
         .sort({ 'rating.average': -1, isVerified: -1 })
         .skip(skip)
         .limit(Number(limit)),
@@ -77,7 +109,18 @@ router.get('/', async (req, res) => {
     ]);
     res.json({ success: true, count: specialists.length, total, pages: Math.ceil(total / limit), data: specialists });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
+  }
+});
+
+// Get my specialist profile
+router.get('/me/profile', protect, async (req, res) => {
+  try {
+    const specialist = await Specialist.findOne({ user: req.user.id });
+    if (!specialist) return res.status(404).json({ success: false, message: 'No specialist profile found' });
+    res.json({ success: true, data: specialist });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
 
@@ -85,23 +128,46 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const specialist = await Specialist.findById(req.params.id)
-      .populate('user', 'name phone district rating isVerified avatar bio createdAt');
+      .populate('user', 'name district rating isVerified avatar bio createdAt');
     if (!specialist) return res.status(404).json({ success: false, message: 'Specialist not found' });
     res.json({ success: true, data: specialist });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Could not complete request. Please try again.' });
   }
 });
+
+// Helper to sanitize specialist payload
+function sanitizeSpecialistPayload(body) {
+  if (body.specialization && typeof body.specialization === 'string') {
+    let spec = body.specialization.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (spec === 'tractor_operator') spec = 'tractor_driver';
+    if (spec === 'general_labour' || spec === 'general_labor') spec = 'general_laborer';
+    body.specialization = spec;
+  }
+  if (body.availabilityStatus && typeof body.availabilityStatus === 'string') {
+    body.availabilityStatus = body.availabilityStatus.trim().toLowerCase();
+  }
+  if (body.dailyRate != null && body.pricePerDay == null) {
+    body.pricePerDay = Number(body.dailyRate);
+  }
+  if (body.hourlyRate != null && body.pricePerHour == null) {
+    body.pricePerHour = Number(body.hourlyRate);
+  }
+  return body;
+}
 
 // @POST /api/specialists - Create specialist profile (auto-geocode)
 router.post('/', protect, async (req, res) => {
   try {
+    req.body = pick(req.body, specialistFields);
+    if (req.body.availabilityStatus && !['available', 'unavailable'].includes(req.body.availabilityStatus)) return res.status(400).json({ success: false, message: 'Invalid operational availability status' });
     const existingProfile = await Specialist.findOne({ user: req.user.id });
     if (existingProfile) {
       return res.status(400).json({ success: false, message: 'Specialist profile already exists' });
     }
     req.body.user = req.user.id;
     req.body.district = req.body.district || req.user.district;
+    sanitizeSpecialistPayload(req.body);
 
     // Auto-geocode
     const coords = await geocodeWithFallback(req.body.address, req.body.district);
@@ -113,11 +179,11 @@ router.post('/', protect, async (req, res) => {
     }
 
     const specialist = await Specialist.create(req.body);
-    // Update user role
-    await require('../models/User').findByIdAndUpdate(req.user.id, { role: 'specialist' });
+    // Preserve equipment providers and admins; only upgrade seeker onboarding.
+    await require('../models/User').updateOne({ _id: req.user.id, role: 'seeker' }, { role: 'specialist' });
     res.status(201).json({ success: true, data: specialist });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
@@ -129,7 +195,10 @@ router.put('/:id', protect, async (req, res) => {
     if (specialist.user.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+    sanitizeSpecialistPayload(req.body);
 
+    req.body = pick(req.body, specialistFields);
+    if (req.body.availabilityStatus && !['available', 'unavailable'].includes(req.body.availabilityStatus)) return res.status(400).json({ success: false, message: 'Invalid operational availability status' });
     // Re-geocode if address changed
     if (req.body.address && req.body.address !== specialist.address) {
       const coords = await geocodeWithFallback(req.body.address, req.body.district || specialist.district);
@@ -141,22 +210,27 @@ router.put('/:id', protect, async (req, res) => {
       }
     }
 
-    specialist = await Specialist.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Prevent mass assignment by whitelisting editable fields
+    const allowedFields = [
+      'specialization', 'experience', 'skills', 'qualifications', 
+      'dailyRate', 'hourlyRate', 'pricePerDay', 'pricePerHour', 
+      'district', 'state', 'village', 'address', 'location', 
+      'bio', 'availabilityStatus'
+    ];
+    const updateData = {};
+    for (const key of Object.keys(req.body)) {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    }
+
+    specialist = await Specialist.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     res.json({ success: true, data: specialist });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({ success: false, message: err.code === 11000 ? 'This record already exists' : 'Please check required fields and valid values' });
   }
 });
 
-// Get my specialist profile
-router.get('/me/profile', protect, async (req, res) => {
-  try {
-    const specialist = await Specialist.findOne({ user: req.user.id });
-    if (!specialist) return res.status(404).json({ success: false, message: 'No specialist profile found' });
-    res.json({ success: true, data: specialist });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+
 
 module.exports = router;

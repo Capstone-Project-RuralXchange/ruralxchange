@@ -1031,7 +1031,7 @@ const AdminUserManagementPage = () => {
                 {/* Requirements */}
                 <div>
                   <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--soil)', marginBottom: '0.5rem' }}>
-                    📋 Notice Board Posts ({userFullDetails.requirements?.length || 0})
+                    📋 Community Board Posts ({userFullDetails.requirements?.length || 0})
                   </h4>
                   {userFullDetails.requirements?.length === 0 ? (
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No requirements posted.</p>
